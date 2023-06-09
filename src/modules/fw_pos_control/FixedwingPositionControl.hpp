@@ -434,6 +434,9 @@ private:
 	float _min_current_sp_distance_xy{FLT_MAX};
 	float _target_bearing{0.0f}; // [rad]
 
+	// Altitude FOH
+	float max_d_curr_prev{0};
+
 	// Update our local parameter cache.
 	int parameters_update();
 
