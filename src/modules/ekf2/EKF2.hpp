@@ -232,6 +232,10 @@ private:
 	void UpdateGyroCalibration(const hrt_abstime &timestamp);
 	void UpdateMagCalibration(const hrt_abstime &timestamp);
 
+	void CalculateQnhOffsetHgt(float ref_alt);
+
+	float QnhOffsetHgt{0};
+
 	// publish helper for estimator_aid_source topics
 	template <typename T>
 	void PublishAidSourceStatus(const T &status, hrt_abstime &status_publish_last, uORB::PublicationMulti<T> &pub)
