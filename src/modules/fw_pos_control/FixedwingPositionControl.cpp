@@ -1062,11 +1062,11 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 	    ((pos_sp_prev.type == position_setpoint_s::SETPOINT_TYPE_POSITION) ||
 	     (pos_sp_prev.type == position_setpoint_s::SETPOINT_TYPE_LOITER))
 	   ) {
-		const float d_curr_prev = get_distance_to_next_waypoint((double)curr_wp(0), (double)curr_wp(1),
-					  pos_sp_prev.lat, pos_sp_prev.lon);
+		max_d_curr_prev = math::max(get_distance_to_next_waypoint((double)curr_wp(0), (double)curr_wp(1),
+					  _current_latitude, _current_longitude), max_d_curr_prev);
 
 		// Do not try to find a solution if the last waypoint is inside the acceptance radius of the current one
-		if (d_curr_prev > math::max(acc_rad, fabsf(pos_sp_curr.loiter_radius))) {
+		if (max_d_curr_prev > math::max(acc_rad, fabsf(pos_sp_curr.loiter_radius))) {
 			// Calculate distance to current waypoint
 			const float d_curr = get_distance_to_next_waypoint((double)curr_wp(0), (double)curr_wp(1),
 					     _current_latitude, _current_longitude);
@@ -1081,8 +1081,8 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 				// The setpoint is set linearly and such that the system reaches the current altitude at the acceptance
 				// radius around the current waypoint
 				const float delta_alt = (pos_sp_curr.alt - pos_sp_prev.alt);
-				const float grad = -delta_alt / (d_curr_prev - math::max(acc_rad, fabsf(pos_sp_curr.loiter_radius)));
-				const float a = pos_sp_prev.alt - grad * d_curr_prev;
+				const float grad = -delta_alt / (max_d_curr_prev - math::max(acc_rad, fabsf(pos_sp_curr.loiter_radius)));
+				const float a = pos_sp_prev.alt - grad * max_d_curr_prev;
 
 				position_sp_alt = a + grad * _min_current_sp_distance_xy;
 			}
