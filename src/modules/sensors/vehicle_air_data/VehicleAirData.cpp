@@ -301,8 +301,8 @@ float VehicleAirData::PressureToAltitude(float pressure_pa, float temperature) c
 	static constexpr float T1 = 15.f - CONSTANTS_ABSOLUTE_NULL_CELSIUS; // temperature at base height in Kelvin
 	static constexpr float a = -6.5f / 1000.f; // temperature gradient in degrees per metre
 
-	// current pressure at MSL in kPa (QNH in hPa)
-	const float p1 = _param_sens_baro_qnh.get() * 0.1f;
+	// standard pressure at MSL in kPa (QNH in hPa)
+	const float p1 = 100.0f;
 
 	// measured pressure in kPa
 	const float p = pressure_pa * 0.001f;

@@ -1195,7 +1195,7 @@ void EKF2::PublishGlobalPosition(const hrt_abstime &timestamp)
 		// Position of local NED origin in GPS / WGS84 frame
 		_ekf.global_origin().reproject(position(0), position(1), global_pos.lat, global_pos.lon);
 
-		global_pos.alt = -position(2) + _ekf.getEkfGlobalOriginAltitude(); // Altitude AMSL in meters
+		global_pos.alt = -(position(2) - QnhOffsetHgt) + _ekf.getEkfGlobalOriginAltitude(); // Altitude AMSL in meters
 		global_pos.alt_ellipsoid = filter_altitude_ellipsoid(global_pos.alt);
 
 		// delta_alt, alt_reset_counter
@@ -1442,9 +1442,12 @@ void EKF2::PublishLocalPosition(const hrt_abstime &timestamp)
 
 	// Position of body origin in local NED frame
 	const Vector3f position{_ekf.getPosition()};
+
+	CalculateQnhOffsetHgt(position(2));
+
 	lpos.x = position(0);
 	lpos.y = position(1);
-	lpos.z = position(2);
+	lpos.z = position(2) - QnhOffsetHgt;
 
 	// Velocity of body origin in local NED frame (m/s)
 	const Vector3f velocity{_ekf.getVelocity()};
@@ -2583,6 +2586,34 @@ void EKF2::UpdateMagCalibration(const hrt_abstime &timestamp)
 			_mag_decl_saved = true;
 		}
 	}
+}
+
+void EKF2::CalculateQnhOffsetHgt(float ref_alt)
+{
+	//Calculated pressure at current altitude (after filtering the baro output)
+	
+	static constexpr float T1 = 15.f - (CONSTANTS_ABSOLUTE_NULL_CELSIUS); // temperature at base height in Kelvin
+	static constexpr float a = -6.5f / 1000.f; // temperature gradient in degrees per metre
+
+	const float p2 = 100; //100 kpa reference pressure for the standard MSL pressure
+
+	float p = p2 * ((a * powf((T1/a + ref_alt))/T1), (-CONSTANTS_ONE_G/(a * CONSTANTS_AIR_GAS_CONST)));
+	
+	// current pressure at MSL in kPa (QNH in hPa)
+	const float p1 = _param_sens_baro_qnh.get() * 0.1f;
+
+	/*
+	 * Solve:
+	 *
+	 *     /        -(aR / g)     \
+	 *    | (p / p1)          . T1 | - T1
+	 *     \                      /
+	 * h = -------------------------------  + h1
+	 *                   a
+	 */
+	float altitude = (((powf((p / p1), (-(a * CONSTANTS_AIR_GAS_CONST) / CONSTANTS_ONE_G))) * T1) - T1) / a;
+
+	QnhOffsetHgt =  altitude - ref_alt;
 }
 
 int EKF2::custom_command(int argc, char *argv[])
