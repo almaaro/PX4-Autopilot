@@ -270,14 +270,7 @@ float FixedwingRateControl::get_airspeed_and_update_scaling()
 		}
 	}
 
-	/*
-	 * For scaling our actuators using anything less than the stall
-	 * speed doesn't make any sense - its the strongest reasonable deflection we
-	 * want to do in flight and it's the baseline a human pilot would choose.
-	 *
-	 * Forcing the scaling to this value allows reasonable handheld tests.
-	 */
-	const float airspeed_constrained = constrain(constrain(airspeed, _param_fw_airspd_stall.get(),
+	const float airspeed_constrained = constrain(constrain(airspeed, 3.0f,
 					   _param_fw_airspd_max.get()), 0.1f, 1000.0f);
 
 	_airspeed = airspeed_constrained;
