@@ -164,7 +164,7 @@ float FixedwingAttitudeControl::get_airspeed_constrained()
 		}
 	}
 
-	return math::constrain(airspeed, _param_fw_airspd_stall.get(), _param_fw_airspd_max.get());
+	return math::constrain(airspeed, 3.0f, _param_fw_airspd_max.get());
 }
 
 void FixedwingAttitudeControl::Run()
