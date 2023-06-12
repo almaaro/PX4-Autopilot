@@ -684,6 +684,8 @@ private:
 	float adapt_airspeed_setpoint(const float control_interval, float calibrated_airspeed_setpoint,
 				      float calibrated_min_airspeed, const Vector2f &ground_speed);
 
+	void calculate_roll_limit(const float airspeed_min);
+
 	void reset_takeoff_state();
 	void reset_landing_state();
 

@@ -462,6 +462,8 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 	// The load_factor is composed of a term from the bank angle and a term from the weight ratio.
 	calibrated_min_airspeed *= sqrtf(load_factor_from_bank_angle * weight_ratio);
 
+	const float calibrated_min_airspeed_without_wind = calibrated_min_airspeed;
+
 	// Aditional option to increase the min airspeed setpoint based on wind estimate for more stability in higher winds.
 	if (_airspeed_valid && _wind_valid && _param_fw_wind_arsp_sc.get() > FLT_EPSILON) {
 		calibrated_min_airspeed = math::min(calibrated_min_airspeed + _param_fw_wind_arsp_sc.get() *
@@ -483,7 +485,41 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 		calibrated_airspeed_setpoint = _airspeed_slew_rate_controller.update(calibrated_airspeed_setpoint, control_interval);
 	}
 
+	_tecs.set_equivalent_airspeed_min(calibrated_min_airspeed_without_wind);
+
+	// Calculate also the limit for roll angle
+	calculate_roll_limit(calibrated_min_airspeed_without_wind)
+
 	return calibrated_airspeed_setpoint;
+}
+
+void
+FixedwingPositionControl::calculate_roll_limit(const float airspeed_min)
+{
+	/*
+	 * Calculate the maximum roll limit at the current airspeed.
+	 *
+	 *  The aircraft's stall speed increases in turns as the load factor incrases.
+	 *  We don't know the stall speed of the aircraft, but assuming user defined
+	 *  minimum airspeed (FW_AIRSPD_MIN) is slightly larger than stall speed
+	 *  this is close enough.
+	 *
+	 * increase lift vector to balance additional weight in bank
+	 *  cos(bank angle) = W/L = 1/n
+	 *   n is the load factor
+	 *
+	 * lift is proportional to airspeed^2 so the increase in stall speed is
+	 *  Vsacc = Vs * sqrt(n)
+	 *
+	 */
+	if (_airspeed_valid) {
+                float as_ratio = airspeed_min / constrain(_airspeed,
+                                 airspeed_min * 1.05f, _param_fw_airspd_max.get());
+                float roll_limit_adj_rad = constrain(acosf(as_ratio * as_ratio), radians(10.0f), radians(_param_fw_r_lim.get()));
+
+		_npfg.setRollLimit(roll_limit_adj_rad);
+	}
+
 }
 
 void
@@ -1351,7 +1387,6 @@ FixedwingPositionControl::control_auto_takeoff(const hrt_abstime &now, const flo
 
 	if (takeoff_airspeed < _param_fw_airspd_min.get()) {
 		// adjust underspeed detection bounds for takeoff airspeed
-		_tecs.set_equivalent_airspeed_min(takeoff_airspeed);
 		adjusted_min_airspeed = takeoff_airspeed;
 	}
 
@@ -1560,7 +1595,6 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 
 	if (airspeed_land < _param_fw_airspd_min.get()) {
 		// adjust underspeed detection bounds for landing airspeed
-		_tecs.set_equivalent_airspeed_min(airspeed_land);
 		adjusted_min_airspeed = airspeed_land;
 	}
 
