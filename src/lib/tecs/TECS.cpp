@@ -623,7 +623,13 @@ TECSControl::ControlValues TECSControl::_calcPitchControlSebRate(const SpecificE
 	 * rises above the demanded value, the pitch angle demand is increased by the TECS controller to prevent the vehicle overspeeding.
 	 * The weighting can be adjusted between 0 and 2 depending on speed and altitude accuracy requirements.
 	*/
-	seb_rate.setpoint = specific_energy_rates.spe_rate.setpoint * weight.spe_weighting -
+
+	// Because the airspeed is more critical for an airplane than the altitude, limit the _SPE_rate_setpoint
+	// so that the demanded rate in airspeed can be achieved.
+	const STERateLimit limit{_calculateTotalEnergyRateLimit(_control_param)};
+	float SPE_rate_setpoint_adj = math::min(specific_energy_rates.spe_rate.setpoint, limit.STE_rate_max - specific_energy_rates.ske_rate.setpoint);
+	
+	seb_rate.setpoint = SPE_rate_setpoint_adj * weight.spe_weighting -
 			    specific_energy_rates.ske_rate.setpoint *
 			    weight.ske_weighting;
 
