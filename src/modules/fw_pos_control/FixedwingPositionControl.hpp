@@ -92,6 +92,7 @@
 #include <uORB/topics/vehicle_local_position.h>
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
+#include <uORB/topics/battery_status.h>
 #include <uORB/topics/wind.h>
 #include <uORB/topics/orbit_status.h>
 #include <uORB/uORB.h>
@@ -204,6 +205,7 @@ private:
 	uORB::Subscription _vehicle_command_sub{ORB_ID(vehicle_command)};
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
+	uORB::Subscription _battery_status_sub{ORB_ID(battery_status)};
 
 	uORB::Publication<vehicle_attitude_setpoint_s> _attitude_sp_pub;
 	uORB::Publication<vehicle_local_position_setpoint_s> _local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};
@@ -223,6 +225,7 @@ private:
 	vehicle_control_mode_s _control_mode{};
 	vehicle_local_position_s _local_pos{};
 	vehicle_status_s _vehicle_status{};
+	battery_status_s _battery_status{};
 
 	bool _position_setpoint_previous_valid{false};
 	bool _position_setpoint_current_valid{false};
@@ -441,6 +444,7 @@ private:
 	void vehicle_control_mode_poll();
 	void vehicle_status_poll();
 	void wind_poll();
+	void battery_status_poll();
 
 	void status_publish();
 	void landing_status_publish();
@@ -894,6 +898,8 @@ private:
 		(ParamFloat<px4::params::FW_T_RLL2THR>) _param_fw_t_rll2thr,
 		(ParamFloat<px4::params::FW_T_SINK_MAX>) _param_fw_t_sink_max,
 		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min,
+
+		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_flaps,
 		(ParamFloat<px4::params::FW_T_SPDWEIGHT>) _param_fw_t_spdweight,
 		(ParamFloat<px4::params::FW_T_TAS_TC>) _param_fw_t_tas_error_tc,
 		(ParamFloat<px4::params::FW_T_THR_DAMP>) _param_fw_t_thr_damp,
@@ -905,6 +911,28 @@ private:
 		(ParamFloat<px4::params::FW_T_SPD_STD>) _param_speed_standard_dev,
 		(ParamFloat<px4::params::FW_T_SPD_DEV_STD>) _param_speed_rate_standard_dev,
 		(ParamFloat<px4::params::FW_T_SPD_PRC_STD>) _param_process_noise_standard_dev,
+		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_fw_t_ref_rho,
+		(ParamInt<px4::params::FW_T_PROP_TYPE>) _param_fw_t_propulsion_type,
+		(ParamBool<px4::params::FW_T_DYN_THR>) _param_fw_t_use_dynamic_throttle_calculation,
+		(ParamFloat<px4::params::FW_T_E_MOT_KV>) _param_fw_t_electric_motor_Kv,
+		(ParamFloat<px4::params::FW_T_E_MOT_R>) _param_fw_t_electric_motor_R,
+
+		(ParamFloat<px4::params::FW_T_PRO_MIN_A>) _param_fw_t_propulsion_a_min_tas,
+		(ParamFloat<px4::params::FW_T_PRO_MIN_B>) _param_fw_t_propulsion_b_min_tas,
+		(ParamFloat<px4::params::FW_T_PRO_MIN_C>) _param_fw_t_propulsion_c_min_tas,
+		(ParamFloat<px4::params::FW_T_PRO_TRIM_A>) _param_fw_t_propulsion_a_trim_tas,
+		(ParamFloat<px4::params::FW_T_PRO_TRIM_B>) _param_fw_t_propulsion_b_trim_tas,
+		(ParamFloat<px4::params::FW_T_PRO_TRIM_C>) _param_fw_t_propulsion_c_trim_tas,
+		(ParamFloat<px4::params::FW_T_PRO_MAX_A>) _param_fw_t_propulsion_a_max_tas,
+		(ParamFloat<px4::params::FW_T_PRO_MAX_B>) _param_fw_t_propulsion_b_max_tas,
+		(ParamFloat<px4::params::FW_T_PRO_MAX_C>) _param_fw_t_propulsion_c_max_tas,
+
+		(ParamFloat<px4::params::FW_T_F_LIM_MIN>) _param_fw_t_max_thrust_min_tas,
+		(ParamFloat<px4::params::FW_T_F_LIM_TRIM>) _param_fw_t_max_thrust_trim_tas,
+		(ParamFloat<px4::params::FW_T_F_LIM_MAX>) _param_fw_t_max_thrust_max_tas,
+
+		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
+		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,
 
 		(ParamFloat<px4::params::FW_THR_ASPD_MIN>) _param_fw_thr_aspd_min,
 		(ParamFloat<px4::params::FW_THR_ASPD_MAX>) _param_fw_thr_aspd_max,
@@ -924,7 +952,6 @@ private:
 
 		(ParamInt<px4::params::FW_GPSF_LT>) _param_nav_gpsf_lt,
 		(ParamFloat<px4::params::FW_GPSF_R>) _param_nav_gpsf_r,
-
 		// external parameters
 		(ParamInt<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
 
@@ -941,6 +968,7 @@ private:
 
 		(ParamFloat<px4::params::FW_WING_SPAN>) _param_fw_wing_span,
 		(ParamFloat<px4::params::FW_WING_HEIGHT>) _param_fw_wing_height,
+		(ParamFloat<px4::params::FW_WING_EFF>) _param_fw_wing_efficiency_factor,
 
 		(ParamFloat<px4::params::RWTO_NPFG_PERIOD>) _param_rwto_npfg_period,
 		(ParamBool<px4::params::RWTO_NUDGE>) _param_rwto_nudge,

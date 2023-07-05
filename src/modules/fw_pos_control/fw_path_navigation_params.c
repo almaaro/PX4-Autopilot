@@ -461,12 +461,14 @@ PARAM_DEFINE_FLOAT(FW_LND_THRTC_SC, 1.0f);
  */
 
 /**
- * Maximum climb rate
+ * Maximum climb rate at trim airspeed
  *
  * This is the maximum climb rate that the aircraft can achieve with
  * the throttle set to THR_MAX and the airspeed set to the
  * trim value. For electric aircraft make sure this number can be
  * achieved towards the end of flight when the battery voltage has reduced.
+ * 
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -478,11 +480,12 @@ PARAM_DEFINE_FLOAT(FW_LND_THRTC_SC, 1.0f);
 PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
 
 /**
- * Minimum descent rate
+ * Minimum descent rate at trim airspeed
  *
  * This is the sink rate of the aircraft with the throttle
- * set to THR_MIN and flown at the same airspeed as used
- * to measure FW_T_CLMB_MAX.
+ * set to THR_MIN and flown at trim airspeed (and ideally with zero thrust/drag from the spinning propeller).
+ * 
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -493,6 +496,25 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
 
+
+
+/**
+ * Minimum descent rate at trim airspeed with full flaps
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at trim airspeed (and ideally with zero thrust/drag from the spinning propeller).
+ * 
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
+
 /**
  * Maximum descent rate
  *
@@ -501,6 +523,8 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
  * This should be set to a value that can be achieved without
  * exceeding the lower pitch angle limit and without over-speeding
  * the aircraft.
+ * 
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -510,6 +534,19 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_MAX, 5.0f);
+
+/**
+ * Propulsion type (used for air density compensation and thrust curve determination)
+ * 
+ * @min -1
+ * @max 2
+ * @value -1 Use simple throttle calculation with direct throttle mapping at trim airspeed. Disable FW_BAT_SCALE_EN.
+ * @value 0 Electric motor with propeller or ducted fan
+ * @value 1 Internal combustion engine with propeller
+ * @value 2 Jet engine
+ * @group FW TECS
+*/
+PARAM_DEFINE_INT32(FW_T_PROP_TYPE, 0);
 
 /**
  * Throttle damping factor
@@ -797,6 +834,183 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 
 /**
+ * TECS reference air density
+ * 
+ * This is the air density at the time and place of measuring the tecs parameters 
+ * (climb min/max, trim throttle etc)
+ * 
+ * @unit Pa
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO, 1.225f);
+
+
+/**
+ * Use dynamic airspeed and air density dependent thottle calculation
+ * 
+ * Currently only works with electric motor with propeller / ducted fan.
+ * 
+ * Be sure to also set the wingspan, gross weight, electric motor constants and thrust parameters
+ * 
+ * @boolean
+ * @group FW TECS
+*/
+PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
+
+/**
+ * Electric motor Kv
+ * 
+ * Can be defined by measuring the voltage across the motor, the rpm and current with 2 different loads with the same throttle setting.
+ * The points will define a line in (I, rpm) coordinates where R is the slope and the rpm @ I = 0 divided by U is Kv. 
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_E_MOT_KV, 1.f);
+
+/**
+ * Electric motor internal resistance R
+ * 
+ * Can be defined by measuring the voltage across the motor, the rpm and current with 2 different loads with the same throttle setting.
+ * The points will define a line in (I, rpm) coordinates where R is the slope and the rpm @ I = 0 divided by U is Kv. 
+ * 
+ * @unit ohm
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_E_MOT_R, 1.f);
+
+/**
+ * Propeller thrust parameter "a" at minimum CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+ * 
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_A, 0.f);
+
+/**
+ * Propeller thrust parameter "b" at minimum airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_B, 0.f);
+
+/**
+ * Propeller thrust parameter "c" at minimum airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_C, 0.f);
+
+/**
+ * Propeller thrust parameter "a" at trim airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_A, 0.f);
+
+/**
+ * Propeller thrust parameter "b" at trim airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_B, 0.f);
+
+/**
+ * Propeller thrust parameter "c" at trim airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_C, 0.f);
+
+/**
+ * Propeller thrust parameter "a" at max airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_A, 0.f);
+
+/**
+ * Propeller thrust parameter "b" at max airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_B, 0.f);
+
+/**
+ * Propeller thrust parameter "c" at max airspeed CAS at the reference air density
+ * 
+ * RPM = a * F ^ (b) + c
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_C, 0.f);
+
+/**
+ * Propeller max thrust at min airspeed CAS at the reference air density at max throttle at reference air density
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LIM_MIN, 0.f);
+
+/**
+ * Propeller max thrust at trim airspeed CAS at the reference air density at max throttle at reference air density
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LIM_TRIM, 0.f);
+
+/**
+ * Propeller max thrust at max airspeed CAS at the reference air density at max throttle at reference air density
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LIM_MAX, 0.f);
+
+/**
+ * Propeller diameter
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
+
+/**
+ * Scaling factor for the propeller airstream velocity at stabilizers
+ *
+ * How much the airstream from the propeller effects the stabilizers trim.
+ * If set to 100%, the airspeed at the stabilizers is assumed equal to the
+ * airspeed right behind the propeller. If 0%, the air stream from the propeller
+ * is not hitting the stabilizers at all
+ * 
+ * Only applicable it the vehicle is propeller driven and FW_T_PPLR_DIA is set.
+ *
+ * @group FW TECS
+ * @unit norm
+ * @min 0
+ * @max 1
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_T_PPLR_SCL, 0.f);
+
+/**
  * GPS failure loiter time
  *
  * The time in seconds the system should do open loop loiter and wait for GPS recovery
@@ -877,6 +1091,17 @@ PARAM_DEFINE_FLOAT(FW_WING_SPAN, 3.0);
  * @group FW Geometry
  */
 PARAM_DEFINE_FLOAT(FW_WING_HEIGHT, 0.5);
+
+/**
+ * The aircraft's wing efficiency factor.
+ *
+ * @unit 
+ * @min 0.1
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Geometry
+ */
+PARAM_DEFINE_FLOAT(FW_WING_EFF, 0.85);
 
 /**
  * Landing flare time
@@ -1067,7 +1292,7 @@ PARAM_DEFINE_FLOAT(FW_SPOILERS_DESC, 0.f);
 /**
  * Throttle at min airspeed
  *
- * Required throttle for level flight at minimum airspeed FW_AIRSPD_MIN (sea level, standard atmosphere)
+ * Required throttle for level flight at minimum airspeed FW_AIRSPD_MIN (set at tecs reference air density FW_T_REF_RHO)
  *
  * Set to 0 to disable mapping of airspeed to trim throttle below FW_AIRSPD_TRIM.
  *
@@ -1082,7 +1307,7 @@ PARAM_DEFINE_FLOAT(FW_THR_ASPD_MIN, 0.f);
 /**
  * Throttle at max airspeed
  *
- * Required throttle for level flight at maximum airspeed FW_AIRSPD_MAX (sea level, standard atmosphere)
+ * Required throttle for level flight at maximum airspeed FW_AIRSPD_MAX (set at tecs reference air density FW_T_REF_RHO)
  *
  * Set to 0 to disable mapping of airspeed to trim throttle.
  *
@@ -1093,3 +1318,19 @@ PARAM_DEFINE_FLOAT(FW_THR_ASPD_MIN, 0.f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_THR_ASPD_MAX, 0.f);
+
+/**
+ * Throttle at land airspeed with full flaps
+ *
+ * Required throttle for level flight at land airspeed FW_LND_AIRSPD (set at tecs reference air density FW_T_REF_RHO)
+ * if FW_LND_AIRSPD is not set, uses FW_AIRSPD_MIN
+ *
+ * Set to 0 to disable mapping of airspeed to trim throttle with flaps.
+ *
+ * @min 0
+ * @max 1
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_THR_FLAPS, 0.f);
