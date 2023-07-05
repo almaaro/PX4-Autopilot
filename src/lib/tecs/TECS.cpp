@@ -233,18 +233,18 @@ void TECSControl::initialize(const Setpoint &setpoint, const Input &input, Param
 
 	_pitch_setpoint = _calcPitchControlOutput(input, seb_rate, param, flag);
 
-	const STERateLimit limit{_calculateTotalEnergyRateLimit(param)};
+	const STERateLimit limit{_calculateTotalEnergyRateLimit(input, param)};
 
 	_ste_rate_estimate_filter.reset(specific_energy_rate.spe_rate.estimate + specific_energy_rate.ske_rate.estimate);
 
 	ControlValues ste_rate{_calcThrottleControlSteRate(limit, specific_energy_rate, param)};
 
-	_throttle_setpoint = _calcThrottleControlOutput(limit, ste_rate, param, flag);
+	_throttle_setpoint = _calcThrottleControlOutput(limit, ste_rate, param, input, flag);
 
 	// Debug output
 	_debug_output.total_energy_rate_estimate = ste_rate.estimate;
 	_debug_output.total_energy_rate_sp = ste_rate.setpoint;
-	_debug_output.throttle_integrator = _throttle_integ_state;
+	_debug_output.throttle_integrator = _STE_rate_integ_state;
 	_debug_output.energy_balance_rate_estimate = seb_rate.estimate;
 	_debug_output.energy_balance_rate_sp = seb_rate.setpoint;
 	_debug_output.pitch_integrator = _pitch_integ_state;
@@ -280,38 +280,144 @@ void TECSControl::update(const float dt, const Setpoint &setpoint, const Input &
 
 	_calcPitchControl(dt, input, specific_energy_rate, param, flag);
 
-	_calcThrottleControl(dt, specific_energy_rate, param, flag);
+	_calcThrottleControl(dt, specific_energy_rate, input, param, flag);
 
 	_debug_output.altitude_rate_control = control_setpoint.altitude_rate_setpoint;
 	_debug_output.true_airspeed_derivative_control = control_setpoint.tas_rate_setpoint;
 	_debug_output.pitch_integrator = _pitch_integ_state;
-	_debug_output.throttle_integrator = _throttle_integ_state;
+	_debug_output.throttle_integrator = _STE_rate_integ_state;
 }
 
-TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Param &param) const
+TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Input &input, const Param &param) const
 {
 	TECSControl::STERateLimit limit;
-	// Calculate the specific total energy rate limits from the max throttle limits
-	limit.STE_rate_max = math::max(param.max_climb_rate, FLT_EPSILON) * CONSTANTS_ONE_G;
-	limit.STE_rate_min = - math::max(param.min_sink_rate, FLT_EPSILON) * CONSTANTS_ONE_G;
 
+	// Calculate the specific total energy upper rate limits from the max throttle climb rate
+	const float rate_max = math::max(param.max_climb_rate, FLT_EPSILON) * CONSTANTS_ONE_G;;
+
+	// Calculate the specific total energy lower rate limits from the min throttle sink rate
+	const float rate_min = - math::max(param.min_sink_rate, FLT_EPSILON) * CONSTANTS_ONE_G;
+
+	const float rate_min_flaps = - (input.flaps_setpoint * math::max(param.min_sink_rate_flaps, FLT_EPSILON) + (1.0f - input.flaps_setpoint) * math::max(param.min_sink_rate, FLT_EPSILON)) * CONSTANTS_ONE_G;
+
+	if (param.use_dynamic_throttle_calculation && !(_param.weight_gross < 0.01f || _param.wingspan < 0.01f || _param.equivalent_airspeed_trim > 0.95f * _equivalent_airspeed_max)) {
+
+
+		/* Airspeed-dependent drag coefficients */
+
+		// The additional normal load factor is given by 1/cos(bank angle) = load_factor
+		const float lift = _param.weight_gross * CONSTANTS_ONE_G * constrain(param.load_factor, 0.1f, 1.f);
+
+		// _Cd_i_specific: Vehicle specific induced drag coefficient, which equals to 1/2*S*rho*Cd_i
+		float cd_i_specific = lift * lift / (0.5f * M_PI_F * _param.reference_air_density * param.wingspan * param.wingspan * param.wing_efficiency);
+
+		// _Cd_o_specific: Vehicle specific parasitic drag coefficient, which equals to 1/2*A*rho*Cd_o
+		// Cd_o_specific: subtracting induced drag from total drag at a known airspeed to calculate parasitic drag
+		float cd_o_specific = (-rate_min_flaps - cd_i_specific / _param.equivalent_airspeed_trim  / _param.equivalent_airspeed_trim * param.tas_trim) /
+				(param.equivalent_airspeed_trim * param.equivalent_airspeed_trim * param.tas_trim);
+
+		//normalize for standard air density
+		cd_i_specific = cd_i_specific * _param.reference_air_density / CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C;
+		cd_o_specific = cd_o_specific * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param.reference_air_density;
+
+		
+		// _STE_rate_min equals to the sum of parasitic and induced drag power.
+		// Drag force = _Cd_i / _EAS /_EAS + _Cd_o_specific * _EAS *_EAS;
+		// Drag power = Drag force * _tas_state
+
+		//apply air density corrections
+		cd_i_specific = cd_i_specific * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / input.air_density;
+		cd_o_specific = cd_o_specific * input.air_density / CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C;
+
+		float eas_sq = constrain(input.tas / input.eas_to_tas * input.tas / input.eas_to_tas, _equivalent_airspeed_min * _equivalent_airspeed_min, _equivalent_airspeed_max * _equivalent_airspeed_max);
+		limit.STE_rate_min = - (cd_i_specific / eas_sq + cd_o_specific * eas_sq) * input.tas / param.weight_gross;
+
+		float max_thrust = 0.f;
+		
+		//currently only supports electric motor with propeller / ducted fan, as this function assumes that the motor max rpm doesn't change as the load decreases.
+		//However, it is not said that this would't be the case with ICE or jet engine. It just hasn't been researched yet. 
+		if(param.propulsion_type == 0){
+			max_thrust = _calcMaxThrustElectricPropeller(input, param);
+		}
+		else{
+			goto default_STE_rate_limit_calculation
+		}
+
+		limit.STE_rate_max = limit.STE_rate_min + max_thrust * input.tas / _param.weight_gross;
+		param.dynamic_thr_calc_initialized = true;
+
+	}
+	else {
+		default_STE_rate_limit_calculation:
+		// Calculate the specific total energy rate limits from the max throttle limits
+		limit.STE_rate_max = rate_max;
+		limit.STE_rate_min = rate_min;
+
+		param.dynamic_thr_calc_initialized = false;
+
+	}
+	
 	return limit;
 }
+
+float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Param &param) const
+{
+	float max_thrust = 0;
+	if(input.tas > param.tas_trim){
+		float scaler = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
+		max_thrust = scaler * (param.max_thrust_max_tas - param.max_thrust_trim_tas) + param.max_thrust_trim_tas;
+	}
+	else {
+		float scaler = constrain((param.tas_trim_ref - input.tas) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
+		max_thrust = scaler * (param.max_thrust_trim_tas - param.max_thrust_min_tas) + param.max_thrust_min_tas;
+	}
+
+	// Apply air density correction. Assume that the other parameters stay unchanged. Assume that the RPM doesn't increase as the 
+	// air density reduces (solving the exact rpm would probably require a differential equation)
+	// The equations: P =cp*rho*D^5*n^3, n=Kv*(sqrt(P*R)-U) -> U= n/Kv- sqrt(P*R) = n/Kv- sqrt(R*cp*rho*D^5*n^3) = n/kV-sqrt(R*cp*rho*D^5)*n^(3/2)
+	// Solve for n2/n1(rho1, rho2, cp1, cp2) for U1 = U2 (It could be assumed that cp1 = cp2)
+	// F2/F1 is proportional to rho2/rho1 * (n2/n1)^2
+
+	max_thrust = max_thrust * input.air_density / _control_param.ref_air_density;
+}
+
+
+float TECSControl::_calcPropellerRPM(const float desired_thrust, const Input &input, const Param &param) const
+{
+	float a_adj, b_adj, c_adj;
+	if(input.tas > _control_param.tas_trim){
+		float scaler = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
+		a_adj = scaler * (param.a_max_tas - param.a_trim_tas) + param.a_trim_tas;
+		b_adj = scaler * (param.b_max_tas - param.b_trim_tas) + param.b_trim_tas;
+		c_adj = scaler * (param.c_max_tas - param.c_trim_tas) + param.c_trim_tas;
+	}
+	else {
+		float scaler = constrain((param.tas_trim_ref - input.tas) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
+		a_adj = scaler * (param.a_trim_tas - param.a_min_tas) + param.a_min_tas;
+		b_adj = scaler * (param.b_trim_tas - param.b_min_tas) + param.b_min_tas;
+		c_adj = scaler * (param.c_trim_tas - param.c_min_tas) + param.c_min_tas;
+	}
+
+	float rpm = a_adj * pow(desired_thrust, b_adj) + c_adj;
+
+	return rpm;
+}
+
 
 float TECSControl::_calcAirspeedControlOutput(const Setpoint &setpoint, const Input &input, const Param &param,
 		const Flag &flag) const
 {
 	float airspeed_rate_output{0.0f};
 
-	const STERateLimit limit{_calculateTotalEnergyRateLimit(param)};
+	const STERateLimit limit{_calculateTotalEnergyRateLimit(input, param)};
 
 	// calculate the demanded true airspeed rate of change based on first order response of true airspeed error
 	// if airspeed measurement is not enabled then always set the rate setpoint to zero in order to avoid constant rate setpoints
 	if (flag.airspeed_enabled) {
 		// Calculate limits for the demanded rate of change of speed based on physical performance limits
 		// with a 50% margin to allow the total energy controller to correct for errors.
-		const float max_tas_rate_sp = 0.5f * limit.STE_rate_max / math::max(input.tas, FLT_EPSILON);
-		const float min_tas_rate_sp = 0.5f * limit.STE_rate_min / math::max(input.tas, FLT_EPSILON);
+		const float max_tas_rate_sp = limit.STE_rate_max / math::max(input.tas, FLT_EPSILON);
+		const float min_tas_rate_sp = limit.STE_rate_min / math::max(input.tas, FLT_EPSILON);
 		airspeed_rate_output = constrain((setpoint.tas_setpoint - input.tas) * param.airspeed_error_gain, min_tas_rate_sp,
 						 max_tas_rate_sp);
 	}
@@ -486,10 +592,10 @@ float TECSControl::_calcPitchControlOutput(const Input &input, const ControlValu
 	return constrain(pitch_setpoint_unc, param.pitch_min, param.pitch_max);
 }
 
-void TECSControl::_calcThrottleControl(float dt, const SpecificEnergyRates &specific_energy_rates, const Param &param,
+void TECSControl::_calcThrottleControl(float dt, const SpecificEnergyRates &specific_energy_rates, const Input &input, const Param &param,
 				       const Flag &flag)
 {
-	const STERateLimit limit{_calculateTotalEnergyRateLimit(param)};
+	const STERateLimit limit{_calculateTotalEnergyRateLimit(input, param)};
 
 	// Update STE rate estimate LP filter
 	const float STE_rate_estimate_raw = specific_energy_rates.spe_rate.estimate + specific_energy_rates.ske_rate.estimate;
@@ -498,7 +604,7 @@ void TECSControl::_calcThrottleControl(float dt, const SpecificEnergyRates &spec
 
 	ControlValues ste_rate{_calcThrottleControlSteRate(limit, specific_energy_rates, param)};
 	_calcThrottleControlUpdate(dt, limit, ste_rate, param, flag);
-	float throttle_setpoint{_calcThrottleControlOutput(limit, ste_rate, param, flag)};
+	float throttle_setpoint{_calcThrottleControlOutput(limit, ste_rate, input, param, flag)};
 
 	// Rate limit the throttle demand
 	if (fabsf(param.throttle_slewrate) > FLT_EPSILON) {
@@ -512,7 +618,7 @@ void TECSControl::_calcThrottleControl(float dt, const SpecificEnergyRates &spec
 	// Debug output
 	_debug_output.total_energy_rate_estimate = ste_rate.estimate;
 	_debug_output.total_energy_rate_sp = ste_rate.setpoint;
-	_debug_output.throttle_integrator = _throttle_integ_state;
+	_debug_output.throttle_integrator = _STE_rate_integ_state;
 }
 
 TECSControl::ControlValues TECSControl::_calcThrottleControlSteRate(const STERateLimit &limit,
@@ -521,14 +627,23 @@ TECSControl::ControlValues TECSControl::_calcThrottleControlSteRate(const STERat
 {
 	// Output ste rate values
 	ControlValues ste_rate;
+
+	const SpecificEnergyWeighting weight{_updateSpeedAltitudeWeights(_control_param, _control_flag)};
+	
+	// The STE rate setpoint must now be constrained so that we will never end up in a situation where
+	// the total energy is OK, but the airspeed is dangerously low because we have too much potential energy.
+	// This is prevented by first bleeding off any excess potential energy into kinetic energy and then reducing the excess
+	// airspeed. However, if the pitch is controlling also the airspeed, the risk of this underspeeding is reduced.
+	float STE_rate_min_adj = (0.5f * weight.ske_weighting) * limit.STE_rate_min + (1.0f - 0.5f * weight.ske_weighting) * specific_energy_rates.ske_rate.setpoint;
+
+	//Also adjust the safety margin to the current airspeed. Full effect at min airspeed, no effect at trim airspeed.
+	float scaler = constrain((_airspeed_state.speed - _equivalent_airspeed_min) / (max(0.1f, _control_param.equivalent_airspeed_trim - _equivalent_airspeed_min)), 0.0f, 1.0f);
+	STE_rate_min_adj = (1.0f - scaler) * STE_rate_min_adj + scaler * limit.STE_rate_min;
+
+	
 	ste_rate.setpoint = specific_energy_rates.spe_rate.setpoint + specific_energy_rates.ske_rate.setpoint;
 
-	// Adjust the demanded total energy rate to compensate for induced drag rise in turns.
-	// Assume induced drag scales linearly with normal load factor.
-	// The additional normal load factor is given by (1/cos(bank angle) - 1)
-	ste_rate.setpoint += param.load_factor_correction * (param.load_factor - 1.f);
-
-	ste_rate.setpoint = constrain(ste_rate.setpoint, limit.STE_rate_min, limit.STE_rate_max);
+	ste_rate.setpoint = constrain(ste_rate.setpoint, STE_rate_min_adj, limit.STE_rate_max);
 	ste_rate.estimate = _ste_rate_estimate_filter.getState();
 
 	return ste_rate;
@@ -537,82 +652,98 @@ TECSControl::ControlValues TECSControl::_calcThrottleControlSteRate(const STERat
 void TECSControl::_calcThrottleControlUpdate(float dt, const STERateLimit &limit, const ControlValues &ste_rate,
 		const Param &param, const Flag &flag)
 {
-	// Calculate gain scaler from specific energy rate error to throttle
-	const float STE_rate_to_throttle = 1.0f / (limit.STE_rate_max - limit.STE_rate_min);
 
 	// Integral handling
 	if (flag.airspeed_enabled) {
 		if (param.integrator_gain_throttle > FLT_EPSILON) {
 			// underspeed conditions zero out integration
-			float throttle_integ_input = (_getControlError(ste_rate) * param.integrator_gain_throttle) * dt *
-						     STE_rate_to_throttle * (1.0f - _ratio_undersped);
+			_STE_rate_integ_state = _STE_rate_integ_state + (_getControlError(ste_rate) * param.integrator_gain_throttle) * dt *
+						     (1.0f - _ratio_undersped);
 
-			// only allow integrator propagation into direction which unsaturates throttle
-			if (_throttle_setpoint >= param.throttle_max) {
-				throttle_integ_input = math::min(0.f, throttle_integ_input);
-
-			} else if (_throttle_setpoint <= param.throttle_min) {
-				throttle_integ_input = math::max(0.f, throttle_integ_input);
-			}
-
-			// Calculate a throttle demand from the integrated total energy rate error
-			// This will be added to the total throttle demand to compensate for steady state errors
-			_throttle_integ_state = _throttle_integ_state + throttle_integ_input;
-
+			const float integ_state_max = limit.STE_rate_max - ste_rate.setpoint;
+			const float integ_state_min = limit.STE_rate_min - ste_rate.setpoint;
+			
+			_STE_rate_integ_state = constrain(_STE_rate_integ_state, integ_state_min, integ_state_max);
 		} else {
-			_throttle_integ_state = 0.0f;
+			_STE_rate_integ_state = 0.0f;
 		}
-
 	}
 }
 
 float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const ControlValues &ste_rate,
+		const Input &input,
 		const Param &param,
-		const Flag &flag) const
+		const Flag &flag ) const
 {
-	// Calculate gain scaler from specific energy rate error to throttle
-	const float STE_rate_to_throttle = 1.0f / (limit.STE_rate_max - limit.STE_rate_min);
+	
+	float throttle_setpoint = 0.0f;
+	if (param.dynamic_thr_calc_initialized) {
 
-	// Calculate a predicted throttle from the demanded rate of change of energy, using the cruise throttle
-	// as the starting point. Assume:
-	// Specific total energy rate = _STE_rate_max is achieved when throttle is set to _throttle_setpoint_max
-	// Specific total energy rate = 0 at cruise throttle
-	// Specific total energy rate = _STE_rate_min is achieved when throttle is set to _throttle_setpoint_min
+		// Throttle calculations...
+		if(param.propulsion_type == 0){ // electric motor with propeller / ducted fan
 
-	// assume airspeed and density-independent delta_throttle to sink/climb rate mapping
-	// TODO: include air density for thrust mappings
-	const float throttle_above_trim_per_ste_rate = (param.throttle_max - param.throttle_trim) / limit.STE_rate_max;
-	const float throttle_below_trim_per_ste_rate = (param.throttle_trim - param.throttle_min) / limit.STE_rate_min;
+			float thrust = ste_rate.setpoint / input.tas * param.weight_gross;
 
-	float throttle_predicted = 0.0f;
+			// calculate RPM for the required thrust, corrected for air density (the desired thrust must be higher as the density decreases, as the actual thrust will also decrease)
+			float rpm = _calcPropellerRPM(thrust * _control_param.reference_air_density * input.air_density, input);
 
-	if (ste_rate.setpoint >= FLT_EPSILON) {
-		// throttle is between trim and maximum
-		throttle_predicted = param.throttle_trim_adjusted + ste_rate.setpoint * throttle_above_trim_per_ste_rate;
+			// Open loop RPM control
+			float U = input.electric_motor_current * param.electric_motor_R + rpm / param.electric_motor_Kv;
+			throttle_setpoint = U / input.battery_voltage;
 
-	} else {
-		// throttle is between trim and minimum
-		throttle_predicted = param.throttle_trim_adjusted - ste_rate.setpoint * throttle_below_trim_per_ste_rate;
+
+			// Stabilizer airstream from propulsion device
+			// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2]
+			_stabilizer_airstream_velocity = sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas)
+					* param.propeller_airstream_stabilizer_scaler / input.eas_to_tas;
+
+
+		} else{// thrust/rpm control is not supported with ICE or jet engine yet.
+			goto default_throttle_calculation;
+		}
 
 	}
+	else{
+		
+		default_throttle_calculation:
+		//The traditional way without dynamic throttle calculation (but with integrated STE rate setpoint calc for I and D terms)
 
-	// Add proportional and derivative control feedback to the predicted throttle and constrain to throttle limits
-	float throttle_setpoint = (_getControlError(ste_rate) * param.throttle_damping_gain) * STE_rate_to_throttle +
-				  throttle_predicted;
+		// Calculate gain scaler from specific energy rate error to throttle
+		const float STE_rate_to_throttle = 1.0f / (limit.STE_rate_max - limit.STE_rate_min);
 
-	if (flag.airspeed_enabled) {
-		// Add the integrator feedback during closed loop operation with an airspeed sensor
-		throttle_setpoint += _throttle_integ_state;
+		// Calculate a predicted throttle from the demanded rate of change of energy, using the cruise throttle
+		// as the starting point. Assume:
+		// Specific total energy rate = _STE_rate_max is achieved when throttle is set to _throttle_setpoint_max
+		// Specific total energy rate = 0 at cruise throttle
+		// Specific total energy rate = _STE_rate_min is achieved when throttle is set to _throttle_setpoint_min
 
-	} else {
-		/* We want to avoid reducing the throttle output when switching from airspeed enabled mode into airspeedless mode.
-		  Thus, if the throttle integrator has a positive value, add it still to the throttle setpoint. */
-		throttle_setpoint += math::max(0.0f, _throttle_integ_state);
+		// assume airspeed and density-independent delta_throttle to sink/climb rate mapping
+		// TODO: include air density for thrust mappings
+		const float throttle_above_trim_per_ste_rate = (param.throttle_max - param.throttle_trim) / limit.STE_rate_max;
+		const float throttle_below_trim_per_ste_rate = (param.throttle_trim - param.throttle_min) / limit.STE_rate_min;
+
+		float STE_rate_setpoint_adj =  ste_rate.setpoint + _STE_rate_integ_state + _getControlError(ste_rate) * param.throttle_damping_gain;
+		// Adjust the demanded total energy rate to compensate for induced drag rise in turns.
+		// Assume induced drag scales linearly with normal load factor.
+		// The additional normal load factor is given by (1/cos(bank angle) - 1)
+		
+		STE_rate_setpoint_adj = STE_rate_setpoint_adj + param.load_factor_correction * (param.load_factor - 1.f);
+
+		if (ste_rate.setpoint >= FLT_EPSILON) {
+			// throttle is between trim and maximum
+			throttle_setpoint = param.throttle_trim_adjusted + STE_rate_setpoint_adj * throttle_above_trim_per_ste_rate;
+
+		} else {
+			// throttle is between trim and minimum
+			throttle_setpoint = param.throttle_trim_adjusted - STE_rate_setpoint_adj * throttle_below_trim_per_ste_rate;
+		}
 	}
 
 
 	// ramp in max throttle setting with underspeediness value
 	throttle_setpoint = _ratio_undersped * param.throttle_max + (1.0f - _ratio_undersped) * throttle_setpoint;
+
+	_stabilizer_airstream_velocity = input.tas / input.eas_to_tas;
 
 	return constrain(throttle_setpoint, param.throttle_min, param.throttle_max);
 }
@@ -620,7 +751,7 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 void TECSControl::resetIntegrals()
 {
 	_pitch_integ_state = 0.0f;
-	_throttle_integ_state = 0.0f;
+	_STE_rate_integ_state = 0.0f;
 }
 
 float TECS::_update_speed_setpoint(const float tas_min, const float tas_max, const float tas_setpoint, const float tas)
@@ -661,7 +792,8 @@ void TECS::initialize(const float altitude, const float altitude_rate, const flo
 	const TECSControl::Input control_input{ .altitude = altitude,
 						.altitude_rate = altitude_rate,
 						.tas = eas_to_tas * equivalent_airspeed,
-						.tas_rate = 0.0f};
+						.tas_rate = 0.0f
+						.flaps_setting = 0.0f};
 
 	_control.initialize(control_setpoint, control_input, _control_param, _control_flag);
 
@@ -679,7 +811,8 @@ void TECS::initialize(const float altitude, const float altitude_rate, const flo
 void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_setpoint, float equivalent_airspeed,
 		  float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		  float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
-		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float hgt_rate_sp)
+		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float hgt_rate_sp, float flaps_applied, float air_density
+		  float battery_voltage, float electric_motor_current)
 {
 
 	// Calculate the time since last update (seconds)
@@ -734,7 +867,12 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 		const TECSControl::Input control_input{ .altitude = altitude,
 							.altitude_rate = hgt_rate,
 							.tas = eas_to_tas * eas.speed,
-							.tas_rate = eas_to_tas * eas.speed_rate};
+							.tas_rate = eas_to_tas * eas.speed_rate,
+							.flaps_setpoint = flaps_setpoint,
+							.air_density = air_density,
+							.eas_to_tas = eas_to_tas
+							.battery_voltage = battery_voltage
+							.electric_motor_current = electric_motor_current};
 
 		_control.update(dt, control_setpoint, control_input, _control_param, _control_flag);
 

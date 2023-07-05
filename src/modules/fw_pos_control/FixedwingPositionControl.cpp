@@ -124,10 +124,17 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_climb_rate(_param_fw_t_clmb_max.get());
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
+	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_min_flaps.get());
+	_tecs.set_ref_air_density(_param_fw_t_ref_rho.get());
+	_tecs.set_propulsion_type(_param_fw_t_prop_type.get());
+	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());
 	_tecs.set_speed_weight(_param_fw_t_spdweight.get());
 	_tecs.set_equivalent_airspeed_trim(_param_fw_airspd_trim.get());
 	_tecs.set_equivalent_airspeed_min(_param_fw_airspd_min.get());
 	_tecs.set_equivalent_airspeed_max(_param_fw_airspd_max.get());
+	_tecs.set_tas_min_ref(_param_fw_airspd_min.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
+	_tecs.set_tas_trim_ref(_param_fw_airspd_trim.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
+	_tecs.set_tas_max_ref(_param_fw_airspd_max.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
 	_tecs.set_throttle_damp(_param_fw_t_thr_damp.get());
 	_tecs.set_integrator_gain_throttle(_param_fw_t_I_gain_thr.get());
 	_tecs.set_integrator_gain_pitch(_param_fw_t_I_gain_pit.get());
@@ -143,6 +150,24 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_airspeed_measurement_std_dev(_param_speed_standard_dev.get());
 	_tecs.set_airspeed_rate_measurement_std_dev(_param_speed_rate_standard_dev.get());
 	_tecs.set_airspeed_filter_process_std_dev(_param_process_noise_standard_dev.get());
+	_tecs.set_weight_gross(_param_weight_gross.get());
+	_tecs.set_wingspan(_param_fw_wing_span.get());
+	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
+	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
+	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
+	_tecs.set_electric_motor_Kv(_param_fw_t_electric_motor_Kv.get());
+	_tecs.set_electric_motor_R(_param_fw_t_electric_motor_R.get());
+
+	_tecs.set_thrust_rpm_parameters(_param_fw_t_propulsion_a_min_tas.get(), _param_fw_t_propulsion_b_min_tas.get(), _param_fw_t_propulsion_c_min_tas.get(),
+		_param_fw_t_propulsion_a_trim_tas.get(), _param_fw_t_propulsion_b_trim_tas.get(), _param_fw_t_propulsion_c_trim_tas.get(),
+		_param_fw_t_propulsion_a_max_tas.get(), _param_fw_t_propulsion_b_max_tas.get(), _param_fw_t_propulsion_c_max_tas.get(),
+		_param_fw_t_max_thrust_min_tas.get(), _param_fw_t_max_thrust_trim_tas.get(), _param_fw_t_max_thrust_max_tas.get());
+
+	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
+
+	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());
+
+	_tecs.set_propeller_airstream_at_stabilizer_scaler(_param_fw_t_propeller_airstream_stabilizer_scaler.get());
 
 	int check_ret = PX4_OK;
 
@@ -376,6 +401,14 @@ FixedwingPositionControl::vehicle_attitude_poll()
 		// load factor due to banking
 		const float load_factor = 1.f / cosf(euler_angles(0));
 		_tecs.set_load_factor(load_factor);
+	}
+}
+
+void
+FixedwingPositionControl::battery_status_poll()
+{
+	if (_battery_status_sub.updated()) {
+		_battery_status_sub.update(&_battery_status);
 	}
 }
 
@@ -2594,7 +2627,11 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 		     desired_max_sinkrate,
 		     airspeed_rate_estimate,
 		     -_local_pos.vz,
-		     hgt_rate_sp);
+		     hgt_rate_sp,
+			 _flaps_setpoint,
+			 _air_density,
+			 _battery_status.voltage_v,
+			 _battery_status.current_a);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
 }

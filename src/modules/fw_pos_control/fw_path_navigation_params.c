@@ -479,7 +479,7 @@ PARAM_DEFINE_FLOAT(FW_LND_THRTC_SC, 1.0f);
 PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
 
 /**
- * Minimum descent rate
+ * Minimum descent rate at trim airspeed
  *
  * This is the sink rate of the aircraft with the throttle
  * set to THR_MIN and flown at the same airspeed as used
@@ -494,7 +494,6 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
-
 /**
  * Minimum descent rate at trim airspeed with full flaps
  *
@@ -519,6 +518,8 @@ PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
  * This should be set to a value that can be achieved without
  * exceeding the lower pitch angle limit and without over-speeding
  * the aircraft.
+ * 
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -528,6 +529,19 @@ PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_MAX, 5.0f);
+
+/**
+ * Propulsion type (used for air density compensation and thrust curve determination)
+ * 
+ * @min -1
+ * @max 2
+ * @value -1 Use simple throttle calculation with direct throttle mapping at trim airspeed. Disable FW_BAT_SCALE_EN.
+ * @value 0 Electric motor with propeller or ducted fan
+ * @value 1 Internal combustion engine with propeller
+ * @value 2 Jet engine
+ * @group FW TECS
+*/
+PARAM_DEFINE_INT32(FW_T_PROP_TYPE, 0);
 
 /**
  * Throttle damping factor
@@ -826,31 +840,11 @@ PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
-
 /**
  * Propeller diameter
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
-
-/**
- * Scaling factor for the propeller airstream velocity at stabilizers
- *
- * How much the airstream from the propeller effects the stabilizers trim.
- * If set to 100%, the airspeed at the stabilizers is assumed equal to the
- * airspeed right behind the propeller. If 0%, the air stream from the propeller
- * is not hitting the stabilizers at all
- *
- * Only applicable it the vehicle is propeller driven and FW_T_PPLR_DIA is set.
- *
- * @group FW TECS
- * @unit norm
- * @min 0
- * @max 1
- * @decimal 2
- * @increment 0.01
- */
-PARAM_DEFINE_FLOAT(FW_T_PPLR_SCL, 0.f);
 
 /**
  * GPS failure loiter time
@@ -1134,7 +1128,7 @@ PARAM_DEFINE_FLOAT(FW_SPOILERS_DESC, 0.f);
 /**
  * Throttle at min airspeed
  *
- * Required throttle for level flight at minimum airspeed FW_AIRSPD_MIN (sea level, standard atmosphere)
+ * Required throttle for level flight at minimum airspeed FW_AIRSPD_MIN (set at tecs reference air density FW_T_REF_RHO)
  *
  * Set to 0 to disable mapping of airspeed to trim throttle below FW_AIRSPD_TRIM.
  *
@@ -1149,7 +1143,7 @@ PARAM_DEFINE_FLOAT(FW_THR_ASPD_MIN, 0.f);
 /**
  * Throttle at max airspeed
  *
- * Required throttle for level flight at maximum airspeed FW_AIRSPD_MAX (sea level, standard atmosphere)
+ * Required throttle for level flight at maximum airspeed FW_AIRSPD_MAX (set at tecs reference air density FW_T_REF_RHO)
  *
  * Set to 0 to disable mapping of airspeed to trim throttle.
  *
@@ -1160,3 +1154,19 @@ PARAM_DEFINE_FLOAT(FW_THR_ASPD_MIN, 0.f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_THR_ASPD_MAX, 0.f);
+
+/**
+ * Throttle at land airspeed with full flaps
+ *
+ * Required throttle for level flight at land airspeed FW_LND_AIRSPD (set at tecs reference air density FW_T_REF_RHO)
+ * if FW_LND_AIRSPD is not set, uses FW_AIRSPD_MIN
+ *
+ * Set to 0 to disable mapping of airspeed to trim throttle with flaps.
+ *
+ * @min 0
+ * @max 1
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_THR_FLAPS, 0.f);
