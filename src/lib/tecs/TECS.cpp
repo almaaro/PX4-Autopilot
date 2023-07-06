@@ -309,25 +309,17 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 		const float lift = _param.weight_gross * CONSTANTS_ONE_G * constrain(param.load_factor, 0.1f, 1.f);
 
 		// _Cd_i_specific: Vehicle specific induced drag coefficient, which equals to 1/2*S*rho*Cd_i
-		float cd_i_specific = lift * lift / (0.5f * M_PI_F * _param.reference_air_density * param.wingspan * param.wingspan * param.wing_efficiency);
+		// The calculations use EAS so they are compared against the standard air density and pressure.
+		float cd_i_specific = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency);
 
 		// _Cd_o_specific: Vehicle specific parasitic drag coefficient, which equals to 1/2*A*rho*Cd_o
 		// Cd_o_specific: subtracting induced drag from total drag at a known airspeed to calculate parasitic drag
 		float cd_o_specific = (-rate_min_flaps - cd_i_specific / _param.equivalent_airspeed_trim  / _param.equivalent_airspeed_trim * param.tas_trim) /
 				(param.equivalent_airspeed_trim * param.equivalent_airspeed_trim * param.tas_trim);
-
-		//normalize for standard air density
-		cd_i_specific = cd_i_specific * _param.reference_air_density / CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C;
-		cd_o_specific = cd_o_specific * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param.reference_air_density;
-
 		
 		// _STE_rate_min equals to the sum of parasitic and induced drag power.
 		// Drag force = _Cd_i / _EAS /_EAS + _Cd_o_specific * _EAS *_EAS;
 		// Drag power = Drag force * _tas_state
-
-		//apply air density corrections
-		cd_i_specific = cd_i_specific * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / input.air_density;
-		cd_o_specific = cd_o_specific * input.air_density / CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C;
 
 		float eas_sq = constrain(input.tas / input.eas_to_tas * input.tas / input.eas_to_tas, _equivalent_airspeed_min * _equivalent_airspeed_min, _equivalent_airspeed_max * _equivalent_airspeed_max);
 		limit.STE_rate_min = - (cd_i_specific / eas_sq + cd_o_specific * eas_sq) * input.tas / param.weight_gross;
@@ -694,8 +686,8 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 
 			// Stabilizer airstream from propulsion device
 			// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2]
-			_stabilizer_airstream_velocity = sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas)
-					* param.propeller_airstream_stabilizer_scaler / input.eas_to_tas;
+			_stabilizer_airstream_velocity = ((sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas)
+					- input.tas) * param.propeller_airstream_stabilizer_scaler + input.tas) / input.eas_to_tas;
 
 
 		} else{// thrust/rpm control is not supported with ICE or jet engine yet.
