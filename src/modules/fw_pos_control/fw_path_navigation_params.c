@@ -366,6 +366,9 @@ PARAM_DEFINE_FLOAT(FW_LND_FLALT, 0.5f);
  * If enabled and no measurement is found within a given timeout, the landing waypoint altitude will be used OR the landing
  * will be aborted, depending on the criteria set in FW_LND_ABORT.
  *
+ * The QNH will also be automatically adjusted so that the pressure altitude corresponds to the altitude of the landing point
+ * measured by the rangefinder and set by the landing point altitude.
+ *
  * If disabled, FW_LND_ABORT terrain based criteria are ignored.
  *
  * @min 0
@@ -378,11 +381,22 @@ PARAM_DEFINE_FLOAT(FW_LND_FLALT, 0.5f);
 PARAM_DEFINE_INT32(FW_LND_USETER, 1);
 
 /**
+ * Use terrain estimate for calculating waypoint altitudes for all waypoints after LAND_START
+ *
+ * If enabled, all waypoint altitudes are relative to the terrain altitude as soon as the terrain estimate is valid.
+ *
+ * @boolean
+ *
+ * @group FW Auto Landing
+*/
+PARAM_DEFINE_INT32(FW_APPR_USETER, 1);
+
+/**
  * Early landing configuration deployment
  *
  * When disabled, the landing configuration (flaps, landing airspeed, etc.) is only activated
  * on the final approach to landing. When enabled, it is already activated when entering the
- * final loiter-down (loiter-to-alt) waypoint before the landing approach. This shifts the (often large)
+ * final loiter-down (loiter-to-alt) waypoint or when passing the LAND_START waypoint before the landing approach. This shifts the (often large)
  * altitude and airspeed errors caused by the configuration change away from the ground such that
  * these are not so critical. It also gives the controller enough time to adapt to the new
  * configuration such that the landing approach starts with a cleaner initial state.

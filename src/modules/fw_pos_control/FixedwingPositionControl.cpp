@@ -266,6 +266,10 @@ FixedwingPositionControl::vehicle_command_poll()
 				}
 			}
 
+		} else if (vehicle_command.command == vehicle_command_s::VEHICLE_CMD_DO_LAND_START) {
+			_approach_mode_active = true;
+			events::send(events::ID("fixedwing_position_control_land_start"), events::Log::Info,
+				     "Land Start");
 		}
 	}
 }
@@ -1072,8 +1076,15 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 		tecs_fw_thr_max = _param_fw_thr_max.get();
 	}
 
+
 	// waypoint is a plain navigation waypoint
 	float position_sp_alt = pos_sp_curr.alt;
+
+	if(_param_fw_appr_useter.get() && _local_pos.dist_bottom_valid && _approach_mode_active){
+
+		const float terrain_alt = _local_pos.ref_alt + -_local_pos.z - _local_pos.dist_bottom;
+		position_sp_alt  += terrain_alt;
+	}
 
 	// Altitude first order hold (FOH)
 	if (_position_setpoint_previous_valid &&
@@ -1107,7 +1118,20 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 		}
 	}
 
-	float target_airspeed = adapt_airspeed_setpoint(control_interval, pos_sp_curr.cruising_speed,
+	float airspeed_sp = pos_sp_curr.cruising_speed;
+
+	if (_approach_mode_active && _param_fw_lnd_earlycfg.get()) {
+		// We've passed LAND_START. Enable our landing configuration (flaps,
+		// landing airspeed and potentially tighter altitude control) already such that we don't
+		// have to do this switch (which can cause significant altitude errors) close to the ground.
+		_tecs.set_altitude_error_time_constant(_param_fw_thrtc_sc.get() * _param_fw_t_h_error_tc.get());
+		airspeed_sp = (_param_fw_lnd_airspd.get() > FLT_EPSILON) ? _param_fw_lnd_airspd.get() : _param_fw_airspd_min.get();
+		_flaps_setpoint = _param_fw_flaps_lnd_scl.get();
+		_spoilers_setpoint = _param_fw_spoilers_lnd.get();
+		_new_landing_gear_position = landing_gear_s::GEAR_DOWN;
+	}
+
+	float target_airspeed = adapt_airspeed_setpoint(control_interval, airspeed_sp,
 				_param_fw_airspd_min.get(), ground_speed);
 
 	Vector2f curr_pos_local{_local_pos.x, _local_pos.y};
@@ -1277,6 +1301,12 @@ FixedwingPositionControl::control_auto_loiter(const float control_interval, cons
 	_att_sp.yaw_body = _yaw; // yaw is not controlled, so set setpoint to current yaw
 
 	float alt_sp = pos_sp_curr.alt;
+
+	if(_param_fw_appr_useter.get() && _local_pos.dist_bottom_valid && _approach_mode_active){
+
+		const float terrain_alt = _local_pos.ref_alt + -_local_pos.z - _local_pos.dist_bottom;
+		alt_sp  += terrain_alt;
+	}
 
 	if (_landing_abort_status) {
 		if (pos_sp_curr.alt - _current_altitude  < kClearanceAltitudeBuffer) {
@@ -2470,6 +2500,9 @@ FixedwingPositionControl::reset_landing_state()
 	_lateral_touchdown_position_offset = 0.0f;
 
 	_last_time_terrain_alt_was_valid = 0;
+
+	_approach_mode_active = false;
+
 
 	// reset abort land, unless loitering after an abort
 	if (_landing_abort_status && (_pos_sp_triplet.current.type != position_setpoint_s::SETPOINT_TYPE_LOITER)) {
