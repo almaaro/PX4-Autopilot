@@ -97,10 +97,11 @@ MissionBlock::is_mission_item_reached_or_completed()
 	case NAV_CMD_DO_SET_HOME:
 		return true;
 
-	// Indefinite Waypoints
+	// Continue mission if landing aborted
 	case NAV_CMD_LAND: /* fall through */
 	case NAV_CMD_VTOL_LAND:
-		return _navigator->get_land_detected()->landed;
+		return (_navigator->abort_landing() && _navigator->get_position_setpoint_triplet()->next.valid)
+		       || _navigator->get_land_detected()->landed;
 
 	case NAV_CMD_IDLE: /* fall through */
 	case NAV_CMD_LOITER_UNLIMITED:
