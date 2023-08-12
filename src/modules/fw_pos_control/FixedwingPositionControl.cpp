@@ -449,6 +449,14 @@ FixedwingPositionControl::battery_status_poll()
 	}
 }
 
+void
+FixedwingPositionControl::rpm_poll()
+{
+	if (_rpm_sub.updated()) {
+		_rpm_sub.update(&rpm);
+	}
+}
+
 float
 FixedwingPositionControl::get_manual_airspeed_setpoint()
 {
@@ -2668,7 +2676,8 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 			 _flaps_setpoint,
 			 _air_density,
 			 _battery_status.voltage_v,
-			 _battery_status.current_a);
+			 _battery_status.current_a,
+			 _rpm.indicated_frequency_rpm);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
 }
