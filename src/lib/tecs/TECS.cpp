@@ -979,13 +979,13 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 			// throttle is between trim and minimum
 			throttle_setpoint = param.throttle_trim_adjusted - STE_rate_setpoint_adj * throttle_below_trim_per_ste_rate;
 		}
+		
+		_stabilizer_airstream_velocity = input.tas / input.eas_to_tas;
 	}
 
 
 	// ramp in max throttle setting with underspeediness value
 	throttle_setpoint = _ratio_undersped * param.throttle_max + (1.0f - _ratio_undersped) * throttle_setpoint;
-
-	_stabilizer_airstream_velocity = input.tas / input.eas_to_tas;
 
 	return constrain(throttle_setpoint, param.throttle_min, param.throttle_max);
 }
