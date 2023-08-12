@@ -69,6 +69,29 @@ FixedwingRateControl::init()
 		return false;
 	}
 
+
+	//Calculate elev trim model parameters
+	//M(elev) = M (aero) + M(mot)
+	//a * eas(elev)² * e = k*eas² + b + d(arm) * F
+	//ae1 * eas1(elev)^2 - k*eas1^2 - d(arm) * F1 = ae2 * eas2(elev)^2 - k*eas2^2 - d(arm) * F2 -> k = (ae2*eas2(elev)^2 - d(arm) * F2 - ae1*eas1(elev)^2 + d(arm)*F1)/(eas2^2 - eas1^2)
+	//trim @ trim as, max, crz ja min thr -> min thr:lla saadaan yhtälö trim*eas(elev)^2 = k*eas^2 + b
+	//kun tiedetään max clb ja min sink niin niistä saadaan laskettua teoreettiset työntövoimat ja eas(elev) -> saadaan k ja b
+
+	float thrust_trim_as_level = _param_fw_t_sink_min / _param_fw_airspd_trim * _param_weight_gross * CONSTANTS_ONE_G;
+	float airstream_trim_as_level = calculate_stabilizer_airstream_from_thrust(thrust_trim_as_level, _param_fw_airspd_trim);
+	float thrust_trim_as_level_flaps = _param_fw_t_sink_min_flaps / _param_fw_airspd_trim * _param_weight_gross * CONSTANTS_ONE_G;
+	float airstream_trim_as_level_flaps = calculate_stabilizer_airstream_from_thrust(thrust_trim_as_level_flaps, _param_fw_airspd_trim);
+
+	elev_trim_k = (_param_trim_pitch * airstream_trim_as_level * airstream_trim_as_level - _param_motor_torque_arm_length * thrust_trim_as_level -
+			_param_trim_pitch_min_as_sink_min * _param_fw_airspd_min)/(_param_fw_airspd_trim * _param_fw_airspd_trim - _param_fw_airspd_min * _param_fw_airspd_min);
+	elev_trim_b = _param_trim_pitch * airstream_trim_as_level * airstream_trim_as_level - elev_trim_k * _param_fw_airspd_trim * _param_fw_airspd_trim - _param_motor_torque_arm_length * thrust_trim_as_level;
+
+	//sitten vielä samat erikseen flapseille
+	elev_trim_k_flaps = (_param_trim_pitch_trim_as_level_flaps * airstream_trim_as_level * airstream_trim_as_level - _param_motor_torque_arm_length * thrust_trim_as_level -
+			_param_trim_pitch_min_as_sink_min_flaps * _param_fw_airspd_min)/(_param_fw_airspd_trim * _param_fw_airspd_trim - _param_fw_airspd_min * _param_fw_airspd_min);
+	elev_trim_b_flaps = _param_trim_pitch_trim_as_level_flaps * airstream_trim_as_level * airstream_trim_as_level - elev_trim_k_flaps * _param_fw_airspd_trim * _param_fw_airspd_trim - _param_motor_torque_arm_length * thrust_trim_as_level;
+
+
 	return true;
 }
 
@@ -153,6 +176,20 @@ FixedwingRateControl::vehicle_land_detected_poll()
 	}
 }
 
+void FixedwingRateControl::stabilizer_airstream_poll(){
+
+	if(_stabilizer_airstream_sub.updated()) {
+		_stabilizer_airstream_sub.copy(&stabilizer_airstream);
+	}
+}
+
+void FixedwingRateControl::flaps_setpoint_poll(){
+
+	if(_flaps_setpoint_sub.updated()) {
+		_flaps_setpoint_sub.copy(&flaps_setpoint);
+	}
+}
+
 float FixedwingRateControl::get_airspeed_and_update_scaling()
 {
 	_airspeed_validated_sub.update();
@@ -186,9 +223,23 @@ float FixedwingRateControl::get_airspeed_and_update_scaling()
 	const float airspeed_constrained = constrain(constrain(airspeed, _param_fw_airspd_stall.get(),
 					   _param_fw_airspd_max.get()), 0.1f, 1000.0f);
 
+	_airspeed = airspeed_constrained;
+
 	_airspeed_scaling = (_param_fw_arsp_scale_en.get()) ? (_param_fw_airspd_trim.get() / airspeed_constrained) : 1.0f;
 
 	return airspeed;
+}
+
+float FixedwingRateControl::calculate_stabilizer_airstream_from_thrust(const float thrust, const float eas)
+{
+	// Stabilizer airstream from propulsion device
+	// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2] (if using tas), omit rho if using eas
+	// The airstream velocity can be approximated to linearly decrease over distance.  If the scaler is measured vhile the vehicle is stationary, the scaler approaches 1
+	// when the airspeed is infinite.
+
+	float ve = sqrt(2 * thrust / (M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + eas * eas);
+	float scaler = 1-1/(eas / ve + 1) + _param_fw_t_propeller_airstream_stabilizer_scaler * 1/(eas / ve + 1)
+	return _stabilizer_airstream_velocity = ((ve - eas) * scaler + eas);
 }
 
 void FixedwingRateControl::Run()
@@ -344,6 +395,13 @@ void FixedwingRateControl::Run()
 							  _param_fw_dtrim_p_vmax.get());
 				trim_yaw += interpolate(airspeed, _param_fw_airspd_trim.get(), _param_fw_airspd_max.get(), 0.0f,
 							_param_fw_dtrim_y_vmax.get());
+			}
+
+
+			if(_param_dynamic_throttle_calculations){
+				trim_pitch = (flaps_setpoint.normalized_setpoint * elev_trim_k_flaps + (1 - flaps_setpoint.normalized_setpoint) * elev_trim_k ) * _airspeed * _airspeed +
+					(flaps_setpoint.normalized_setpoint * elev_trim_b_flaps + (1 - flaps_setpoint.normalized_setpoint) * elev_trim_b ) + _param_motor_torque_arm_length *
+					stabilizer_airstream.thrust / (stabilizer_airstream.velocity * stabilizer_airstream.velocity);
 			}
 
 			if (_vcontrol_mode.flag_control_rates_enabled) {

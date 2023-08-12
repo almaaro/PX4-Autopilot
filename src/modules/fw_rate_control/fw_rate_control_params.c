@@ -461,6 +461,42 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_VMAX, 0.0f);
 PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
 
 /**
+* Pitch trim at min airspeed with minimum throttle
+*
+ *
+ * @group FW Rate Control
+ * @min -0.5
+ * @max 0.5
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(TRIM_PIT_SINK, 0.0f);
+
+/**
+* Pitch trim at level flight at trim airspeed with flaps extended
+*
+ *
+ * @group FW Rate Control
+ * @min -0.5
+ * @max 0.5
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(TRIM_PIT_F, 0.0f);
+
+/**
+* Pitch trim with minimum throttle at min airspeed with flaps extended
+*
+ *
+ * @group FW Rate Control
+ * @min -0.5
+ * @max 0.5
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(TRIM_PIT_MIN, 0.0f);
+
+/**
  * Manual roll scale
  *
  * Scale factor applied to the desired roll actuator command in full manual mode. This parameter allows
@@ -541,3 +577,11 @@ PARAM_DEFINE_INT32(FW_SPOILERS_MAN, 0);
  * @group FW Rate Control
  */
 PARAM_DEFINE_INT32(FW_ACRO_YAW_EN, 0);
+
+/**
+ * Distance of the motor thrust axis from the center of gravity
+ *
+ * @group FW Rate Control
+ * @unit m
+*/
+PARAM_DEFINE_FLOAT(MOTOR_TORQ_ARM, 0.f);
