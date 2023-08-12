@@ -326,8 +326,7 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 
 		float max_thrust = 0.f;
 		
-		//currently only supports electric motor with propeller / ducted fan, as this function assumes that the motor max rpm doesn't change as the load decreases.
-		//However, it is not said that this would't be the case with ICE or jet engine. It just hasn't been researched yet. 
+		//currently only supports electric motor with propeller / ducted fan 
 		if(param.propulsion_type == 0){
 			max_thrust = _calcMaxThrustElectricPropeller(input, param);
 		}
@@ -354,21 +353,84 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 
 float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Param &param) const
 {
-	float max_thrust = 0;
+	float max_thrust, max_thrust_trim_tas, max_trust_max_tas;
 	if(input.tas > param.tas_trim){
-		float scaler = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
-		max_thrust = scaler * (param.max_thrust_max_tas - param.max_thrust_trim_tas) + param.max_thrust_trim_tas;
+		float scaler_as = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
+
+		//calculating the max rpm at current air density (assuming that at constant voltage the max power remains the same. P ~rho*n^3
+		//which means that n~(rho_ref/rho)^(1/3))
+		//Also assuming that when the air density reaches zero, the rpm will be U*Kv
+		//calculating the max thrust at trim tas
+		float max_rpm_trim_adj = param.trim_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.trim_tas_max_rpm);
+
+		//extrapolating the thrust curve beyond the measured max rpm if neccesary
+		if(max_rpm_trim_adj > param.trim_tas_max_rpm){
+			float slope = (param.trim_tas_thrust_rpm[4] - param.trim_tas_thrust_rpm[3]) / (param.trim_tas_max_rpm/4);
+			max_thrust_trim_tas = param.trim_tas_thrust_rpm[4] + slope * (max_rpm_trim_adj - param.trim_tas_max_rpm);
+		}
+		else{
+			float scaler = max_rpm_trim_adj / param.trim_tas_max_rpm;
+			int i = constrain(floor(scaler), 0, 4);
+			scaler = scaler - i;
+			max_thrust_trim_tas = param.trim_tas_thrust_rpm[i] + scaler * (param.trim_tas_thrust_rpm[i+1] - param.trim_tas_thrust_rpm[i]);
+		}
+
+
+		//calculating the max thrust at max tas
+		float max_rpm_max_adj = param.max_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.max_tas_max_rpm);
+
+		//extrapolating the thrust curve beyond the measured max rpm if neccesary
+		if(max_rpm_max_adj > param.max_tas_max_rpm){
+			float slope = (param.max_tas_thrust_rpm[4] - param.max_tas_thrust_rpm[3]) / (param.max_tas_max_rpm/4);
+			max_thrust_max_tas = param.max_tas_thrust_rpm[4] + slope * (max_rpm_max_adj - param.max_tas_max_rpm);
+		}
+		else{
+			float scaler = max_rpm_max_adj / param.max_tas_max_rpm;
+			int i = constrain(floor(scaler), 0, 4);
+			scaler = scaler - i;
+			max_thrust_max_tas = param.max_tas_thrust_rpm[i] + scaler * (param.max_tas_thrust_rpm[i+1] - param.max_tas_thrust_rpm[i]);
+		}
+
+		max_thrust = scaler_as * (max_thrust_max_tas - max_thrust_trim_tas) + max_thrust_trim_tas;
 	}
 	else {
-		float scaler = constrain((param.tas_trim_ref - input.tas) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
-		max_thrust = scaler * (param.max_thrust_trim_tas - param.max_thrust_min_tas) + param.max_thrust_min_tas;
+		float scaler_as = constrain((input.tas - param.tas_min_ref) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
+
+
+		//calculating the max thrust at min tas
+		float max_rpm_min_adj = param.min_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.min_tas_max_rpm);
+
+		//extrapolating the thrust curve beyond the measured max rpm if neccesary
+		if(max_rpm_min_adj > param.min_tas_max_rpm){
+			float slope = (param.min_tas_thrust_rpm[4] - param.min_tas_thrust_rpm[3]) / (param.min_tas_max_rpm/4);
+			max_thrust_min_tas = param.min_tas_thrust_rpm[4] + slope * (max_rpm_min_adj - param.min_tas_max_rpm);
+		}
+		else{
+			float scaler = max_rpm_min_adj / param.min_tas_max_rpm;
+			int i = constrain(floor(scaler), 0, 4);
+			scaler = scaler - i;
+			max_thrust_min_tas = param.min_tas_thrust_rpm[i] + scaler * (param.min_tas_thrust_rpm[i+1] - param.min_tas_thrust_rpm[i]);
+		}
+
+		//calculating the max thrust at max tas
+		float max_rpm_trim_adj = param.trim_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.trim_tas_max_rpm);
+
+		//extrapolating the thrust curve beyond the measured max rpm if neccesary
+		if(max_rpm_max_adj > param.trim_tas_max_rpm){
+			float slope = (param.trim_tas_thrust_rpm[4] - param.trim_tas_thrust_rpm[3]) / (param.trim_tas_max_rpm/4);
+			max_thrust_trim_tas = param.trim_tas_thrust_rpm[4] + slope * (max_rpm_max_adj - param.trim_tas_max_rpm);
+		}
+		else{
+			float scaler = max_rpm_max_adj / param.trim_tas_max_rpm;
+			int i = constrain(floor(scaler), 0, 4);
+			scaler = scaler - i;
+			max_thrust_trim_tas = param.trim_tas_thrust_rpm[i] + scaler * (param.trim_tas_thrust_rpm[i+1] - param.trim_tas_thrust_rpm[i]);
+		}
+
+		max_thrust = scaler_as * (max_thrust_trim_tas - max_thrust_min_tas) + max_thrust_min_tas;
 	}
 
-	// Apply air density correction. Assume that the other parameters stay unchanged. Assume that the RPM doesn't increase as the 
-	// air density reduces (solving the exact rpm would probably require a differential equation)
-	// The equations: P =cp*rho*D^5*n^3, n=Kv*(sqrt(P*R)-U) -> U= n/Kv- sqrt(P*R) = n/Kv- sqrt(R*cp*rho*D^5*n^3) = n/kV-sqrt(R*cp*rho*D^5)*n^(3/2)
-	// Solve for n2/n1(rho1, rho2, cp1, cp2) for U1 = U2 (It could be assumed that cp1 = cp2)
-	// F2/F1 is proportional to rho2/rho1 * (n2/n1)^2
+	// Apply air density correction.
 
 	max_thrust = max_thrust * input.air_density / _control_param.ref_air_density;
 }
@@ -376,25 +438,211 @@ float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Par
 
 float TECSControl::_calcPropellerRPM(const float desired_thrust, const Input &input, const Param &param) const
 {
-	float a_adj, b_adj, c_adj;
-	if(input.tas > _control_param.tas_trim){
-		float scaler = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
-		a_adj = scaler * (param.a_max_tas - param.a_trim_tas) + param.a_trim_tas;
-		b_adj = scaler * (param.b_max_tas - param.b_trim_tas) + param.b_trim_tas;
-		c_adj = scaler * (param.c_max_tas - param.c_trim_tas) + param.c_trim_tas;
+
+	//air density compensation
+	desired_thrust = desired_thrust * _control_param.ref_air_density / input.air_density;
+
+	//rpm interpolation
+	float rpm, rpm_min_tas, rpm_trim_tas, rpm_max_tas;
+	if(input.tas > _control_param.tas_trim_ref){
+		float scaler_as = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
+		int i, j;
+		for(i = 1; i < 5; i++){
+			if(desired_thrust < _control_param.trim_tas_thrust_rpm[i]){
+				i = i-1;
+				break;
+			}
+		}
+
+		if(i < 5){
+			float scaler_thrust_trim_tas = (desired_thrust - _control_param.trim_tas_thrust_rpm[i])(_control_param.trim_tas_thrust_rpm[i], _control_param.trim_tas_thrust_rpm[i+1]);
+			rpm_trim_tas = (i + scaler_thrust_trim_tas)/5 * _control_param.trim_tas_max_rpm;
+		}
+		//the case where the rpm is not enough
+		if(i == 5) {
+			//extrapolating the rpm curve with the highest quadrant
+			float slope = (_control_param.trim_tas_max_rpm/4) / (_control_param.trim_tas_thrust_rpm[4] - _control_param.trim_tas_thrust_rpm[3]);
+			rpm_trim_tas = (desired_thrust - _control_param.trim_tas_thrust_rpm[4]) * slope + control_param.trim_tas_max_rpm;
+		}
+		for(j = 1; j < 5; j++){
+			if(desired_thrust < _control_param.max_tas_thrust_rpm[j]){
+				j = j-1;
+				break;
+			}
+		}
+		if(j < 5){
+			float scaler_thrust_max_tas = (desired_thrust - _control_param.max_tas_thrust_rpm[j])(_control_param.max_tas_thrust_rpm[j], _control_param.max_tas_thrust_rpm[j+1]);
+			rpm_max_tas = (j + scaler_thrust_max_tas)/5 * _control_param.max_tas_max_rpm;
+		}
+		//the case where the rpm is not enough
+		if(j == 5) {
+			//extrapolating the rpm curve with the highest quadrant
+			float slope = (_control_param.max_tas_max_rpm/4) / (_control_param.max_tas_thrust_rpm[4] - _control_param.max_tas_thrust_rpm[3]);
+			rpm_max_tas = (desired_thrust - _control_param.max_tas_thrust_rpm[4]) * slope + control_param.max_tas_max_rpm;
+		}
+		rpm = rpm_trim_tas + scaler_as * (rpm_max_tas - rpm_trim_tas);
+
+		
 	}
 	else {
-		float scaler = constrain((param.tas_trim_ref - input.tas) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
-		a_adj = scaler * (param.a_trim_tas - param.a_min_tas) + param.a_min_tas;
-		b_adj = scaler * (param.b_trim_tas - param.b_min_tas) + param.b_min_tas;
-		c_adj = scaler * (param.c_trim_tas - param.c_min_tas) + param.c_min_tas;
-	}
+		float scaler_as = constrain((input.tas - param.tas_min_ref) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
+		int i, j;
+		for(i = 1; i < 5; i++){
+			if(desired_thrust < _control_param.min_tas_thrust_rpm[i]){
+				i = i-1;
+				break;
+			}
+		}
 
-	float rpm = a_adj * pow(desired_thrust, b_adj) + c_adj;
+		if(i < 5){
+			float scaler_thrust_min_tas = (desired_thrust - _control_param.min_tas_thrust_rpm[i])(_control_param.min_tas_thrust_rpm[i], _control_param.min_tas_thrust_rpm[i+1]);
+			rpm_min_tas = (i + scaler_thrust_min_tas)/5 * _control_param.min_tas_max_rpm;
+		}
+		//the case where the rpm is not enough
+		if(i == 5) {
+			//extrapolating the rpm curve with the highest quadrant
+			float slope = (_control_param.min_tas_trim_rpm/4) / (_control_param.min_tas_thrust_rpm[4] - _control_param.min_tas_thrust_rpm[3]);
+			rpm_min_tas = (desired_thrust - _control_param.min_tas_thrust_rpm[4]) * slope + control_param.min_tas_max_rpm;
+		}
+		for(j = 1; j < 5; j++){
+			if(desired_thrust < _control_param.trim_tas_thrust_rpm[j]){
+				j = j-1;
+				break;
+			}
+		}
+		if(j < 5){
+			float scaler_thrust_trim_tas = (desired_thrust - _control_param.trim_tas_thrust_rpm[j])(_control_param.trim_tas_thrust_rpm[j], _control_param.trim_tas_thrust_rpm[j+1]);
+			rpm_trim_tas = (j + scaler_thrust_trim_tas)/5 * _control_param.trim_tas_max_rpm;
+		}
+		//the case where the rpm is not enough
+		if(j == 5) {
+			//extrapolating the rpm curve with the highest quadrant
+			float slope = (_control_param.trim_tas_trim_rpm/4) / (_control_param.trim_tas_thrust_rpm[4] - _control_param.trim_tas_thrust_rpm[3]);
+			rpm_trim_tas = (desired_thrust - _control_param.trim_tas_thrust_rpm[4]) * slope + control_param.trim_tas_max_rpm;
+		}
+		rpm = rpm_min_tas + scaler_as * (rpm_trim_tas - rpm_min_tas);
+
+	}
 
 	return rpm;
 }
 
+float TECSControl::_calcGovernorElectricMotor(cons float desired_rpm const Input &input) const 
+{
+	//throttle setpoint interpolation
+	float throttle, throttle_min_tas, throttle_trim_tas, throttle_max_tas;
+	if(input.tas > _control_param.tas_trim_ref){
+		float scaler_as = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
+		int i, j;
+		for(i = 1; i < 5; i++){
+			if(desired_rpm < _control_param.trim_tas_throttle_rpm[i]){
+				i = i-1;
+				break;
+			}
+		}
+
+		if(i < 5){
+			float scaler_throttle_trim_tas = (desired_throttle - _control_param.trim_tas_throttle_rpm[i])(_control_param.trim_tas_throttle_rpm[i], _control_param.trim_tas_throttle_rpm[i+1]);
+			throttle_trim_tas = (i + scaler_throttle_trim_tas)/5 * _control_param.trim_tas_max_rpm;
+		}
+		//the case where the throttle is not enough
+		if(i == 5) {
+			//extrapolating the throttle curve with the highest quadrant
+			float slope = (_control_param.trim_tas_max_rpm/4) / (_control_param.trim_tas_throttle_rpm[4] - _control_param.trim_tas_throttle_rpm[3]);
+			throttle_trim_tas = (desired_rpm - _control_param.trim_tas_throttle_rpm[4]) * slope + control_param.trim_tas_max_rpm;
+		}
+		for(j = 1; j < 5; j++){
+			if(desired_rpm < _control_param.max_tas_throttle_rpm[j]){
+				j = j-1;
+				break;
+			}
+		}
+		if(j < 5){
+			float scaler_throttle_max_tas = (desired_rpm - _control_param.max_tas_throttle_rpm[j])(_control_param.max_tas_throttle_rpm[j], _control_param.max_tas_throttle_rpm[j+1]);
+			throttle_max_tas = (j + scaler_throttle_max_tas)/5 * _control_param.max_tas_max_rpm;
+		}
+		//the case where the throttle is not enough
+		if(j == 5) {
+			//extrapolating the throttle curve with the highest quadrant
+			float slope = (_control_param.max_tas_max_rpm/4) / (_control_param.max_tas_throttle_rpm[4] - _control_param.max_tas_throttle_rpm[3]);
+			throttle_max_tas = (desired_rpm - _control_param.max_tas_throttle_rpm[4]) * slope + control_param.max_tas_max_rpm;
+		}
+
+		//applying air density compensation
+		//calculating the max rpm at current air density (assuming that at constant voltage the max power remains the same. P ~rho*n^3
+		//which means that n~(rho_ref/rho)^(1/3))
+		//Also assuming that when the air density reaches zero, the rpm will be U*Kv
+		float max_rpm_trim_adj = param.trim_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.trim_tas_max_rpm);
+		float max_rpm_max_adj = param.max_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.max_tas_max_rpm);
+
+		throttle_trim_tas *= max_rpm_trim_adj / param.trim_tas_max_rpm;
+		throttle_max_tas *= max_rpm_max_adj / param.max_tas_max_rpm;
+		throttle = throttle_trim_tas + scaler_as * (throttle_max_tas - throttle_trim_tas);
+
+		
+	}
+	else {
+		float scaler_as = constrain((input.tas - param.tas_min_ref) / (param.tas_trim_ref - param.tas_min_ref), 0.0f, 1.0f);
+		int i, j;
+		for(i = 1; i < 5; i++){
+			if(desired_rpm < _control_param.min_tas_throttle_rpm[i]){
+				i = i-1;
+				break;
+			}
+		}
+
+		if(i < 5){
+			float scaler_throttle_min_tas = (desired_rpm - _control_param.min_tas_throttle_rpm[i])(_control_param.min_tas_throttle_rpm[i], _control_param.min_tas_throttle_rpm[i+1]);
+			throttle_min_tas = (i + scaler_throttle_min_tas)/5 * _control_param.min_tas_max_rpm;
+		}
+		//the case where the throttle is not enough
+		if(i == 5) {
+			//extrapolating the throttle curve with the highest quadrant
+			float slope = (_control_param.min_tas_max_rpm/4) / (_control_param.min_tas_throttle_rpm[4] - _control_param.min_tas_throttle_rpm[3]);
+			throttle_min_tas = (desired_rpm - _control_param.min_tas_throttle_rpm[4]) * slope + control_param.min_tas_max_rpm;
+		}
+		for(j = 1; j < 5; j++){
+			if(desired_rpm < _control_param.trim_tas_throttle_rpm[j]){
+				j = j-1;
+				break;
+			}
+		}
+		if(j < 5){
+			float scaler_throttle_trim_tas = (desired_rpm - _control_param.trim_tas_throttle_rpm[j])(_control_param.trim_tas_throttle_rpm[j], _control_param.trim_tas_throttle_rpm[j+1]);
+			throttle_trim_tas = (j + scaler_throttle_trim_tas)/5 * _control_param.trim_tas_max_rpm;
+		}
+		//the case where the throttle is not enough
+		if(j == 5) {
+			//extrapolating the throttle curve with the highest quadrant
+			float slope = (_control_param.trim_tas_trim_rpm/4) / (_control_param.trim_tas_throttle_rpm[4] - _control_param.trim_tas_throttle_rpm[3]);
+			throttle_trim_tas = (desired_rpm - _control_param.trim_tas_throttle_rpm[4]) * slope + control_param.trim_tas_max_rpm;
+		}
+
+		float max_rpm_trim_adj = param.trim_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.trim_tas_max_rpm);
+		float max_rpm_min_adj = param.min_tas_max_rpm + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - param.min_tas_max_rpm);
+
+		throttle_trim_tas *= max_rpm_trim_adj / param.trim_tas_max_rpm;
+		throttle_min_tas *= max_rpm_min_adj / param.min_tas_max_rpm;
+
+		throttle = throttle_min_tas + scaler_as * (throttle_trim_tas - throttle_min_tas);
+	}
+
+	//Applying pid controller
+	if (param.integrator_gain_rpm > FLT_EPSILON) {
+			// underspeed conditions zero out integration
+			_rpm_integ_state = _rpm_integ_state + (desired_rpm - input.motor_rpm * param.integrator_gain_rpm) * dt *
+						     (1.0f - _ratio_undersped);
+
+			const float integ_state_max = param.throttle_max - _throttle_setpoint;
+			const float integ_state_min = param.throttle_min - _throttle_setpoint;
+			
+			_rpm_integ_state = constrain(_rpm_integ_state, integ_state_min, integ_state_max);
+		} else {
+			_rpm_integ_state = 0.0f;
+		}
+	return throttle + (desired_rpm - input.motor_rpm) * param.rpm_error_gain + _rpm_integ_state;
+
+}
 
 float TECSControl::_calcAirspeedControlOutput(const Setpoint &setpoint, const Input &input, const Param &param,
 		const Flag &flag) const
@@ -679,15 +927,17 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 			// calculate RPM for the required thrust, corrected for air density (the desired thrust must be higher as the density decreases, as the actual thrust will also decrease)
 			float rpm = _calcPropellerRPM(thrust * _control_param.reference_air_density * input.air_density, input);
 
-			// Open loop RPM control
-			float U = input.electric_motor_current * param.electric_motor_R + rpm / param.electric_motor_Kv;
-			throttle_setpoint = U / input.battery_voltage;
+			// Electic motor governor
+			throttle_setpoint = _calcGovernorElectricMotor(rpm, input);
 
 
 			// Stabilizer airstream from propulsion device
 			// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2]
-			_stabilizer_airstream_velocity = ((sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas)
-					- input.tas) * param.propeller_airstream_stabilizer_scaler + input.tas) / input.eas_to_tas;
+			// The airstream velocity can be approximated to linearly decrease over distance.  If the scaler is measured vhile the vehicle is stationary, the scaler approaches 1 
+			// when the airspeed is infinite.
+			float ve = sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas);
+			float scaler = 1-1/(input.tas / ve + 1) + param.propeller_airstream_stabilizer_scaler * 1/(input.tas / ve + 1)
+			_stabilizer_airstream_velocity = ((ve - input.tas) * scaler + input.tas) / input.eas_to_tas;
 
 
 		} else{// thrust/rpm control is not supported with ICE or jet engine yet.
@@ -744,6 +994,7 @@ void TECSControl::resetIntegrals()
 {
 	_pitch_integ_state = 0.0f;
 	_STE_rate_integ_state = 0.0f;
+	_rpm_integ_state = 0.0f;
 }
 
 float TECS::_update_speed_setpoint(const float tas_min, const float tas_max, const float tas_setpoint, const float tas)
@@ -804,7 +1055,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 		  float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		  float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float hgt_rate_sp, float flaps_applied, float air_density
-		  float battery_voltage, float electric_motor_current)
+		  float battery_voltage, float electric_motor_current float motor_rpm)
 {
 
 	// Calculate the time since last update (seconds)
@@ -864,7 +1115,8 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 							.air_density = air_density,
 							.eas_to_tas = eas_to_tas
 							.battery_voltage = battery_voltage
-							.electric_motor_current = electric_motor_current};
+							.electric_motor_current = electric_motor_current
+							.motor_rpm = motor_rpm};
 
 		_control.update(dt, control_setpoint, control_input, _control_param, _control_flag);
 
