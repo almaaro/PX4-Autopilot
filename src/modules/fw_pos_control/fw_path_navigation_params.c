@@ -872,119 +872,518 @@ PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
 PARAM_DEFINE_FLOAT(FW_T_E_MOT_KV, 1.f);
 
 /**
- * Electric motor internal resistance R
+ * Thrust parameters
  * 
- * Can be defined by measuring the voltage across the motor, the rpm and current with 2 different loads with the same throttle setting.
- * The points will define a line in (I, rpm) coordinates where R is the slope and the rpm @ I = 0 divided by U is Kv. 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
  * 
- * @unit ohm
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_E_MOT_R, 1.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F0_AL, 0.0f); 
 
 /**
- * Propeller thrust parameter "a" at minimum CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
- * 
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_A, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F25_AL, 0.0f); 
 
 /**
- * Propeller thrust parameter "b" at minimum airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_B, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F50_AL, 0.0f); 
 
 /**
- * Propeller thrust parameter "c" at minimum airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MIN_C, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F75_AL, 0.0f); 
 
 /**
- * Propeller thrust parameter "a" at trim airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_A, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F100_AL, 0.0f); 
 
 /**
- * Propeller thrust parameter "b" at trim airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_B, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F0_AT, 0.0f); 
 
 /**
- * Propeller thrust parameter "c" at trim airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_TRIM_C, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F25_AT, 0.0f); 
 
 /**
- * Propeller thrust parameter "a" at max airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_A, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F50_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F75_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F100_AT, 0.0f); 
 
 /**
- * Propeller thrust parameter "b" at max airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_B, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_F0_AH, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F25_AH, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F50_AH, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F75_AH, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_F100_AH, 0.0f); 
 
 /**
- * Propeller thrust parameter "c" at max airspeed CAS at the reference air density
+ * Thrust parameters
  * 
- * RPM = a * F ^ (b) + c
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_PRO_MAX_C, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_T0_AL, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T25_AL, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T50_AL, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T75_AL, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T100_AL, 0.0f); 
 
 /**
- * Propeller max thrust at min airspeed CAS at the reference air density at max throttle at reference air density
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_F_LIM_MIN, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_T0_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T25_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T50_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T75_AT, 0.0f); 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T100_AT, 0.0f); 
 
 /**
- * Propeller max thrust at trim airspeed CAS at the reference air density at max throttle at reference air density
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_F_LIM_TRIM, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_T0_AH, 0.0f); 
 
 /**
- * Propeller max thrust at max airspeed CAS at the reference air density at max throttle at reference air density
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
  * 
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_F_LIM_MAX, 0.f);
+PARAM_DEFINE_FLOAT(FW_T_DT_T25_AH, 0.0f); 
 
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T50_AH, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T75_AH, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_T100_AH, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_NH_AL, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_NH_AT, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)
+ * T -> throttle setting at X% of the max rpm.
+ * 
+ * AL -> min as
+ * AT -> trim as
+ * AH -> max as
+ * 
+ * NH -> max rpm at given airspeed.
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_NH_AH, 0.0f); 
 /**
  * Propeller diameter
  * @group FW TECS
