@@ -922,7 +922,7 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 		// Throttle calculations...
 		if(param.propulsion_type == 0){ // electric motor with propeller / ducted fan
 
-			float thrust = ste_rate.setpoint / input.tas * param.weight_gross;
+			_thrust_setpoint = ste_rate.setpoint / input.tas * param.weight_gross;
 
 			// calculate RPM for the required thrust, corrected for air density (the desired thrust must be higher as the density decreases, as the actual thrust will also decrease)
 			float rpm = _calcPropellerRPM(thrust * _control_param.reference_air_density * input.air_density, input);
@@ -936,7 +936,7 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 			// The airstream velocity can be approximated to linearly decrease over distance.  If the scaler is measured vhile the vehicle is stationary, the scaler approaches 1 
 			// when the airspeed is infinite.
 			float ve = sqrt(2 * thrust / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas);
-			float scaler = 1-1/(input.tas / ve + 1) + param.propeller_airstream_stabilizer_scaler * 1/(input.tas / ve + 1)
+			float scaler = 1-1/(input.tas / ve + 1) + param.propeller_airstream_stabilizer_scaler * 1/(input.tas / ve + 1);
 			_stabilizer_airstream_velocity = ((ve - input.tas) * scaler + input.tas) / input.eas_to_tas;
 
 
@@ -979,7 +979,7 @@ float TECSControl::_calcThrottleControlOutput(const STERateLimit &limit, const C
 			// throttle is between trim and minimum
 			throttle_setpoint = param.throttle_trim_adjusted - STE_rate_setpoint_adj * throttle_below_trim_per_ste_rate;
 		}
-		
+
 		_stabilizer_airstream_velocity = input.tas / input.eas_to_tas;
 	}
 

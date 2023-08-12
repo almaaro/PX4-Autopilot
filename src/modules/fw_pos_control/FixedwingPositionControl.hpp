@@ -96,6 +96,7 @@
 #include <uORB/topics/rpm.h>
 #include <uORB/topics/wind.h>
 #include <uORB/topics/orbit_status.h>
+#include <uORB/topics/stabilizer_airstream.h>
 #include <uORB/uORB.h>
 
 using namespace launchdetection;
@@ -220,6 +221,7 @@ private:
 	uORB::Publication<landing_gear_s> _landing_gear_pub{ORB_ID(landing_gear)};
 	uORB::Publication<normalized_unsigned_setpoint_s> _flaps_setpoint_pub{ORB_ID(flaps_setpoint)};
 	uORB::Publication<normalized_unsigned_setpoint_s> _spoilers_setpoint_pub{ORB_ID(spoilers_setpoint)};
+	uORB::Publication<stabilizer_airstream_s> _stabilizer_airstream_pub{ORB_ID(stabilizer_airstream)};
 
 	manual_control_setpoint_s _manual_control_setpoint{};
 	position_setpoint_triplet_s _pos_sp_triplet{};
@@ -454,6 +456,7 @@ private:
 	void tecs_status_publish(float alt_sp, float equivalent_airspeed_sp, float true_airspeed_derivative_raw,
 				 float throttle_trim);
 	void publishLocalPositionSetpoint(const position_setpoint_s &current_waypoint);
+	void publishStabilizerAirstream();
 
 	/**
 	 * @brief Sets the landing abort status and publishes landing status.

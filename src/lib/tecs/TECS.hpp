@@ -366,6 +366,13 @@ public:
 	*/
 	float getStabilizerAirstreamVelocity() const {return _stabilizer_airstream_velocity; };
 
+	/**
+	 * @brief get desired thrust
+	 * 
+	 * @return returns the thrust
+	*/
+	float getThrustSetpoint() const {return _thrust_setpoint; };
+
 private:
 	/**
 	 * @brief Specific total energy rate limit.
@@ -443,7 +450,7 @@ private:
 	/**
 	 * @brief Calculate the required throttle setting to achieve the desired rpm
 	*/
-	_calcGovernorElectricMotor(cons float desired_rpm const Input &input) const;
+	float _calcGovernorElectricMotor(cons float desired_rpm const Input &input) const;
 	
 	/**
 	 * @brief calculate airspeed control proportional output.
@@ -598,6 +605,7 @@ private:
 	float _ratio_undersped{0.0f};				///< A continuous representation of how "undersped" the TAS is [0,1]
 
 	float _stabilizer_airstream_velocity{0.0f};
+	float _thrust_setpoint{0.0f};
 };
 
 class TECS
