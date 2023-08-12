@@ -72,6 +72,8 @@ FixedwingPositionControl::FixedwingPositionControl(bool vtol) :
 	_flaps_setpoint_pub.advertise();
 	_spoilers_setpoint_pub.advertise();
 
+	_stabilizer_airstream_pub.advertise();
+
 	_airspeed_slew_rate_controller.setSlewRate(ASPD_SP_SLEW_RATE);
 
 	/* fetch initial parameter values */
@@ -2680,6 +2682,8 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 			 _rpm.indicated_frequency_rpm);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
+
+	publishStabilizerAirstream();
 }
 
 float
@@ -2921,6 +2925,16 @@ void FixedwingPositionControl::publishOrbitStatus(const position_setpoint_s pos_
 	orbit_status.z = pos_sp.alt;
 	orbit_status.yaw_behaviour = orbit_status_s::ORBIT_YAW_BEHAVIOUR_HOLD_FRONT_TANGENT_TO_CIRCLE;
 	_orbit_status_pub.publish(orbit_status);
+}
+
+void FixedwingPositionControl::publishStabilizerAirstream()
+{
+	stabilizer_airstream_s stabilizer_airstream{};
+	stabilizer_airstream.timestamp = hrt_absolute_time();
+	stabilizer_airstream.thrust = _tecs.getThrustSetpoint();
+	stabilizer_airstream.velocity_eas = _tecs.getStabilizerAirstreamVelocity();
+
+	_stabilizer_airstream_pub.publish(stabilizer_airstream);
 }
 
 void FixedwingPositionControl::navigateWaypoints(const Vector2f &waypoint_A, const Vector2f &waypoint_B,
