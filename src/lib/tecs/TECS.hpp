@@ -209,6 +209,7 @@ public:
 		float throttle_trim_adjusted;		///< Trim throttle adjusted for airspeed, load factor and air density
 		float throttle_max;			///< Normalized throttle upper limit.
 		float throttle_min;			///< Normalized throttle lower limit.
+		float ref_air_density; 
 
 		// Altitude control param
 		float altitude_error_gain;		///< Altitude error inverse time constant [1/s].
@@ -233,24 +234,24 @@ public:
 		float throttle_damping_gain;				///< Damping gain of the throttle demand calculation [s].
 		float throttle_slewrate;				///< Throttle demand slew rate limit [1/s].
 
+		float integrator_gain_rpm;
+		float rpm_error_gain;
+
 		float load_factor_correction;				///< Gain from normal load factor increase to total energy rate demand [m²/s³].
 		float load_factor;					///< Additional normal load factor.
 
-		float a_min_tas;
-		float b_min_tas;
-		float c_min_tas;
-		float a_trim_tas;
-		float b_trim_tas;
-		float c_trim_tas;
-		float a_max_tas;
-		float b_max_tas;
-		float c_max_tas;
-		float max_thrust_min_tas;
-		float max_thrust_trim_tas;
-		float max_thrust_max_tas;
+		float min_tas_max_rpm;
+		float trim_tas_max_rpm;
+		float max_tas_max_rpm;
+
+		float min_tas_thrust_rpm[5];
+		float trim_tas_thrust_rpm[5];
+		float max_tas_thrust_rpm[5];
+		float min_tas_throttle_rpm[5];
+		float trim_tas_throttle_rpm[5];
+		float max_tas_throttle_rpm[5];
 
 		float electric_motor_Kv;
-		float electric_motor_R;
 
 		bool use_dynamic_throttle_calculation;
 		bool dynamic_throttle_calculation_initialized;
@@ -300,6 +301,7 @@ public:
 		float eas_to_tas;
 		float battery_voltage;
 		float electric_motor_current;
+		float motor_rpm;
 	};
 
 	/**
@@ -437,6 +439,11 @@ private:
 	 * @brief Calculate the required propeller rpm to achieve the desired thrust at current airspeed and air density
 	*/
 	float _calcPropellerRPM(const float desired_thrust, const Input &input, const Param &param) const;
+
+	/**
+	 * @brief Calculate the required throttle setting to achieve the desired rpm
+	*/
+	_calcGovernorElectricMotor(cons float desired_rpm const Input &input) const;
 	
 	/**
 	 * @brief calculate airspeed control proportional output.
@@ -582,6 +589,7 @@ private:
 	AlphaFilter<float> _ste_rate_estimate_filter;		///< Low pass filter for the specific total energy rate.
 	float _pitch_integ_state{0.0f};				///< Pitch integrator state [rad].
 	float _STE_rate_integ_state{0.0f};			///< Throttle integrator state [-].
+	float _rpm_integ_state{0.0f};
 
 	// Output
 	DebugOutput _debug_output;				///< Debug output.
@@ -641,7 +649,7 @@ public:
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		    float target_sinkrate, float speed_deriv_forward, float hgt_rate, float hgt_rate_sp = NAN, float flaps_setpoint, float air_density
-			float battery_voltage, float electric_motor_current);
+			float battery_voltage, float electric_motor_current float motor_rpm);
 
 	/**
 	 * @brief Initialize the control loop
@@ -663,6 +671,7 @@ public:
 
 	void set_integrator_gain_throttle(float gain) { _control_param.integrator_gain_throttle = gain;};
 	void set_integrator_gain_pitch(float gain) { _control_param.integrator_gain_pitch = gain; };
+	void set_integrator_gain_rpm(float gain) { _control_param.integrator_gain_rpm = gain; };
 
 	void set_max_sink_rate(float max_sink_rate) { _control_param.max_sink_rate = max_sink_rate; _reference_param.max_sink_rate = max_sink_rate; };
 	void set_min_sink_rate(float min_sink_rate) { _control_param.min_sink_rate = min_sink_rate; };
@@ -671,6 +680,8 @@ public:
 
 	void set_altitude_rate_ff(float altitude_rate_ff) { _control_param.altitude_setpoint_gain_ff = altitude_rate_ff; };
 	void set_altitude_error_time_constant(float time_const) { _control_param.altitude_error_gain = 1.0f / math::max(time_const, 0.1f);; };
+
+	void set_rpm_error_gain(float gain) {_control_param.rpm_error_gain = gain; };
 
 	void set_equivalent_airspeed_max(float airspeed) { _equivalent_airspeed_max = airspeed; };
 	void set_equivalent_airspeed_min(float airspeed) { _equivalent_airspeed_min = airspeed; };
@@ -701,18 +712,92 @@ public:
 	void set_wing_efficiency_factor(float eff) { _control_param.wing_efficiency = eff; };
 	void set_reference_air_density(float rho) { _control_param.ref_air_density = rho; };
 	void set_electric_motor_Kv(float Kv) {_control_param.electric_motor_Kv = Kv; };
-	void set_electric_motor_R(float R) {_control_param.electric_motor_R = R; };
 
 	void set_propulsion_type(int type) {_control_param.propulsion_type = type;};
 
-	void set_thrust_rpm_parameters(float a_min_tas, float b_min_tas, float c_min_tas,
-		float a_trim_tas, float b_trim_tas, float c_trim_tas,
-		float a_max_tas, float b_max_tas, float c_max_tas,
-		float max_thrust_min_tas, float max_thrust_trim_tas, float max_thrust_max_tas)
-		{ _control_param.a_min_tas =  a_min_tas; _control_param.b_min_tas = b_min_tas; _control_param.c_min_tas = c_min_tas;
-		_control_param.a_trim_tas = a_trim_tas; _control_param.b_trim_tas = b_trim_tas; _control_param.c_trim_tas = c_trim_tas;
-		_control_param.a_max_tas = a_max_tas; _control_param.b_max_tas = b_max_tas; _control_param.c_max_tas = c_max_tas; 
-		_control_param.max_thrust_min_tas =  max_thrust_min_tas; _control_param.max_thrust_trim_tas = max_thrust_trim_tas; _control_param.max_thrust_max_tas = max_thrust_max_tas; };
+	void set_thrust_rpm_parameters(
+		float min_tas_thrust_rpm_0,
+		float min_tas_thrust_rpm_25,
+		float min_tas_thrust_rpm_50,
+		float min_tas_thrust_rpm_75,
+		float min_tas_thrust_rpm_100,
+
+		float trim_tas_thrust_rpm_0,
+		float trim_tas_thrust_rpm_25,
+		float trim_tas_thrust_rpm_50,
+		float trim_tas_thrust_rpm_75,
+		float trim_tas_thrust_rpm_100,
+
+		float max_tas_thrust_rpm_0,
+		float max_tas_thrust_rpm_25,
+		float max_tas_thrust_rpm_50,
+		float max_tas_thrust_rpm_75,
+		float max_tas_thrust_rpm_100,
+
+		float min_tas_throttle_rpm_0,
+		float min_tas_throttle_rpm_25,
+		float min_tas_throttle_rpm_50,
+		float min_tas_throttle_rpm_75,
+		float min_tas_throttle_rpm_100,
+
+		float trim_tas_throttle_rpm_0,
+		float trim_tas_throttle_rpm_25,
+		float trim_tas_throttle_rpm_50,
+		float trim_tas_throttle_rpm_75,
+		float trim_tas_throttle_rpm_100,
+
+		float max_tas_throttle_rpm_0,
+		float max_tas_throttle_rpm_25,
+		float max_tas_throttle_rpm_50,
+		float max_tas_throttle_rpm_75,
+		float max_tas_throttle_rpm_100,
+
+		float max_rpm_min_as,
+		float max_rpm_trim_as,
+		float max_rpm_max_as
+	)
+		{
+		_control_param.min_tas_max_rpm = max_rpm_min_as;
+		_control_param.trim_tas_max_rpm = max_rpm_trim_as;
+		_control_param.max_tas_max_rpm = max_rpm_trim_as;
+
+		_control_param.min_tas_thrust_rpm[0] = min_tas_thrust_rpm_0;
+		_control_param.min_tas_thrust_rpm[1] = _min_tas_thrust_rpm_25;
+		_control_param.min_tas_thrust_rpm[2] = min_tas_thrust_rpm_50;
+		_control_param.min_tas_thrust_rpm[3] = _min_tas_thrust_rpm_75;
+		_control_param.min_tas_thrust_rpm[4] = min_tas_thrust_rpm_100;
+
+		_control_param.trim_tas_thrust_rpm[0] = trim_tas_thrust_rpm_0;
+		_control_param.trim_tas_thrust_rpm[1] = _trim_tas_thrust_rpm_25;
+		_control_param.trim_tas_thrust_rpm[2] = trim_tas_thrust_rpm_50;
+		_control_param.trim_tas_thrust_rpm[3] = _trim_tas_thrust_rpm_75;
+		_control_param.trim_tas_thrust_rpm[4] = trim_tas_thrust_rpm_100;
+
+		_control_param.max_tas_thrust_rpm[0] = max_tas_thrust_rpm_0;
+		_control_param.max_tas_thrust_rpm[1] = _max_tas_thrust_rpm_25;
+		_control_param.max_tas_thrust_rpm[2] = max_tas_thrust_rpm_50;
+		_control_param.max_tas_thrust_rpm[3] = _max_tas_thrust_rpm_75;
+		_control_param.max_tas_thrust_rpm[4] = max_tas_thrust_rpm_100;
+
+		_control_param.min_tas_throttle_rpm[0] = min_tas_throttle_rpm_0;
+		_control_param.min_tas_throttle_rpm[1] = _min_tas_throttle_rpm_25;
+		_control_param.min_tas_throttle_rpm[2] = min_tas_throttle_rpm_50;
+		_control_param.min_tas_throttle_rpm[3] = _min_tas_throttle_rpm_75;
+		_control_param.min_tas_throttle_rpm[4] = min_tas_throttle_rpm_100;
+
+		_control_param.trim_tas_throttle_rpm[0] = trim_tas_throttle_rpm_0;
+		_control_param.trim_tas_throttle_rpm[1] = _trim_tas_throttle_rpm_25;
+		_control_param.trim_tas_throttle_rpm[2] = trim_tas_throttle_rpm_50;
+		_control_param.trim_tas_throttle_rpm[3] = _trim_tas_throttle_rpm_75;
+		_control_param.trim_tas_throttle_rpm[4] = trim_tas_throttle_rpm_100;
+
+		_control_param.max_tas_throttle_rpm[0] = max_tas_throttle_rpm_0;
+		_control_param.max_tas_throttle_rpm[1] = _max_tas_throttle_rpm_25;
+		_control_param.max_tas_throttle_rpm[2] = max_tas_throttle_rpm_50;
+		_control_param.max_tas_throttle_rpm[3] = _max_tas_throttle_rpm_75;
+		_control_param.max_tas_throttle_rpm[4] = max_tas_throttle_rpm_100;
+
+		};
 
 	void set_use_dynamic_throttle_calculation(bool use) {_control_param.use_dynamic_throttle_calculation = use; };
 
@@ -802,6 +887,7 @@ private:
 		.altitude_setpoint_gain_ff = 0.0f,
 		.tas_error_percentage = 0.15f,
 		.airspeed_error_gain = 0.1f,
+		.rpm_error_gain = 0.001f,
 		.ste_rate_time_const = 0.1f,
 		.seb_rate_ff = 1.0f,
 		.pitch_speed_weight = 1.0f,
@@ -809,6 +895,7 @@ private:
 		.pitch_damping_gain = 0.0f,
 		.integrator_gain_throttle = 0.0f,
 		.throttle_damping_gain = 0.0f,
+		.integrato_gain_rpm = 0.0f,
 		.throttle_slewrate = 0.0f,
 		.load_factor_correction = 0.0f,
 		.load_factor = 1.0f,
@@ -816,20 +903,10 @@ private:
 		.wingspan = -1.f;								///< wingspan (m)
 		.wing_efficiency = 0.85f;						///< wing efficiency factor
 		.ref_air_density = 1.225f;
-		.a_min_tas = 0.f;
-		.b_min_tas = 0.f;
-		.c_min_tas = 0.f;
-		.a_trim_tas = 0.f;
-		.b_trim_tas = 0.f;
-		.c_trim_tas = 0.f;
-		.a_max_tas = 0.f;
-		.b_max_tas = 0.f;
-		.c_max_tas = 0.f;
 		.max_thrust_min_tas = 0.f;
 		.max_thrust_trim_tas = 0.f;
 		.max_thrust_max_tas = 0.f;
 		.electric_motor_Kv = 1.f;
-		.electric_motor_R = 1.f;
 		.use_dynamic_throttle_calculation = false;
 		.dynamic_throttle_calculation_initialized = false;
 		.propulsion_type = -1;
@@ -844,5 +921,6 @@ private:
 	 * Update the desired airspeed
 	 */
 	float _update_speed_setpoint(const float tas_min, const float tas_max, const float tas_setpoint, const float tas);
+
 };
 
