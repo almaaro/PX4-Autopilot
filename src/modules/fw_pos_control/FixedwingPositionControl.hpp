@@ -93,6 +93,7 @@
 #include <uORB/topics/vehicle_local_position_setpoint.h>
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/battery_status.h>
+#include <uORB/topics/rpm.h>
 #include <uORB/topics/wind.h>
 #include <uORB/topics/orbit_status.h>
 #include <uORB/uORB.h>
@@ -206,6 +207,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::Subscription _battery_status_sub{ORB_ID(battery_status)};
+	uORB::Subscription _rpm_sub{ORB_ID(rpm)};
 
 	uORB::Publication<vehicle_attitude_setpoint_s> _attitude_sp_pub;
 	uORB::Publication<vehicle_local_position_setpoint_s> _local_pos_sp_pub{ORB_ID(vehicle_local_position_setpoint)};
@@ -226,6 +228,7 @@ private:
 	vehicle_local_position_s _local_pos{};
 	vehicle_status_s _vehicle_status{};
 	battery_status_s _battery_status{};
+	rpm_s _rpm{};
 
 	bool _position_setpoint_previous_valid{false};
 	bool _position_setpoint_current_valid{false};
