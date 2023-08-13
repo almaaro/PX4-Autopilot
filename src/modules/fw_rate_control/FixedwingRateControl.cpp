@@ -398,7 +398,7 @@ void FixedwingRateControl::Run()
 			}
 
 
-			if(_param_dynamic_throttle_calculations){
+			if(_param_dynamic_throttle_calculations && _control_mode.flag_control_auto_enabled){
 				trim_pitch = (flaps_setpoint.normalized_setpoint * elev_trim_k_flaps + (1 - flaps_setpoint.normalized_setpoint) * elev_trim_k ) * _airspeed * _airspeed +
 					(flaps_setpoint.normalized_setpoint * elev_trim_b_flaps + (1 - flaps_setpoint.normalized_setpoint) * elev_trim_b ) + _param_motor_torque_arm_length *
 					stabilizer_airstream.thrust / (stabilizer_airstream.velocity_eas * stabilizer_airstream.velocity_eas);
