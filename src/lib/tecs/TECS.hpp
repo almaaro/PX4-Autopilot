@@ -195,6 +195,7 @@ public:
 		// Vehicle specific params
 		float max_sink_rate;			///< Maximum sink rate (with min throttle and max speed) [m/s].
 		float min_sink_rate;			///< Minimum sink rate (with min throttle and trim speed) [m/s].
+		float min_sink_rate_flaps;
 		float max_climb_rate;			///< Climb rate produced by max allowed throttle [m/s].
 		float vert_accel_limit;			///< Magnitude of the maximum vertical acceleration allowed [m/s²].
 		float equivalent_airspeed_trim;		///< Equivalent cruise airspeed for airspeed less mode [m/s].
@@ -205,6 +206,7 @@ public:
 		float throttle_trim_adjusted;		///< Trim throttle adjusted for airspeed, load factor and air density
 		float throttle_max;			///< Normalized throttle upper limit.
 		float throttle_min;			///< Normalized throttle lower limit.
+		float ref_air_density;
 
 		// Altitude control param
 		float altitude_error_gain;		///< Altitude error inverse time constant [1/s].
@@ -231,6 +233,14 @@ public:
 
 		float load_factor_correction;				///< Gain from normal load factor increase to total energy rate demand [m²/s³].
 		float load_factor;					///< Additional normal load factor.
+
+		float weight_gross;
+
+		float pitchsp_offset_rad;
+		float pitchsp_offset_flaps_rad;
+		float cl_to_alpha_rad_slope;
+		float wing_area;
+
 	};
 
 	/**
@@ -266,7 +276,9 @@ public:
 		float altitude;		///< Current altitude amsl of the UAS [m].
 		float altitude_rate;	///< Current altitude rate of the UAS [m/s].
 		float tas;		///< Current true airspeed of the UAS [m/s].
+		float eas;
 		float tas_rate;		///< Current true airspeed rate of the UAS [m/s²].
+		float flaps_setpoint;
 	};
 
 	/**
@@ -372,6 +384,18 @@ private:
 		float ske_weighting;	///< Specific kinetic energy weight.
 	};
 
+	/**
+	 *  @brief values for controlling the pitch setpoint offset
+	*/
+	struct PitchSetpointOffset {
+		float cl_offset_clean_cruise_trim_as;
+		float cl_offset_flaps_cruise_trim_as;
+		float cl_cruise_trim_as;
+		float cl_coefficient;
+		bool pitchsp_offset_initialized{false};
+	};
+
+
 private:
 	/**
 	 * @brief Get control error from etpoint and estimate
@@ -476,6 +500,11 @@ private:
 	 */
 	float _calcPitchControlOutput(const Input &input, const ControlValues &seb_rate, const Param &param,
 				      const Flag &flag) const;
+
+	/**
+	 * @brief Initialize the wing's lift profile calculations
+	 */
+	void _initialize_pitchsp_offset(const Input &input, const Param &param, const Flag &flag) const;
 
 	/**
 	 * @brief Update controlled throttle setpoint.
@@ -584,7 +613,7 @@ public:
 	void update(float pitch, float altitude, float hgt_setpoint, float EAS_setpoint, float equivalent_airspeed,
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
-		    float target_sinkrate, float speed_deriv_forward, float hgt_rate, float hgt_rate_sp = NAN);
+		    float target_sinkrate, float speed_deriv_forward, float hgt_rate, float hgt_rate_sp = NAN, float flaps_applied);
 
 	/**
 	 * @brief Initialize the control loop
@@ -609,6 +638,7 @@ public:
 
 	void set_max_sink_rate(float max_sink_rate) { _control_param.max_sink_rate = max_sink_rate; _reference_param.max_sink_rate = max_sink_rate; };
 	void set_min_sink_rate(float min_sink_rate) { _control_param.min_sink_rate = min_sink_rate; };
+	void set_min_sink_rate_flaps(float min_sink_rate_flaps) { _control_param.min_sink_rate_flaps = min_sink_rate_flaps; }
 	void set_max_climb_rate(float climb_rate) { _control_param.max_climb_rate = climb_rate; _reference_param.max_climb_rate = climb_rate; };
 
 	void set_altitude_rate_ff(float altitude_rate_ff) { _control_param.altitude_setpoint_gain_ff = altitude_rate_ff; };
@@ -633,6 +663,15 @@ public:
 	void set_ste_rate_time_const(float time_const) { _control_param.ste_rate_time_const = time_const; };
 
 	void set_seb_rate_ff_gain(float ff_gain) { _control_param.seb_rate_ff = ff_gain; };
+
+	void set_reference_air_density(float rho) { _control_param.ref_air_density = rho; };
+
+	void set_weight_gross(float weight_gross) { _control_param.weight_gross = weight_gross; };
+
+	void set_pitchsp_offset_rad(float offset) { control_param.pitchsp_offset_rad = offset; }
+	void set_pitchsp_offset_flaps_rad(float offset) { control_param.pitchsp_offset_flaps_rad = offset; }
+	void set_cl_to_alpha_rad_slope(float slope) { control_param.cl_to_alpha_rad_slope = slope; }
+	void set_wing_area(float a) { control_param.wing_area = a; }
 
 	/**
 	 * Handle the altitude reset
@@ -693,6 +732,7 @@ private:
 	TECSControl::Param _control_param{
 		.max_sink_rate = 5.0f,
 		.min_sink_rate = 2.0f,
+		.min_sink_rate_flaps = 2.0f,
 		.max_climb_rate = 5.0f,
 		.vert_accel_limit = 0.0f,
 		.equivalent_airspeed_trim = 15.0f,
@@ -717,6 +757,13 @@ private:
 		.throttle_slewrate = 0.0f,
 		.load_factor_correction = 0.0f,
 		.load_factor = 1.0f,
+		.weight_gross = 1.0f,
+		.ref_air_density = 1.225f,
+		.pitchsp_offset_rad = 0.0f,
+		.pitchsp_offset_flaps_rad = 0.0f,
+		.cl_to_alpha_rad_slope = 1.0f,
+		.wing_area = 1.0f,
+
 	};
 
 	TECSControl::Flag _control_flag{
@@ -728,5 +775,7 @@ private:
 	 * Update the desired airspeed
 	 */
 	float _update_speed_setpoint(const float tas_min, const float tas_max, const float tas_setpoint, const float tas);
+
+
 };
 

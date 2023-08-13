@@ -494,6 +494,23 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
 PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
 
 /**
+ * Minimum descent rate with flaps deployed
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at the same airspeed as used
+ * to measure FW_T_CLMB_MAX. The flaps must be in the landing
+ * configuration.
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
+
+/**
  * Maximum descent rate
  *
  * This sets the maximum descent rate that the controller will use.
@@ -795,6 +812,48 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+
+/**
+ * TECS reference air density
+ *
+ * This is the air density at the time and place of measuring the tecs parameters
+ * (climb min/max, trim throttle etc)
+ *
+ * @unit Pa
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO, 1.225f);
+
+/**
+ * The slope between angle of attack and the coefficient of lift.
+ * Calculated from the wing airfoil's Alpha v Cl polar as
+ * FW_T_ALPHA_V_CL = (delta Alpha)/(delta Cl)
+ *
+ * @unit deg
+ * @min 0.0
+ * @max 30.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CL_ALPHA, 0.0f);
+
+/**
+ * The wing area in square meters.
+ *
+ * @unit m^2
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_WING_AREA, 0.0f);
+
 
 /**
  * GPS failure loiter time

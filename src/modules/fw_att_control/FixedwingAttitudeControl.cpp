@@ -98,8 +98,7 @@ FixedwingAttitudeControl::vehicle_manual_poll(const float yaw_body)
 
 				_att_sp.roll_body = _manual_control_setpoint.roll * radians(_param_fw_man_r_max.get());
 
-				_att_sp.pitch_body = -_manual_control_setpoint.pitch * radians(_param_fw_man_p_max.get())
-						     + radians(_param_fw_psp_off.get());
+				_att_sp.pitch_body = -_manual_control_setpoint.pitch * radians(_param_fw_man_p_max.get());
 				_att_sp.pitch_body = constrain(_att_sp.pitch_body,
 							       -radians(_param_fw_man_p_max.get()), radians(_param_fw_man_p_max.get()));
 

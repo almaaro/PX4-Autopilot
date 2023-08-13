@@ -894,6 +894,7 @@ private:
 		(ParamFloat<px4::params::FW_T_RLL2THR>) _param_fw_t_rll2thr,
 		(ParamFloat<px4::params::FW_T_SINK_MAX>) _param_fw_t_sink_max,
 		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min,
+		(ParamFloat<px4::params::FW_T_SNK_MIN_F) _param_fw_t_sink_min_flaps,
 		(ParamFloat<px4::params::FW_T_SPDWEIGHT>) _param_fw_t_spdweight,
 		(ParamFloat<px4::params::FW_T_TAS_TC>) _param_fw_t_tas_error_tc,
 		(ParamFloat<px4::params::FW_T_THR_DAMP>) _param_fw_t_thr_damp,
@@ -905,6 +906,10 @@ private:
 		(ParamFloat<px4::params::FW_T_SPD_STD>) _param_speed_standard_dev,
 		(ParamFloat<px4::params::FW_T_SPD_DEV_STD>) _param_speed_rate_standard_dev,
 		(ParamFloat<px4::params::FW_T_SPD_PRC_STD>) _param_process_noise_standard_dev,
+		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_fw_t_ref_rho,
+
+		(ParamFloat<px4::params::FW_T_CL_ALPHA>) _param_fw_t_cl_alpha,
+		(ParamFloat<px4::params::FW_T_WING_AREA>) _param_fw_t_wing_area,
 
 		(ParamFloat<px4::params::FW_THR_ASPD_MIN>) _param_fw_thr_aspd_min,
 		(ParamFloat<px4::params::FW_THR_ASPD_MAX>) _param_fw_thr_aspd_max,
@@ -929,6 +934,7 @@ private:
 		(ParamInt<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
 
 		(ParamFloat<px4::params::FW_PSP_OFF>) _param_fw_psp_off,
+		(ParamFloat<px4::params::FW_PSP_OFF_FLPS>) _param_fw_psp_off_flps,
 
 		(ParamFloat<px4::params::NAV_LOITER_RAD>) _param_nav_loiter_rad,
 

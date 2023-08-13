@@ -124,6 +124,8 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_climb_rate(_param_fw_t_clmb_max.get());
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
+	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_flps.get());
+	_tecs.set_ref_air_density(_param_fw_t_ref_rho.get());
 	_tecs.set_speed_weight(_param_fw_t_spdweight.get());
 	_tecs.set_equivalent_airspeed_trim(_param_fw_airspd_trim.get());
 	_tecs.set_equivalent_airspeed_min(_param_fw_airspd_min.get());
@@ -143,6 +145,11 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_airspeed_measurement_std_dev(_param_speed_standard_dev.get());
 	_tecs.set_airspeed_rate_measurement_std_dev(_param_speed_rate_standard_dev.get());
 	_tecs.set_airspeed_filter_process_std_dev(_param_process_noise_standard_dev.get());
+	_tecs.set_weight_gross(_param_weight_gross.get());
+	_tecs.set_pitchsp_offset_rad(radians(_param_fw_psp_off.get()));
+	_tecs.set_pitchsp_offset_flaps_rad(radians(_param_fw_psp_off_flps.get()));
+	_tecs.set_cl_to_alpha_rad_slope(radians(_param_fw_t_cl_alpha.get()));
+	_tecs.set_wing_area(_param_fw_t_wing_area.get());
 
 	int check_ret = PX4_OK;
 
@@ -2093,7 +2100,7 @@ float
 FixedwingPositionControl::get_tecs_pitch()
 {
 	if (_tecs_is_running) {
-		return _tecs.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
+		return _tecs.get_pitch_setpoint());
 	}
 
 	// return level flight pitch offset to prevent stale tecs state when it's not running
@@ -2578,7 +2585,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	// when flying tight turns. It's in this case much safer to just set the estimated airspeed rate to 0.
 	const float airspeed_rate_estimate = 0.f;
 
-	_tecs.update(_pitch - radians(_param_fw_psp_off.get()),
+	_tecs.update(_pitch,
 		     _current_altitude,
 		     alt_sp,
 		     airspeed_sp,
@@ -2588,13 +2595,14 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 		     throttle_max,
 		     _param_fw_thr_trim.get(),
 		     throttle_trim_adjusted,
-		     pitch_min_rad - radians(_param_fw_psp_off.get()),
-		     pitch_max_rad - radians(_param_fw_psp_off.get()),
+		     pitch_min_rad,
+		     pitch_max_rad,
 		     desired_max_climbrate,
 		     desired_max_sinkrate,
 		     airspeed_rate_estimate,
 		     -_local_pos.vz,
-		     hgt_rate_sp);
+		     hgt_rate_sp,
+		     _flaps_setpoint);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
 }

@@ -400,6 +400,9 @@ void TECSControl::_calcPitchControl(float dt, const Input &input, const Specific
 	const SpecificEnergyWeighting weight{_updateSpeedAltitudeWeights(param, flag)};
 	ControlValues seb_rate{_calcPitchControlSebRate(weight, specific_energy_rates)};
 
+	//initialize pitch setpoint offsets if needed
+	_initialize_pitchsp_offset();
+
 	_calcPitchControlUpdate(dt, input, seb_rate, param);
 	const float pitch_setpoint{_calcPitchControlOutput(input, seb_rate, param, flag)};
 
@@ -483,7 +486,44 @@ float TECSControl::_calcPitchControlOutput(const Input &input, const ControlValu
 	// pitch transients due to control action or turbulence.
 	const float pitch_setpoint_unc = SEB_rate_correction / climb_angle_to_SEB_rate + _pitch_integ_state;
 
+	/* Calculate and add the pitch offsets */
+
+	// never calculate the offset for airspeeds lower than the minimum. This will avoid increasing the AOA in stalls.
+	float EAS_adj = max(_equivalent_airspeed_min, input.eas);
+	float cl = PitchSetpointOffset.cl_coefficient / (EAS_adj * EAS_adj);
+
+	//Then calculate the needed pitch. Take the flap setting into account.
+        float offset = (1.0f - input.flaps_setpoint) * param.pitchsp_offset_rad + input.flaps_setpoint * param.pitchsp_offset_flaps_rad;
+	float psp_offset_adj = offset + param.cl_to_alpha_rad_slope * (cl - PitchSetpointOffset.cl_cruise_trim_as);
+
+	pitch_setpoint_unc += psp_offset_adj;
+
 	return constrain(pitch_setpoint_unc, param.pitch_min, param.pitch_max);
+}
+
+void TECSControl::_initialize_pitchsp_offset(const Input &input, const Param &param, const Flag &flag) const
+{
+
+	if (!PitchSetpointOffset.pitchsp_offset_initialized) {
+		// sanity check
+		if ( param.wing_area < 0.01f || param.cl_to_alpha_rad_slope < 0.01f) {
+			PitchSetpointOffset.pitchsp_offset_initialized = false;
+			return;
+		}
+
+		//first calculating the lift coefficient at cruise flight at trim airspeed.
+		// cl = 2*L/(rho*A*V^2)
+		PitchSetpointOffset.cl_cruise_trim_as = 2.0f * CONSTANTS_ONE_G * param.weight_gross / (param.ref_air_density * param.wing_area * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		PitchSetpointOffset.cl_offset_clean_cruise_trim_as = PitchSetpointOffset.cl_cruise_trim_as - param.pitchsp_offset_rad / param.cl_to_alpha_rad_slope;
+
+		//Setting the flaps should ideally only change the offset, not the slope angle.
+                PitchSetpointOffset.cl_offset_flaps_cruise_trim_as = PitchSetpointOffset.cl_cruise_trim_as - param.pitchsp_offset_flaps_rad / param.cl_to_alpha_rad_slope;
+
+		//the required cl for any airspeed can be calculated by dividing _cl_coefficient by airspeed squared.
+		PitchSetpointOffset.cl_coefficient = PitchSetpointOffset.cl_cruise_trim_as * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim;
+
+		PitchSetpointOffset.pitchsp_offset_initialized = true;
+	}
 }
 
 void TECSControl::_calcThrottleControl(float dt, const SpecificEnergyRates &specific_energy_rates, const Param &param,
@@ -661,6 +701,7 @@ void TECS::initialize(const float altitude, const float altitude_rate, const flo
 	const TECSControl::Input control_input{ .altitude = altitude,
 						.altitude_rate = altitude_rate,
 						.tas = eas_to_tas * equivalent_airspeed,
+						.eas = equivalent_airspeed,
 						.tas_rate = 0.0f};
 
 	_control.initialize(control_setpoint, control_input, _control_param, _control_flag);
@@ -679,7 +720,7 @@ void TECS::initialize(const float altitude, const float altitude_rate, const flo
 void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_setpoint, float equivalent_airspeed,
 		  float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		  float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
-		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float hgt_rate_sp)
+		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float hgt_rate_sp, float flaps_applied)
 {
 
 	// Calculate the time since last update (seconds)
@@ -734,7 +775,9 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 		const TECSControl::Input control_input{ .altitude = altitude,
 							.altitude_rate = hgt_rate,
 							.tas = eas_to_tas * eas.speed,
-							.tas_rate = eas_to_tas * eas.speed_rate};
+							.eas = eas.speed
+							.tas_rate = eas_to_tas * eas.speed_rate,
+							.flaps_setpoint = flaps_applied};
 
 		_control.update(dt, control_setpoint, control_input, _control_param, _control_flag);
 
