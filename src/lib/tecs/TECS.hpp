@@ -254,6 +254,12 @@ public:
 
 		float Cd_specific_clean;
 		float Cd_specific_flaps;
+
+		float pitchsp_offset_rad;
+		float pitchsp_offset_flaps_rad;
+		float cl_to_alpha_rad_slope;
+		float wing_area;
+
 	};
 
 	/**
@@ -290,6 +296,7 @@ public:
 		float altitude;		///< Current altitude amsl of the UAS [m].
 		float altitude_rate;	///< Current altitude rate of the UAS [m/s].
 		float tas;		///< Current true airspeed of the UAS [m/s].
+		float eas;
 		float tas_rate;		///< Current true airspeed rate of the UAS [m/s²].
 		float flaps_setpoint;	///< Current flap setting.
 		float air_density;		///< Current air density [kg/m^3].
@@ -405,6 +412,18 @@ private:
 		float spe_weighting;	///< Specific potential energy weight.
 		float ske_weighting;	///< Specific kinetic energy weight.
 	};
+
+	/**
+	 *  @brief values for controlling the pitch setpoint offset
+	*/
+	struct PitchSetpointOffset {
+		float cl_offset_clean_cruise_trim_as;
+		float cl_offset_flaps_cruise_trim_as;
+		float cl_cruise_trim_as;
+		float cl_coefficient;
+		bool pitchsp_offset_initialized{false};
+	};
+
 
 private:
 	/**
@@ -524,6 +543,11 @@ private:
 	 */
 	float _calcPitchControlOutput(const Input &input, const ControlValues &seb_rate, const Param &param,
 				      const Flag &flag) const;
+
+	/**
+	 * @brief Initialize the wing's lift profile calculations
+	 */
+	void _initialize_pitchsp_offset(const Input &input, const Param &param, const Flag &flag) const;
 
 	/**
 	 * @brief Update controlled throttle setpoint.
@@ -691,6 +715,11 @@ public:
 	void set_ste_rate_time_const(float time_const) { _control_param.ste_rate_time_const = time_const; };
 
 	void set_seb_rate_ff_gain(float ff_gain) { _control_param.seb_rate_ff = ff_gain; };
+
+	void set_pitchsp_offset_rad(float offset) { control_param.pitchsp_offset_rad = offset; }
+	void set_pitchsp_offset_flaps_rad(float offset) { control_param.pitchsp_offset_flaps_rad = offset; }
+	void set_cl_to_alpha_rad_slope(float slope) { control_param.cl_to_alpha_rad_slope = slope; }
+	void set_wing_area(float a) { control_param.wing_area = a; }
 
 	void set_weight_gross(float weight_gross) { _control_param.weight_gross = weight_gross; };
 	void set_wingspan(float wingspan) { _control_param.wingspan = wingspan; };
@@ -965,6 +994,12 @@ private:
 		.propulsion_type = -1,
 		.Cd_specific_clean = 0.0f,
 		.Cd_specific_flaps = 0.0f
+		.weight_gross = 1.0f,
+		.pitchsp_offset_rad = 0.0f,
+		.pitchsp_offset_flaps_rad = 0.0f,
+		.cl_to_alpha_rad_slope = 1.0f,
+		.wing_area = 1.0f,
+
 	};
 
 	TECSControl::Flag _control_flag{

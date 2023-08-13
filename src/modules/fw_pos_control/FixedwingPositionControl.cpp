@@ -149,15 +149,18 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_airspeed_measurement_std_dev(_param_speed_standard_dev.get());
 	_tecs.set_airspeed_rate_measurement_std_dev(_param_speed_rate_standard_dev.get());
 	_tecs.set_airspeed_filter_process_std_dev(_param_process_noise_standard_dev.get());
-	_tecs.set_weight_gross(_param_weight_gross.get());
 	_tecs.set_wingspan(_param_fw_wing_span.get());
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 
-
 	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
+	_tecs.set_weight_gross(_param_weight_gross.get());
+	_tecs.set_pitchsp_offset_rad(radians(_param_fw_psp_off.get()));
+	_tecs.set_pitchsp_offset_flaps_rad(radians(_param_fw_psp_off_flps.get()));
+	_tecs.set_cl_to_alpha_rad_slope(radians(_param_fw_t_cl_alpha.get()));
+	_tecs.set_wing_area(_param_fw_t_wing_area.get());
 
 	int check_ret = PX4_OK;
 
@@ -2108,7 +2111,7 @@ float
 FixedwingPositionControl::get_tecs_pitch()
 {
 	if (_tecs_is_running) {
-		return _tecs.get_pitch_setpoint() + radians(_param_fw_psp_off.get());
+		return _tecs.get_pitch_setpoint());
 	}
 
 	// return level flight pitch offset to prevent stale tecs state when it's not running
@@ -2593,7 +2596,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	// when flying tight turns. It's in this case much safer to just set the estimated airspeed rate to 0.
 	const float airspeed_rate_estimate = 0.f;
 
-	_tecs.update(_pitch - radians(_param_fw_psp_off.get()),
+	_tecs.update(_pitch,
 		     _current_altitude,
 		     alt_sp,
 		     airspeed_sp,
@@ -2603,8 +2606,8 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 		     throttle_max,
 		     _param_fw_thr_trim.get(),
 		     throttle_trim_adjusted,
-		     pitch_min_rad - radians(_param_fw_psp_off.get()),
-		     pitch_max_rad - radians(_param_fw_psp_off.get()),
+		     pitch_min_rad,
+		     pitch_max_rad,
 		     desired_max_climbrate,
 		     desired_max_sinkrate,
 		     airspeed_rate_estimate,
