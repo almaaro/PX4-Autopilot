@@ -602,6 +602,12 @@ FixedwingPositionControl::updateLandingAbortStatus(const uint8_t new_abort_statu
 					break;
 				}
 
+			case (position_controller_landing_status_s::OVERSHOOT): {
+					events::send(events::ID("fixedwing_position_control_landing_abort_status_overshoot"), events::Log::Critical,
+						     "Landing aborted: overshoot");
+					break;
+				}
+
 			default: {
 					events::send(events::ID("fixedwing_position_control_landing_abort_status_unknown_criterion"), events::Log::Critical,
 						     "Landing aborted: unknown criterion");
@@ -1062,9 +1068,10 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 	// waypoint is a plain navigation waypoint
 	float position_sp_alt = pos_sp_curr.alt;
 
-	if(_param_fw_appr_useter.get() && _local_pos.dist_bottom_valid && _approach_mode_active){
+	if(_param_fw_appr_useter.get() && _approach_mode_active){
 
-		const float terrain_alt = _local_pos.ref_alt + -_local_pos.z - _local_pos.dist_bottom;
+		const float terrain_alt = getLandingTerrainAltitudeEstimate(hrt_absolute_time(), pos_sp_curr.alt, false,
+				  false);
 		position_sp_alt  += terrain_alt;
 	}
 
@@ -1284,9 +1291,10 @@ FixedwingPositionControl::control_auto_loiter(const float control_interval, cons
 
 	float alt_sp = pos_sp_curr.alt;
 
-	if(_param_fw_appr_useter.get() && _local_pos.dist_bottom_valid && _approach_mode_active){
+	if(_param_fw_appr_useter.get() && _approach_mode_active){
 
-		const float terrain_alt = _local_pos.ref_alt + -_local_pos.z - _local_pos.dist_bottom;
+		const float terrain_alt = getLandingTerrainAltitudeEstimate(hrt_absolute_time(), pos_sp_curr.alt, false,
+				  false);
 		alt_sp  += terrain_alt;
 	}
 
@@ -1572,6 +1580,11 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 				local_position - local_land_point);
 	const float glide_slope = _landing_approach_entrance_rel_alt / _landing_approach_entrance_offset_vector.norm();
 
+	//Abort landing if overshoot enough
+	if(along_track_dist_to_touchdown > _param_fw_lnd_max_overshoot && _param_fw_lnd_max_overshoot > FLT_EPSILON){
+		updateLandingAbortStatus(position_controller_landing_status_s::OVERSHOOT);
+	}
+
 	// NOTE: this relative altitude can go below zero, this is intentional. in the case the vehicle is tracking the glide
 	// slope at an offset above the track, making the altitude setpoint constant on intersection with terrain causes
 	// an increase in throttle (to slow down and smoothly intersect the flattened altitude setpoint), which is undesirable
@@ -1589,16 +1602,7 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 	const float glide_slope_reference_alt = (_param_fw_lnd_useter.get() ==
 						TerrainEstimateUseOnLanding::kFollowTerrainRelativeLandingGlideSlope) ? terrain_alt : pos_sp_curr.alt;
 
-	float altitude_setpoint;
-
-	if (_current_altitude > glide_slope_reference_alt + glide_slope_rel_alt) {
-		// descend to the glide slope
-		altitude_setpoint = glide_slope_reference_alt + glide_slope_rel_alt;
-
-	} else {
-		// continue horizontally
-		altitude_setpoint = _current_altitude;
-	}
+	float altitude_setpoint = math::min(_landing_approach_entrance_rel_alt, glide_slope_rel_alt) + glide_slope_reference_alt;
 
 	// flare at the maximum of the altitude determined by the time before touchdown and a minimum flare altitude
 	const float flare_rel_alt = math::max(_param_fw_lnd_fl_time.get() * _local_pos.vz, _param_fw_lnd_flalt.get());
@@ -2440,7 +2444,7 @@ FixedwingPositionControl::Run()
 			landing_gear.landing_gear = _new_landing_gear_position;
 			landing_gear.timestamp = hrt_absolute_time();
 			_landing_gear_pub.publish(landing_gear);
-		}
+		}reset_landing_state()
 
 		// In Manual modes flaps and spoilers are directly controlled in the Attitude controller and not published here
 		if (_control_mode.flag_control_auto_enabled

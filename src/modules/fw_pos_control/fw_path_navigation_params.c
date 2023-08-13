@@ -366,8 +366,6 @@ PARAM_DEFINE_FLOAT(FW_LND_FLALT, 0.5f);
  * If enabled and no measurement is found within a given timeout, the landing waypoint altitude will be used OR the landing
  * will be aborted, depending on the criteria set in FW_LND_ABORT.
  *
- * The QNH will also be automatically adjusted so that the pressure altitude corresponds to the altitude of the landing point
- * measured by the rangefinder and set by the landing point altitude.
  *
  * If disabled, FW_LND_ABORT terrain based criteria are ignored.
  *
@@ -390,6 +388,23 @@ PARAM_DEFINE_INT32(FW_LND_USETER, 1);
  * @group FW Auto Landing
 */
 PARAM_DEFINE_INT32(FW_APPR_USETER, 1);
+
+/**
+ * Maximum tolerable oveshoot distance
+ *
+ * If the plane hasn't landed within this distance from the set landing point, the landing will be aborted
+ *
+ * Note that the plane will never touch down at the set point if there is any flare, so take the flare length into account.
+ *
+ * Doesn't work with loiter landings.
+ *
+ * Disabled if set to a negative number.
+ *
+ * @unit m
+ *
+ * @group FW Auto Landing
+ */
+PARAM_DEFINE_FLOAT(FW_LND_OVSHT, -1.0f);
 
 /**
  * Early landing configuration deployment
@@ -988,7 +1003,7 @@ PARAM_DEFINE_INT32(FW_LND_NUDGE, 2);
  * e.g. glide slope tracking error (horizontal and vertical)
  *
  * @min 0
- * @max 3
+ * @max 16
  * @bit 0 Abort if terrain is not found (only applies to mission landings)
  * @bit 1 Abort if terrain times out (after a first successful measurement)
  * @group FW Auto Landing
