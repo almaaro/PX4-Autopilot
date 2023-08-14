@@ -2597,7 +2597,7 @@ void EKF2::CalculateQnhOffsetHgt(float ref_alt)
 
 	const float p2 = 100; //100 kpa reference pressure for the standard MSL pressure
 
-	float p = p2 * ((a * powf((T1/a + ref_alt))/T1), (-CONSTANTS_ONE_G/(a * CONSTANTS_AIR_GAS_CONST)));
+	float p = p2 * a * powf(((T1/a + ref_alt)/T1), (-CONSTANTS_ONE_G/(a * CONSTANTS_AIR_GAS_CONST)));
 	
 	// current pressure at MSL in kPa (QNH in hPa)
 	const float p1 = _param_sens_baro_qnh.get() * 0.1f;
