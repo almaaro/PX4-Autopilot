@@ -351,9 +351,31 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 	return limit;
 }
 
+float TECSControl::_solveMaxRPMThrust(const float max_rpm_unadjusted, const float*data_thrust, const int data_length, const Input &input, const Param &param) const
+{
+		//calculating the max rpm at current air density (assuming that at constant voltage the max power remains the same. P ~rho*n^3
+		//which means that n~(rho_ref/rho)^(1/3))
+		//Also assuming that when the air density reaches zero, the rpm will be U*Kv
+		//calculating the max thrust at trim tas
+		float max_rpm_adj = max_rpm_unadjusted + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(input.battery_voltage * param.electric_motor_Kv - max_rpm_unadjusted);
+
+		float max_thrust;
+		//extrapolating the thrust curve beyond the measured max rpm if neccesary
+		if(max_rpm_adj > max_rpm_unadjusted){
+			float slope = (data_thrust[data_length-1] - data_thrust[data_length-2]) / (max_rpm_unadjusted/4);
+			max_thrust = data_thrust[data_length-1] + slope * (max_rpm_adj - max_rpm_unadjusted);
+		}
+		else{
+			float scaler = max_rpm_adj / max_rpm_unadjusted;
+			int i = constrain(floor(scaler), 0, data_length-1);
+			scaler = scaler - i;
+			max_thrust = data_thrust[i] + scaler * (data_thrust[i+1] - data_thrust[i]);
+		}
+}
+
 float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Param &param) const
 {
-	float max_thrust, max_thrust_trim_tas, max_trust_max_tas;
+	float max_thrust, max_thrust_min_tas, max_thrust_trim_tas, max_thrust_max_tas;
 	if(input.tas > param.tas_trim){
 		float scaler_as = constrain((input.tas - param.tas_trim_ref) / (param.tas_max_ref - param.tas_trim_ref), 0.0f, 1.0f);
 
@@ -435,6 +457,31 @@ float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Par
 	max_thrust = max_thrust * input.air_density / _control_param.ref_air_density;
 }
 
+float _solveFromRPMData(const float*data, const float desired_value, const int data_length, const float max_rpm, const float reference_airspeed_low, const float reference_airspeed_high, const Input &input, const Param &param) const
+{
+	float scaler_output_value;
+	float rpm;
+
+	for(int i = 1; i < data_length; i++){
+		if(desired_value < data[i]){
+			i = i-1;
+			break;
+		}
+	}
+
+	if(i < desired_value){
+		scaler_output_value = (desired_value - data[i])(data[i], data[i+1]);
+		rpm = (i + scaler_output_value)/data_length * max_rpm;
+	}
+	//the case where the rpm is not enough
+	if(i == desired_value) {
+		//extrapolating the rpm curve with the highest quadrant
+		float slope = (max_rpm/(data_length-1)) / (data[data_length-1] - data[data_length-2]);
+		rpm = (desired_value - data[data_length-1]) * slope + max_rpm;
+	}
+
+	return rpm;
+}
 
 float TECSControl::_calcPropellerRPM(const float desired_thrust, const Input &input, const Param &param) const
 {
@@ -542,7 +589,7 @@ float TECSControl::_calcGovernorElectricMotor(cons float desired_rpm const Input
 		}
 
 		if(i < 5){
-			float scaler_throttle_trim_tas = (desired_throttle - _control_param.trim_tas_throttle_rpm[i])(_control_param.trim_tas_throttle_rpm[i], _control_param.trim_tas_throttle_rpm[i+1]);
+			float scaler_throttle_trim_tas = (desired_rpm - _control_param.trim_tas_throttle_rpm[i])(_control_param.trim_tas_throttle_rpm[i], _control_param.trim_tas_throttle_rpm[i+1]);
 			throttle_trim_tas = (i + scaler_throttle_trim_tas)/5 * _control_param.trim_tas_max_rpm;
 		}
 		//the case where the throttle is not enough
