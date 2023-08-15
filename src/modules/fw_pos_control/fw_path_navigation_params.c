@@ -379,17 +379,6 @@ PARAM_DEFINE_FLOAT(FW_LND_FLALT, 0.5f);
 PARAM_DEFINE_INT32(FW_LND_USETER, 1);
 
 /**
- * Use terrain estimate for calculating waypoint altitudes for all waypoints after LAND_START
- *
- * If enabled, all waypoint altitudes are relative to the terrain altitude as soon as the terrain estimate is valid.
- *
- * @boolean
- *
- * @group FW Auto Landing
-*/
-PARAM_DEFINE_INT32(FW_APPR_USETER, 1);
-
-/**
  * Maximum tolerable oveshoot distance
  *
  * If the plane hasn't landed within this distance from the set landing point, the landing will be aborted

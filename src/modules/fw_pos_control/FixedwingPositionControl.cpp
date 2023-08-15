@@ -1086,13 +1086,6 @@ FixedwingPositionControl::control_auto_position(const float control_interval, co
 	// waypoint is a plain navigation waypoint
 	float position_sp_alt = pos_sp_curr.alt;
 
-	if(_param_fw_appr_useter.get() && _approach_mode_active){
-
-		const float terrain_alt = getLandingTerrainAltitudeEstimate(hrt_absolute_time(), pos_sp_curr.alt, false,
-				  false);
-		position_sp_alt  += terrain_alt;
-	}
-
 	// Altitude first order hold (FOH)
 	if (_position_setpoint_previous_valid &&
 	    ((pos_sp_prev.type == position_setpoint_s::SETPOINT_TYPE_POSITION) ||
@@ -1308,13 +1301,6 @@ FixedwingPositionControl::control_auto_loiter(const float control_interval, cons
 	_att_sp.yaw_body = _yaw; // yaw is not controlled, so set setpoint to current yaw
 
 	float alt_sp = pos_sp_curr.alt;
-
-	if(_param_fw_appr_useter.get() && _approach_mode_active){
-
-		const float terrain_alt = getLandingTerrainAltitudeEstimate(hrt_absolute_time(), pos_sp_curr.alt, false,
-				  false);
-		alt_sp  += terrain_alt;
-	}
 
 	if (_landing_abort_status) {
 		if (pos_sp_curr.alt - _current_altitude  < kClearanceAltitudeBuffer) {
