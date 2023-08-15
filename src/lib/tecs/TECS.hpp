@@ -243,6 +243,7 @@ public:
 		float min_tas_max_rpm;
 		float trim_tas_max_rpm;
 		float max_tas_max_rpm;
+		float idle_max_rpm;
 
 		float min_tas_thrust_rpm[5];
 		float trim_tas_thrust_rpm[5];
@@ -250,8 +251,6 @@ public:
 		float min_tas_throttle_rpm[5];
 		float trim_tas_throttle_rpm[5];
 		float max_tas_throttle_rpm[5];
-
-		float electric_motor_Kv;
 
 		bool use_dynamic_throttle_calculation;
 		bool dynamic_throttle_calculation_initialized;
@@ -719,7 +718,6 @@ public:
 	void set_wingspan(float wingspan) { _control_param.wingspan = wingspan; };
 	void set_wing_efficiency_factor(float eff) { _control_param.wing_efficiency = eff; };
 	void set_reference_air_density(float rho) { _control_param.ref_air_density = rho; };
-	void set_electric_motor_Kv(float Kv) {_control_param.electric_motor_Kv = Kv; };
 
 	void set_propulsion_type(int type) {_control_param.propulsion_type = type;};
 
@@ -762,12 +760,14 @@ public:
 
 		float max_rpm_min_as,
 		float max_rpm_trim_as,
-		float max_rpm_max_as
+		float max_rpm_max_as,
+		float max_rpm_idle
 	)
 		{
 		_control_param.min_tas_max_rpm = max_rpm_min_as;
 		_control_param.trim_tas_max_rpm = max_rpm_trim_as;
 		_control_param.max_tas_max_rpm = max_rpm_trim_as;
+		_control_param.idle_max_rpm = max_rpm_idle;
 
 		_control_param.min_tas_thrust_rpm[0] = min_tas_thrust_rpm_0;
 		_control_param.min_tas_thrust_rpm[1] = _min_tas_thrust_rpm_25;
@@ -907,17 +907,17 @@ private:
 		.throttle_slewrate = 0.0f,
 		.load_factor_correction = 0.0f,
 		.load_factor = 1.0f,
-		.weight_gross = -1.f;							///< gross weight (kg)
-		.wingspan = -1.f;								///< wingspan (m)
-		.wing_efficiency = 0.85f;						///< wing efficiency factor
-		.ref_air_density = 1.225f;
-		.max_thrust_min_tas = 0.f;
-		.max_thrust_trim_tas = 0.f;
-		.max_thrust_max_tas = 0.f;
-		.electric_motor_Kv = 1.f;
-		.use_dynamic_throttle_calculation = false;
-		.dynamic_throttle_calculation_initialized = false;
-		.propulsion_type = -1;
+		.weight_gross = -1.f,						///< gross weight (kg)
+		.wingspan = -1.f,							///< wingspan (m)
+		.wing_efficiency = 0.85f,						///< wing efficiency factor
+		.ref_air_density = 1.225f,
+		.max_thrust_min_tas = 0.f,
+		.max_thrust_trim_tas = 0.f,
+		.max_thrust_max_tas = 0.f,
+		.electric_motor_Kv = 1.f,
+		.use_dynamic_throttle_calculation = false,
+		.dynamic_throttle_calculation_initialized = false,
+		.propulsion_type = -1,
 	};
 
 	TECSControl::Flag _control_flag{

@@ -920,7 +920,6 @@ private:
 		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_fw_t_ref_rho,
 		(ParamInt<px4::params::FW_T_PROP_TYPE>) _param_fw_t_propulsion_type,
 		(ParamBool<px4::params::FW_T_DYN_THR>) _param_fw_t_use_dynamic_throttle_calculation,
-		(ParamFloat<px4::params::FW_T_E_MOT_KV>) _param_fw_t_electric_motor_Kv,
 
 		(ParamFloat<px4::params::FW_T_DT_F0_AL>) _param_fw_t_dynamic_throttle_min_tas_thrust_rpm_0,
 		(ParamFloat<px4::params::FW_T_DT_F25_AL>) _param_fw_t_dynamic_throttle_min_tas_thrust_rpm_25,
@@ -961,6 +960,7 @@ private:
 		(ParamFloat<px4::params::FW_T_DT_NH_AL>) _param_fw_t_dynamic_throttle_max_rpm_min_as,
 		(ParamFloat<px4::params::FW_T_DT_NH_AT>) _param_fw_t_dynamic_throttle_max_rpm_trim_as,
 		(ParamFloat<px4::params::FW_T_DT_NH_AH>) _param_fw_t_dynamic_throttle_max_rpm_max_as,
+		(ParamFloat<px4::params::FW_T_DT_NH_I>) _param_fw_t_dynamic_throttle_max_rpm_idle,
 
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,

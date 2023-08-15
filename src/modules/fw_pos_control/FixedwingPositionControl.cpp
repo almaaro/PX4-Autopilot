@@ -157,8 +157,7 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
-	_tecs.set_electric_motor_Kv(_param_fw_t_electric_motor_Kv.get());
-	_tecs.set_electric_motor_R(_param_fw_t_electric_motor_R.get());
+
 
 	_tecs.set_thrust_rpm_parameters(
 		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_0.get(),
@@ -199,7 +198,8 @@ FixedwingPositionControl::parameters_update()
 
 		_param_fw_t_dynamic_throttle_max_rpm_min_as.get(),
 		_param_fw_t_dynamic_throttle_max_rpm_trim_as.get(),
-		_param_fw_t_dynamic_throttle_max_rpm_max_as.get()
+		_param_fw_t_dynamic_throttle_max_rpm_max_as.get(),
+		_param_fw_t_dynamic_throttle_max_rpm_idle.get()
 	);
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
