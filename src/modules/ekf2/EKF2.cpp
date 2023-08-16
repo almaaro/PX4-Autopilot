@@ -2595,9 +2595,9 @@ void EKF2::CalculateQnhOffsetHgt(float ref_alt)
 	static constexpr float T1 = 15.f - (CONSTANTS_ABSOLUTE_NULL_CELSIUS); // temperature at base height in Kelvin
 	static constexpr float a = -6.5f / 1000.f; // temperature gradient in degrees per metre
 
-	const float p2 = 100; //100 kpa reference pressure for the standard MSL pressure
+	const float p2 = 101.325; //101.325 kpa reference pressure for the standard MSL pressure
 
-	float p = p2 * a * powf(((T1/a + ref_alt)/T1), (-CONSTANTS_ONE_G/(a * CONSTANTS_AIR_GAS_CONST)));
+	float p = p2 * powf(a * ((T1/a + ref_alt)/T1), (-CONSTANTS_ONE_G/(a * CONSTANTS_AIR_GAS_CONST)));
 	
 	// current pressure at MSL in kPa (QNH in hPa)
 	const float p1 = _param_sens_baro_qnh.get() * 0.1f;
@@ -2613,7 +2613,7 @@ void EKF2::CalculateQnhOffsetHgt(float ref_alt)
 	 */
 	float altitude = (((powf((p / p1), (-(a * CONSTANTS_AIR_GAS_CONST) / CONSTANTS_ONE_G))) * T1) - T1) / a;
 
-	QnhOffsetHgt =  altitude - ref_alt;
+	QnhOffsetHgt = altitude - ref_alt;
 }
 
 int EKF2::custom_command(int argc, char *argv[])
