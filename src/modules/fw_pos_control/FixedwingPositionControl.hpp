@@ -887,7 +887,7 @@ private:
 		(ParamFloat<px4::params::FW_LND_THRTC_SC>) _param_fw_thrtc_sc,
 		(ParamBool<px4::params::FW_LND_EARLYCFG>) _param_fw_lnd_earlycfg,
 		(ParamInt<px4::params::FW_LND_USETER>) _param_fw_lnd_useter,
-		(ParamInt<px4::params::FW_LND_OVSHT>) _param_fw_lnd_max_overshoot,
+		(ParamFloat<px4::params::FW_LND_OVSHT>) _param_fw_lnd_max_overshoot,
 
 		(ParamFloat<px4::params::FW_P_LIM_MAX>) _param_fw_p_lim_max,
 		(ParamFloat<px4::params::FW_P_LIM_MIN>) _param_fw_p_lim_min,

@@ -1585,7 +1585,7 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 	const float glide_slope = _landing_approach_entrance_rel_alt / _landing_approach_entrance_offset_vector.norm();
 
 	//Abort landing if overshoot enough
-	if(along_track_dist_to_touchdown > _param_fw_lnd_max_overshoot && _param_fw_lnd_max_overshoot > FLT_EPSILON){
+	if(- along_track_dist_to_touchdown > _param_fw_lnd_max_overshoot.get() && _param_fw_lnd_max_overshoot.get() > FLT_EPSILON){
 		updateLandingAbortStatus(position_controller_landing_status_s::OVERSHOOT);
 	}
 
@@ -2448,7 +2448,7 @@ FixedwingPositionControl::Run()
 			landing_gear.landing_gear = _new_landing_gear_position;
 			landing_gear.timestamp = hrt_absolute_time();
 			_landing_gear_pub.publish(landing_gear);
-		}reset_landing_state()
+		}
 
 		// In Manual modes flaps and spoilers are directly controlled in the Attitude controller and not published here
 		if (_control_mode.flag_control_auto_enabled
