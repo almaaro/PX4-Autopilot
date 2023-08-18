@@ -894,7 +894,7 @@ private:
 		(ParamFloat<px4::params::FW_T_RLL2THR>) _param_fw_t_rll2thr,
 		(ParamFloat<px4::params::FW_T_SINK_MAX>) _param_fw_t_sink_max,
 		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min,
-		(ParamFloat<px4::params::FW_T_SNK_MIN_F) _param_fw_t_sink_min_flaps,
+		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_flaps,
 		(ParamFloat<px4::params::FW_T_SPDWEIGHT>) _param_fw_t_spdweight,
 		(ParamFloat<px4::params::FW_T_TAS_TC>) _param_fw_t_tas_error_tc,
 		(ParamFloat<px4::params::FW_T_THR_DAMP>) _param_fw_t_thr_damp,

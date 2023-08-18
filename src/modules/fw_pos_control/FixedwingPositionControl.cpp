@@ -124,8 +124,8 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_climb_rate(_param_fw_t_clmb_max.get());
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
-	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_flps.get());
-	_tecs.set_ref_air_density(_param_fw_t_ref_rho.get());
+	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_min_flaps.get());
+	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
 	_tecs.set_speed_weight(_param_fw_t_spdweight.get());
 	_tecs.set_equivalent_airspeed_trim(_param_fw_airspd_trim.get());
 	_tecs.set_equivalent_airspeed_min(_param_fw_airspd_min.get());
@@ -2100,7 +2100,7 @@ float
 FixedwingPositionControl::get_tecs_pitch()
 {
 	if (_tecs_is_running) {
-		return _tecs.get_pitch_setpoint());
+		return _tecs.get_pitch_setpoint();
 	}
 
 	// return level flight pitch offset to prevent stale tecs state when it's not running
