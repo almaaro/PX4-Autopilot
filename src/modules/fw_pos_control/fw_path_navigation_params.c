@@ -861,16 +861,6 @@ PARAM_DEFINE_FLOAT(FW_T_REF_RHO, 1.225f);
 PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
 
 /**
- * Electric motor Kv
- * 
- * Can be defined by measuring the voltage across the motor, the rpm and current with 2 different loads with the same throttle setting.
- * The points will define a line in (I, rpm) coordinates where R is the slope and the rpm @ I = 0 divided by U is Kv. 
- * 
- * @group FW TECS
-*/
-PARAM_DEFINE_FLOAT(FW_T_E_MOT_KV, 1.f);
-
-/**
  * Thrust parameters
  * 
  * F -> thrust at X% rpm of the max rpm. (Eg F25 -> thrust at 25% of masx rpm)

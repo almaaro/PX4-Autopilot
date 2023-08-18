@@ -359,7 +359,7 @@ float TECSControl::_solveMaxRPMThrust(const float max_rpm_unadjusted, const floa
 		}
 		else{
 			float remainder_scaler = max_rpm_adj / max_rpm_unadjusted;
-			int i = constrain(floor(remainder_scaler*(data_length-1)), 0.0f, (float)data_length-1);
+			int i = constrain((float)floor(remainder_scaler*(data_length-1)), 0.0f, (float)(data_length-1));
 			max_thrust = data_thrust[i-1] + remainder_scaler * (data_thrust[i] - data_thrust[i-1]);
 		}
 
@@ -370,8 +370,9 @@ float TECSControl::_calcMaxRPMAdjusted(const float max_rpm_unadjusted, const Inp
 {
 	//calculating the max rpm at current air density (assuming that at constant voltage the max power remains the same. P ~rho*n^3
 	//which means that n~(rho_ref/rho)^(1/3))
-	//Also assuming that when the air density reaches zero, the rpm will be U*Kv
-	return max_rpm_unadjusted + (1 - 1/pow(param.ref_air_density / input.air_density, 0.3333f))*(param.idle_max_rpm - max_rpm_unadjusted);
+	//Also assuming that when the air density reaches zero, the rpm will be the no-load rpm.
+	float max_rpm_adjusted = max_rpm_unadjusted + (1 - 1/powf(param.ref_air_density / input.air_density, 0.3333333))*(param.idle_max_rpm - max_rpm_unadjusted);
+	return max_rpm_adjusted;
 }
 
 float TECSControl::_calcMaxThrustElectricPropeller(const Input &input, const Param &param) const
@@ -415,7 +416,7 @@ float TECSControl::_solveRPMFromThrustData(const float*data_thrust, const float 
 		rpm = (i - 1 + scaler_thrust)/(data_length-1) * max_rpm_adj;
 	}
 	//the case where the rpm is not enough
-	if(i == data_length) {
+	if(i >= data_length) {
 		//extrapolating the rpm curve with the highest quadrant
 		float slope = (max_rpm_adj/(data_length-1)) / (data_thrust[data_length-1] - data_thrust[data_length-2]);
 		rpm = (desired_thrust - data_thrust[data_length-1]) * slope + max_rpm_adj;
@@ -460,7 +461,7 @@ float TECSControl::_solveThrottleForRPM(const float desired_rpm, const float max
 {
 		//assuming that the increase in max rpm as the density decreases is distributed evenly across the whole throttle range.
 		float desired_rpm_adj = desired_rpm * max_rpm_unadjusted / max_rpm_adjusted; //the desired rpm can be higher than the max rpm set in params.
-		int i = constrain(floor(desired_rpm_adj / max_rpm_unadjusted * (data_length - 1)), 0.0f, (float)data_length - 1);
+		int i = constrain((float)floor(desired_rpm_adj / max_rpm_unadjusted * (data_length - 1)), 0.0f, (float)(data_length - 1));
 		float remainder_scaler = desired_rpm_adj / max_rpm_unadjusted * (data_length - 1) - i;
 
 		float throttle = data_throttle[i-1] + remainder_scaler * (data_throttle[i] - data_throttle[i-1]);
