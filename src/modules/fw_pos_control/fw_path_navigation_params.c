@@ -812,6 +812,22 @@ PARAM_DEFINE_FLOAT(FW_T_SEB_R_FF, 1.0f);
  */
 PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
 
+/**
+ * Default target sinkrate.
+ *
+ *
+ * The default rate at which the vehicle will sink in autonomous modes to achieve altitude setpoints.
+ * In manual modes this defines the maximum rate at which the altitude setpoint can be decreased.
+ *
+ * @unit m/s
+ * @min 0.5
+ * @max 15
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+
 
 /**
  * Use dynamic airspeed and air density dependent thottle calculation
@@ -840,6 +856,7 @@ PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+
 /**
  * Propeller diameter
  * @group FW TECS

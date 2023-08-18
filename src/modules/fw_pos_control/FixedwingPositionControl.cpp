@@ -127,8 +127,8 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
 	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_min_flaps.get());
-	_tecs.set_ref_air_density(_param_fw_t_ref_rho.get());
-	_tecs.set_propulsion_type(_param_fw_t_prop_type.get());
+	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
+	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());
 	_tecs.set_speed_weight(_param_fw_t_spdweight.get());
 	_tecs.set_equivalent_airspeed_trim(_param_fw_airspd_trim.get());
@@ -455,7 +455,7 @@ void
 FixedwingPositionControl::rpm_poll()
 {
 	if (_rpm_sub.updated()) {
-		_rpm_sub.update(&rpm);
+		_rpm_sub.update(&_rpm);
 	}
 }
 
@@ -2674,12 +2674,12 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 		     desired_max_sinkrate,
 		     airspeed_rate_estimate,
 		     -_local_pos.vz,
-		     hgt_rate_sp,
 			 _flaps_setpoint,
 			 _air_density,
 			 _battery_status.voltage_v,
 			 _battery_status.current_a,
-			 _rpm.indicated_frequency_rpm);
+			 _rpm.indicated_frequency_rpm,
+			 hgt_rate_sp);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
 
@@ -2929,12 +2929,14 @@ void FixedwingPositionControl::publishOrbitStatus(const position_setpoint_s pos_
 
 void FixedwingPositionControl::publishStabilizerAirstream()
 {
-	stabilizer_airstream_s stabilizer_airstream{};
-	stabilizer_airstream.timestamp = hrt_absolute_time();
-	stabilizer_airstream.thrust = _tecs.getThrustSetpoint();
-	stabilizer_airstream.velocity_eas = _tecs.getStabilizerAirstreamVelocity();
+	if (_tecs_is_running) {
+		stabilizer_airstream_s stabilizer_airstream{};
+		stabilizer_airstream.timestamp = hrt_absolute_time();
+		stabilizer_airstream.thrust = _tecs.get_thrust_setpoint();
+		stabilizer_airstream.velocity_eas = _tecs.get_stabilizer_airstream_velocity();
 
-	_stabilizer_airstream_pub.publish(stabilizer_airstream);
+		_stabilizer_airstream_pub.publish(stabilizer_airstream);
+	}
 }
 
 void FixedwingPositionControl::navigateWaypoints(const Vector2f &waypoint_A, const Vector2f &waypoint_B,
