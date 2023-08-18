@@ -494,6 +494,23 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
 PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
 
 /**
+ * Minimum descent rate at trim airspeed with full flaps
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at trim airspeed (and ideally with zero thrust/drag from the spinning propeller).
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
+
+/**
  * Maximum descent rate
  *
  * This sets the maximum descent rate that the controller will use.
@@ -781,6 +798,18 @@ PARAM_DEFINE_FLOAT(FW_T_SEB_R_FF, 1.0f);
 PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
 
 /**
+ * Use dynamic airspeed and air density dependent thottle calculation
+ *
+ * Currently only works with electric motor with propeller / ducted fan.
+ *
+ * Be sure to also set the wingspan, gross weight, electric motor constants and thrust parameters
+ *
+ * @boolean
+ * @group FW TECS
+*/
+PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
+
+/**
  * Default target sinkrate.
  *
  *
@@ -795,6 +824,31 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+
+/**
+ * Propeller diameter
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
+
+/**
+ * Scaling factor for the propeller airstream velocity at stabilizers
+ *
+ * How much the airstream from the propeller effects the stabilizers trim.
+ * If set to 100%, the airspeed at the stabilizers is assumed equal to the
+ * airspeed right behind the propeller. If 0%, the air stream from the propeller
+ * is not hitting the stabilizers at all
+ *
+ * Only applicable it the vehicle is propeller driven and FW_T_PPLR_DIA is set.
+ *
+ * @group FW TECS
+ * @unit norm
+ * @min 0
+ * @max 1
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_T_PPLR_SCL, 0.f);
 
 /**
  * GPS failure loiter time

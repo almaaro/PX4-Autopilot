@@ -470,7 +470,7 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(TRIM_PIT_SINK, 0.0f);
+PARAM_DEFINE_FLOAT(TRIM_PIT_MIN, 0.0f);
 
 /**
 * Pitch trim at level flight at trim airspeed with flaps extended
@@ -485,7 +485,7 @@ PARAM_DEFINE_FLOAT(TRIM_PIT_SINK, 0.0f);
 PARAM_DEFINE_FLOAT(TRIM_PIT_F, 0.0f);
 
 /**
-* Pitch trim with minimum throttle at min airspeed with flaps extended
+* Pitch trim at min airspeed with minimum throttle with flaps extended
 *
  *
  * @group FW Rate Control
@@ -494,7 +494,8 @@ PARAM_DEFINE_FLOAT(TRIM_PIT_F, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(TRIM_PIT_MIN, 0.0f);
+PARAM_DEFINE_FLOAT(TRIM_PIT_MIN_F, 0.0f);
+
 
 /**
  * Manual roll scale

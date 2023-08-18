@@ -1,5 +1,5 @@
 uint64 timestamp # time since system start (microseconds)
 
-float thrust
+float32 thrust
 
-float velocity_eas
+float32 velocity_eas

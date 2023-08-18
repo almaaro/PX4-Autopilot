@@ -36,6 +36,7 @@
 #include <lib/rate_control/rate_control.hpp>
 
 #include <drivers/drv_hrt.h>
+#include <lib/geo/geo.h>
 #include <lib/mathlib/mathlib.h>
 #include <lib/parameters/param.h>
 #include <lib/perf/perf_counter.h>
@@ -110,7 +111,7 @@ private:
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::Subscription _vehicle_rates_sub{ORB_ID(vehicle_angular_velocity)};
 	uORB::Subscription _stabilizer_airstream_sub{ORB_ID(stabilizer_airstream)};
-	uORB::Subscription <normalized_unsigned_setpoint_s> _flaps_setpoint_pub{ORB_ID(flaps_setpoint)};
+	uORB::Subscription _flaps_setpoint_sub{ORB_ID(flaps_setpoint)};
 
 	uORB::SubscriptionMultiArray<control_allocator_status_s, 2> _control_allocator_status_subs{ORB_ID::control_allocator_status};
 
@@ -222,14 +223,14 @@ private:
 
 		(ParamInt<px4::params::FW_SPOILERS_MAN>) _param_fw_spoilers_man,
 
-		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::FW_T_CLMB_MAX>) _param_fw_t_clmb_max,
 		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min,
 		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_flaps,
 		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,
+		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::WEIGHT_GROSS>) _param_weight_gross,
 		(ParamFloat<px4::params::MOTOR_TORQ_ARM>) _param_motor_torque_arm_length,
-		(ParamFloat<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations
+		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations
 	)
 
 	RateControl _rate_control; ///< class for rate control calculations
@@ -243,6 +244,8 @@ private:
 
 	void		vehicle_manual_poll();
 	void		vehicle_land_detected_poll();
+	void		flaps_setpoint_poll();
+	void 		stabilizer_airstream_poll();
 
 	float 		get_airspeed_and_update_scaling();
 	float 		calculate_stabilizer_airstream_from_thrust(const float thrust, const float eas);
