@@ -198,7 +198,9 @@ public:
 		float min_sink_rate_flaps;		///< Minimum sink rate with full flaps (with min throttle and trim speed) [m/s].
 		float max_climb_rate;			///< Climb rate produced by max allowed throttle [m/s].
 		float vert_accel_limit;			///< Magnitude of the maximum vertical acceleration allowed [m/s²].
+		float equivalent_airspeed_min;
 		float equivalent_airspeed_trim;		///< Equivalent cruise airspeed for airspeed less mode [m/s].
+		float equivalent_airspeed_max;
 		float tas_min;				///< True airpeed demand lower limit [m/s].
 		float tas_min_ref;			///< True airspeed lower limit at reference air density
 		float tas_trim_ref;			///< True airspeed trim value at reference air density
@@ -240,6 +242,10 @@ public:
 		float load_factor_correction;				///< Gain from normal load factor increase to total energy rate demand [m²/s³].
 		float load_factor;					///< Additional normal load factor.
 
+		float weight_gross;						///< gross weight (kg)
+		float wingspan;							///< wingspan (m)
+		float wing_efficiency;					///< wing efficiency factor
+
 		float min_tas_max_rpm;
 		float trim_tas_max_rpm;
 		float max_tas_max_rpm;
@@ -253,7 +259,6 @@ public:
 		float max_tas_throttle_rpm[5];
 
 		bool use_dynamic_throttle_calculation;
-		bool dynamic_throttle_calculation_initialized;
 
 		int propulsion_type;
 
@@ -437,19 +442,39 @@ private:
 	STERateLimit _calculateTotalEnergyRateLimit(const Input &input, const Param &param) const;
 
 	/**
+	 *  @brief inter-/extrapolate the maximum thrust values helper
+	*/
+	float _solveMaxRPMThrust(const float max_rpm_unadjusted, const float max_rpm_adj, const float *data_thrust, const int data_length, const Input &input, const Param &param) const;
+
+	/**
+	 * @brief apply the pressure correction to max rpm
+	*/
+	float _calcMaxRPMAdjusted(const float max_rpm_unadjusted, const Input &input, const Param &param) const;
+
+	/**
 	 * @brief Calculate the maximum available thrust at current airspeed and air density
 	*/
 	float _calcMaxThrustElectricPropeller(const Input &input, const Param &param) const;
 
 	/**
+	 * @brief process the stored thrust data helper
+	*/
+	float _solveRPMFromThrustData(const float*data_thrust, const float desired_thrust, const int data_length, const float max_rpm_adj, const Input &input, const Param &param) const;
+	
+	/**
 	 * @brief Calculate the required propeller rpm to achieve the desired thrust at current airspeed and air density
 	*/
-	float _calcPropellerRPM(const float desired_thrust, const Input &input, const Param &param) const;
+	float _calcPropellerRPM(float desired_thrust, const Input &input, const Param &param) const;
+	
+	/**
+	 * @brief solve the required throttle from desired rpm helper 
+	*/
+	float _solveThrottleForRPM(const float desired_rpm, const float max_rpm_adjusted, const float max_rpm_unadjusted, const float*data_throttle, const int data_length) const;
 
 	/**
 	 * @brief Calculate the required throttle setting to achieve the desired rpm
 	*/
-	float _calcGovernorElectricMotor(cons float desired_rpm const Input &input) const;
+	float _calcGovernorElectricMotor(const float dt, const float desired_rpm, const Input &input, const Param &param);
 	
 	/**
 	 * @brief calculate airspeed control proportional output.
@@ -562,7 +587,7 @@ private:
 	 * @return specific total energy rate values in [m²/s³]
 	 */
 	ControlValues _calcThrottleControlSteRate(const STERateLimit &limit, const SpecificEnergyRates &specific_energy_rate,
-			const Param &param) const;
+			const Input &input, const Param &param, const Flag &flag);
 
 	/**
 	 * @brief Calculate the throttle control update function.
@@ -587,8 +612,8 @@ private:
 	 * @param flag is the control flags.
 	 * @return throttle setpoin in [0,1].
 	 */
-	float _calcThrottleControlOutput(const STERateLimit &limit, const ControlValues &ste_rate, const Input &input, 
-					const Param &param, const Flag &flag, ) const;
+	float _calcThrottleControlOutput(const float dt, const STERateLimit &limit, const ControlValues &ste_rate, const Input &input, 
+					const Param &param, const Flag &flag);
 
 private:
 	// State
@@ -655,8 +680,8 @@ public:
 	void update(float pitch, float altitude, float hgt_setpoint, float EAS_setpoint, float equivalent_airspeed,
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
-		    float target_sinkrate, float speed_deriv_forward, float hgt_rate, float hgt_rate_sp = NAN, float flaps_setpoint, float air_density
-			float battery_voltage, float electric_motor_current float motor_rpm);
+		    float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density,
+			float battery_voltage, float electric_motor_current, float motor_rpm, float hgt_rate_sp = NAN);
 
 	/**
 	 * @brief Initialize the control loop
@@ -690,8 +715,8 @@ public:
 
 	void set_rpm_error_gain(float gain) {_control_param.rpm_error_gain = gain; };
 
-	void set_equivalent_airspeed_max(float airspeed) { _equivalent_airspeed_max = airspeed; };
-	void set_equivalent_airspeed_min(float airspeed) { _equivalent_airspeed_min = airspeed; };
+	void set_equivalent_airspeed_max(float airspeed) { _control_param.equivalent_airspeed_max = airspeed, _equivalent_airspeed_max = airspeed; };
+	void set_equivalent_airspeed_min(float airspeed) { _control_param.equivalent_airspeed_min = airspeed, _equivalent_airspeed_min = airspeed; };
 	void set_equivalent_airspeed_trim(float airspeed) { _control_param.equivalent_airspeed_trim = airspeed; _airspeed_filter_param.equivalent_airspeed_trim = airspeed; };
 	void set_tas_min(float airspeed) { _control_param.tas_min = airspeed; };
 	void set_tas_min_ref(float airspeed) { _control_param.tas_min_ref = airspeed; };
@@ -770,39 +795,39 @@ public:
 		_control_param.idle_max_rpm = max_rpm_idle;
 
 		_control_param.min_tas_thrust_rpm[0] = min_tas_thrust_rpm_0;
-		_control_param.min_tas_thrust_rpm[1] = _min_tas_thrust_rpm_25;
+		_control_param.min_tas_thrust_rpm[1] = min_tas_thrust_rpm_25;
 		_control_param.min_tas_thrust_rpm[2] = min_tas_thrust_rpm_50;
-		_control_param.min_tas_thrust_rpm[3] = _min_tas_thrust_rpm_75;
+		_control_param.min_tas_thrust_rpm[3] = min_tas_thrust_rpm_75;
 		_control_param.min_tas_thrust_rpm[4] = min_tas_thrust_rpm_100;
 
 		_control_param.trim_tas_thrust_rpm[0] = trim_tas_thrust_rpm_0;
-		_control_param.trim_tas_thrust_rpm[1] = _trim_tas_thrust_rpm_25;
+		_control_param.trim_tas_thrust_rpm[1] = trim_tas_thrust_rpm_25;
 		_control_param.trim_tas_thrust_rpm[2] = trim_tas_thrust_rpm_50;
-		_control_param.trim_tas_thrust_rpm[3] = _trim_tas_thrust_rpm_75;
+		_control_param.trim_tas_thrust_rpm[3] = trim_tas_thrust_rpm_75;
 		_control_param.trim_tas_thrust_rpm[4] = trim_tas_thrust_rpm_100;
 
 		_control_param.max_tas_thrust_rpm[0] = max_tas_thrust_rpm_0;
-		_control_param.max_tas_thrust_rpm[1] = _max_tas_thrust_rpm_25;
+		_control_param.max_tas_thrust_rpm[1] = max_tas_thrust_rpm_25;
 		_control_param.max_tas_thrust_rpm[2] = max_tas_thrust_rpm_50;
-		_control_param.max_tas_thrust_rpm[3] = _max_tas_thrust_rpm_75;
+		_control_param.max_tas_thrust_rpm[3] = max_tas_thrust_rpm_75;
 		_control_param.max_tas_thrust_rpm[4] = max_tas_thrust_rpm_100;
 
 		_control_param.min_tas_throttle_rpm[0] = min_tas_throttle_rpm_0;
-		_control_param.min_tas_throttle_rpm[1] = _min_tas_throttle_rpm_25;
+		_control_param.min_tas_throttle_rpm[1] = min_tas_throttle_rpm_25;
 		_control_param.min_tas_throttle_rpm[2] = min_tas_throttle_rpm_50;
-		_control_param.min_tas_throttle_rpm[3] = _min_tas_throttle_rpm_75;
+		_control_param.min_tas_throttle_rpm[3] = min_tas_throttle_rpm_75;
 		_control_param.min_tas_throttle_rpm[4] = min_tas_throttle_rpm_100;
 
 		_control_param.trim_tas_throttle_rpm[0] = trim_tas_throttle_rpm_0;
-		_control_param.trim_tas_throttle_rpm[1] = _trim_tas_throttle_rpm_25;
+		_control_param.trim_tas_throttle_rpm[1] = trim_tas_throttle_rpm_25;
 		_control_param.trim_tas_throttle_rpm[2] = trim_tas_throttle_rpm_50;
-		_control_param.trim_tas_throttle_rpm[3] = _trim_tas_throttle_rpm_75;
+		_control_param.trim_tas_throttle_rpm[3] = trim_tas_throttle_rpm_75;
 		_control_param.trim_tas_throttle_rpm[4] = trim_tas_throttle_rpm_100;
 
 		_control_param.max_tas_throttle_rpm[0] = max_tas_throttle_rpm_0;
-		_control_param.max_tas_throttle_rpm[1] = _max_tas_throttle_rpm_25;
+		_control_param.max_tas_throttle_rpm[1] = max_tas_throttle_rpm_25;
 		_control_param.max_tas_throttle_rpm[2] = max_tas_throttle_rpm_50;
-		_control_param.max_tas_throttle_rpm[3] = _max_tas_throttle_rpm_75;
+		_control_param.max_tas_throttle_rpm[3] = max_tas_throttle_rpm_75;
 		_control_param.max_tas_throttle_rpm[4] = max_tas_throttle_rpm_100;
 
 		};
@@ -831,6 +856,8 @@ public:
 
 	float get_pitch_setpoint() {return _control.getPitchSetpoint();}
 	float get_throttle_setpoint() {return _control.getThrottleSetpoint();}
+	float get_stabilizer_airstream_velocity() {return _control.getStabilizerAirstreamVelocity();}
+	float get_thrust_setpoint() {return _control.getThrustSetpoint();}
 
 	uint64_t timestamp() { return _update_timestamp; }
 	ECL_TECS_MODE tecs_mode() { return _tecs_mode; }
@@ -849,7 +876,7 @@ private:
 
 	float _weight_gross{-1.f};							///< gross weight (kg)
 	float _wingspan{-1.f};								///< wingspan (m)
-	float _wing_efficiency{0.85f}						///< wing efficiency factor
+	float _wing_efficiency{0.85f};						///< wing efficiency factor
 
 	static constexpr float DT_MIN = 0.001f;				///< minimum allowed value of _dt (sec)
 	static constexpr float DT_MAX = 1.0f;				///< max value of _dt allowed before a filter state reset is performed (sec)
@@ -880,7 +907,9 @@ private:
 		.min_sink_rate_flaps = 2.0f,
 		.max_climb_rate = 5.0f,
 		.vert_accel_limit = 0.0f,
+		.equivalent_airspeed_min = 7.0f,
 		.equivalent_airspeed_trim = 15.0f,
+		.equivalent_airspeed_max = 20.0f,
 		.tas_min = 3.0f,
 		.tas_min_ref = 3.0f,
 		.tas_trim_ref = 10.0f,
@@ -891,11 +920,11 @@ private:
 		.throttle_trim_adjusted = 0.f,
 		.throttle_max = 1.0f,
 		.throttle_min = 0.1f,
+		.ref_air_density = 1.225f,
 		.altitude_error_gain = 0.2f,
 		.altitude_setpoint_gain_ff = 0.0f,
 		.tas_error_percentage = 0.15f,
 		.airspeed_error_gain = 0.1f,
-		.rpm_error_gain = 0.001f,
 		.ste_rate_time_const = 0.1f,
 		.seb_rate_ff = 1.0f,
 		.pitch_speed_weight = 1.0f,
@@ -903,21 +932,16 @@ private:
 		.pitch_damping_gain = 0.0f,
 		.integrator_gain_throttle = 0.0f,
 		.throttle_damping_gain = 0.0f,
-		.integrato_gain_rpm = 0.0f,
 		.throttle_slewrate = 0.0f,
+		.integrator_gain_rpm = 0.0f,
+		.rpm_error_gain = 0.001f,
 		.load_factor_correction = 0.0f,
 		.load_factor = 1.0f,
 		.weight_gross = -1.f,						///< gross weight (kg)
 		.wingspan = -1.f,							///< wingspan (m)
 		.wing_efficiency = 0.85f,						///< wing efficiency factor
-		.ref_air_density = 1.225f,
-		.max_thrust_min_tas = 0.f,
-		.max_thrust_trim_tas = 0.f,
-		.max_thrust_max_tas = 0.f,
-		.electric_motor_Kv = 1.f,
 		.use_dynamic_throttle_calculation = false,
-		.dynamic_throttle_calculation_initialized = false,
-		.propulsion_type = -1,
+		.propulsion_type = -1
 	};
 
 	TECSControl::Flag _control_flag{

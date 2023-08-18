@@ -834,12 +834,11 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 
 /**
- * TECS reference air density
+ * TECS reference air density (kg/m^3)
  * 
  * This is the air density at the time and place of measuring the tecs parameters 
  * (climb min/max, trim throttle etc)
  * 
- * @unit Pa
  * @min 0.1
  * @max 1.5
  * @decimal 2
@@ -1384,6 +1383,16 @@ PARAM_DEFINE_FLOAT(FW_T_DT_NH_AT, 0.0f);
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_DT_NH_AH, 0.0f); 
+
+/**
+ * Thrust parameters
+ * 
+ * Max idle (no load) rpm
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_DT_NH_I, 0.0f); 
+
 /**
  * Propeller diameter
  * @group FW TECS

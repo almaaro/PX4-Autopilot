@@ -450,6 +450,7 @@ private:
 	void vehicle_status_poll();
 	void wind_poll();
 	void battery_status_poll();
+	void rpm_poll();
 
 	void status_publish();
 	void landing_status_publish();
