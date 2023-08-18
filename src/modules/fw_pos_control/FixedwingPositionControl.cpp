@@ -466,7 +466,7 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 	_tecs.set_equivalent_airspeed_min(calibrated_min_airspeed_without_wind);
 
 	// Calculate also the limit for roll angle
-	calculate_roll_limit(calibrated_min_airspeed_without_wind)
+	calculate_roll_limit(calibrated_min_airspeed_without_wind);
 
 	return calibrated_airspeed_setpoint;
 }
