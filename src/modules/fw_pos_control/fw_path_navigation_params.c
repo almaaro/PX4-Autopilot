@@ -1986,6 +1986,7 @@ PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
 
 /**
  * The slope between angle of attack and the coefficient of lift.
+ *
  * Calculated from the wing airfoil's Alpha v Cl polar as
  * FW_T_ALPHA_V_CL = (delta Alpha)/(delta Cl)
  *

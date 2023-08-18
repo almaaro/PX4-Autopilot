@@ -2111,7 +2111,7 @@ float
 FixedwingPositionControl::get_tecs_pitch()
 {
 	if (_tecs_is_running) {
-		return _tecs.get_pitch_setpoint());
+		return _tecs.get_pitch_setpoint();
 	}
 
 	// return level flight pitch offset to prevent stale tecs state when it's not running

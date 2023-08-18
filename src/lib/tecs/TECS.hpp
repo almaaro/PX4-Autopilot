@@ -547,7 +547,7 @@ private:
 	/**
 	 * @brief Initialize the wing's lift profile calculations
 	 */
-	void _initialize_pitchsp_offset(const Input &input, const Param &param, const Flag &flag) const;
+	void _initialize_pitchsp_offset(const Input &input, const Param &param, const Flag &flag);
 
 	/**
 	 * @brief Update controlled throttle setpoint.
@@ -612,6 +612,8 @@ private:
 	float _ratio_undersped{0.0f};				///< A continuous representation of how "undersped" the TAS is [0,1]
 
 	float _thrust_setpoint{0.0f};
+
+	PitchSetpointOffset _pitchSetpointOffset;
 };
 
 class TECS
@@ -973,6 +975,7 @@ private:
 		.throttle_trim_adjusted = 0.f,
 		.throttle_max = 1.0f,
 		.throttle_min = 0.1f,
+		.ref_air_density = 1.225f,
 		.altitude_error_gain = 0.2f,
 		.altitude_setpoint_gain_ff = 0.0f,
 		.tas_error_percentage = 0.15f,
