@@ -73,26 +73,41 @@ FixedwingRateControl::init()
 	//Calculate elev trim model parameters
 	//M(elev) = M (aero) + M(mot)
 	//a * eas(elev)² * e = k*eas² + b + d(arm) * F
-	//ae1 * eas1(elev)^2 - k*eas1^2 - d(arm) * F1 = ae2 * eas2(elev)^2 - k*eas2^2 - d(arm) * F2 -> k = (ae2*eas2(elev)^2 - d(arm) * F2 - ae1*eas1(elev)^2 + d(arm)*F1)/(eas2^2 - eas1^2)
-	//trim @ trim as, max, crz ja min thr -> min thr:lla saadaan yhtälö trim*eas(elev)^2 = k*eas^2 + b
-	//kun tiedetään max clb ja min sink niin niistä saadaan laskettua teoreettiset työntövoimat ja eas(elev) -> saadaan k ja b
+	//Aerodynaaminen trimmimomentti (olettaen että M ~ trim kun ilmanopeus on vakio) saadaan eri nopeuksille mittaamalla trimmin arvo silloin kun potkuri on seis
 
-	float thrust_trim_as_level = _param_fw_t_sink_min.get() / _param_fw_airspd_trim.get() * _param_weight_gross.get() * CONSTANTS_ONE_G;
-	float airstream_trim_as_level = calculate_stabilizer_airstream_from_thrust(thrust_trim_as_level, _param_fw_airspd_trim.get());
-	float thrust_trim_as_level_flaps = _param_fw_t_sink_min_flaps.get() / _param_fw_airspd_trim.get() * _param_weight_gross.get() * CONSTANTS_ONE_G;
-	float airstream_trim_as_level_flaps = calculate_stabilizer_airstream_from_thrust(thrust_trim_as_level_flaps, _param_fw_airspd_trim.get());
+	_trim_values.aero_moment_eas_min = _param_trim_pitch_min_eas_sink_min.get()/(_param_fw_airspd_min.get() * _param_fw_airspd_min.get());
+	_trim_values.aero_moment_eas_trim = _param_trim_pitch_trim_eas_sink_min.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
+	_trim_values.aero_moment_eas_max = _param_trim_pitch_max_eas_sink_min.get()/(_param_fw_airspd_max.get() * _param_fw_airspd_max.get());
 
-	elev_trim_k = (_param_trim_pitch.get() * airstream_trim_as_level * airstream_trim_as_level - _param_motor_torque_arm_length.get() * thrust_trim_as_level -
-			_param_trim_pitch_min_as_sink_min.get() * _param_fw_airspd_min.get())/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get() - _param_fw_airspd_min.get() * _param_fw_airspd_min.get());
-	elev_trim_b = _param_trim_pitch.get() * airstream_trim_as_level * airstream_trim_as_level - elev_trim_k * _param_fw_airspd_trim.get() * _param_fw_airspd_trim.get() -
-			_param_motor_torque_arm_length.get() * thrust_trim_as_level;
+	_trim_values.aero_moment_eas_land_flaps = _param_trim_pitch_land_eas_sink_min_flaps.get()/(_param_fw_airspd_land.get() * _param_fw_airspd_land.get());
+	_trim_values.aero_moment_eas_trim_flaps = _param_trim_pitch_trim_eas_sink_min_flaps.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
 
-	//sitten vielä samat erikseen flapseille
-	elev_trim_k_flaps = (_param_trim_pitch_trim_as_level_flaps.get() * airstream_trim_as_level_flaps * airstream_trim_as_level_flaps - _param_motor_torque_arm_length.get() * thrust_trim_as_level_flaps -
-			_param_trim_pitch_min_as_sink_min_flaps.get() * _param_fw_airspd_min.get())/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get() - _param_fw_airspd_min.get() * _param_fw_airspd_min.get());
-	elev_trim_b_flaps = _param_trim_pitch_trim_as_level_flaps.get() * airstream_trim_as_level_flaps * airstream_trim_as_level_flaps - elev_trim_k_flaps * _param_fw_airspd_trim.get() *
-			_param_fw_airspd_trim.get() - _param_motor_torque_arm_length.get() * thrust_trim_as_level_flaps;
+	//Laskennallinen peräsimeen osuva ilmavirran nopeus taas saadaan kun tiedetään trimmin arvo, aerodynaaminen momentti ja työntövoimamomentti
+	//Oletetaan että peräsimeen osuvan ilmavirran nopeus (potkurista lähtöisin) on suoraan verrannollinen potkurista lähtevään nopeuteen nopeuden ollessa vakio -> laseketaan vain 1 nopeudelle
+	//Oletetaan myös, että se pysyy vakiona jos eas on vakio
 
+	float thrust_eas_min_level = _param_fw_t_sink_min_trim_eas.get() / _param_fw_airspd_min.get() * _param_weight_gross.get() * CONSTANTS_ONE_G;
+	float calculated_airstream_eas_min_level = calculate_ve_from_thrust(thrust_eas_min_level, _param_fw_airspd_trim.get());
+	float trim_moment_eas_min_level =  _trim_values.aero_moment_eas_min + _param_motor_torque_arm_length.get() * thrust_eas_min_level;
+	float required_airstream_eas_min_level = sqrt(trim_moment_eas_min_level / _param_trim_pitch_min_eas_level.get());
+	_trim_values.airstream_scaler_eas_min = required_airstream_eas_min_level / calculated_airstream_eas_min_level;
+
+	float thrust_eas_trim_level = _param_fw_t_sink_min_trim_eas.get() / _param_fw_airspd_trim.get() * _param_weight_gross.get() * CONSTANTS_ONE_G;
+	float calculated_airstream_eas_trim_level = calculate_ve_from_thrust(thrust_eas_trim_level, _param_fw_airspd_trim.get());
+	float trim_moment_eas_trim_level =  _trim_values.aero_moment_eas_trim + _param_motor_torque_arm_length.get() * thrust_eas_trim_level;
+	_trim_values.required_airstream_eas_trim_level = sqrt(trim_moment_eas_trim_level / _param_trim_pitch_trim_eas_level.get());
+	_trim_values.airstream_scaler_eas_trim = _trim_values.required_airstream_eas_trim_level / calculated_airstream_eas_trim_level;
+
+	float thrust_eas_max_level = _param_fw_t_sink_min_trim_eas.get() / _param_fw_airspd_max.get() * _param_weight_gross.get() * CONSTANTS_ONE_G;
+	float calculated_airstream_eas_max_level = calculate_ve_from_thrust(thrust_eas_max_level, _param_fw_airspd_trim.get());
+	float trim_moment_eas_max_level =  _trim_values.aero_moment_eas_max + _param_motor_torque_arm_length.get() * thrust_eas_max_level;
+	float required_airstream_eas_max_level = sqrt(trim_moment_eas_max_level / _param_trim_pitch_max_eas_level.get());
+	_trim_values.airstream_scaler_eas_max = required_airstream_eas_max_level / calculated_airstream_eas_max_level;
+
+	if(isnan(_trim_values.airstream_scaler_eas_min) || isnan(_trim_values.airstream_scaler_eas_trim) || isnan(_trim_values.airstream_scaler_eas_max)){
+		PX4_ERR("fail to calc trim params");
+		return false;
+	}
 
 	return true;
 }
@@ -178,10 +193,10 @@ FixedwingRateControl::vehicle_land_detected_poll()
 	}
 }
 
-void FixedwingRateControl::stabilizer_airstream_poll(){
+void FixedwingRateControl::propeller_data_poll(){
 
-	if(_stabilizer_airstream_sub.updated()) {
-		_stabilizer_airstream_sub.copy(&_stabilizer_airstream);
+	if(_propeller_data_sub.updated()) {
+		_propeller_data_sub.copy(&_propeller_data);
 	}
 }
 
@@ -227,23 +242,20 @@ float FixedwingRateControl::get_airspeed_and_update_scaling()
 
 	_airspeed = airspeed_constrained;
 
+	_trim_values.airspeed = airspeed_constrained;
+
 	_airspeed_scaling = (_param_fw_arsp_scale_en.get()) ? (_param_fw_airspd_trim.get() / airspeed_constrained) : 1.0f;
 
 	return airspeed;
 }
 
-float FixedwingRateControl::calculate_stabilizer_airstream_from_thrust(const float thrust, const float eas)
+float FixedwingRateControl::calculate_ve_from_thrust(const float thrust, const float eas)
 {
-	// Stabilizer airstream from propulsion device
 	// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2] (if using tas), omit rho if using eas
-	// The airstream velocity can be approximated to linearly decrease over distance.  If the scaler is measured vhile the vehicle is stationary, the scaler approaches 1
-	// when the airspeed is infinite.
 
 	float ve = sqrt(2 * thrust / (M_PI_F * (0.5f * _param_fw_t_propeller_diameter.get()) * (0.5f * _param_fw_t_propeller_diameter.get())) + eas * eas);
-	float scaler = 1-1/(eas / ve + 1) + _param_fw_t_propeller_airstream_stabilizer_scaler.get() * 1/(eas / ve + 1);
-	float _stabilizer_airstream_velocity = ((ve - eas) * scaler + eas);
 
-	return _stabilizer_airstream_velocity;
+	return ve;
 }
 
 void FixedwingRateControl::Run()
@@ -403,9 +415,52 @@ void FixedwingRateControl::Run()
 
 
 			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled){
-				trim_pitch = (_flaps_setpoint.normalized_setpoint * elev_trim_k_flaps + (1 - _flaps_setpoint.normalized_setpoint) * elev_trim_k ) * _airspeed * _airspeed +
-					(_flaps_setpoint.normalized_setpoint * elev_trim_b_flaps + (1 - _flaps_setpoint.normalized_setpoint) * elev_trim_b ) + _param_motor_torque_arm_length.get() *
-					_stabilizer_airstream.thrust / (_stabilizer_airstream.velocity_eas * _stabilizer_airstream.velocity_eas);
+
+				float unscaled_airspeed = _trim_values.airspeed;
+				//Calculate airstream scaler
+				float airstream_scaler = 0.0f;
+				if(unscaled_airspeed <= _param_fw_airspd_min.get()){
+					airstream_scaler = _trim_values.airstream_scaler_eas_min;
+				} else if(unscaled_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (unscaled_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
+					airstream_scaler = _trim_values.airstream_scaler_eas_min + scaler * (_trim_values.airstream_scaler_eas_trim - _trim_values.airstream_scaler_eas_min);
+				} else if(unscaled_airspeed <= _param_fw_airspd_max.get()){
+					float scaler = (unscaled_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
+					airstream_scaler = _trim_values.airstream_scaler_eas_trim + scaler * (_trim_values.airstream_scaler_eas_max - _trim_values.airstream_scaler_eas_trim);
+				} else {
+					airstream_scaler = _trim_values.airstream_scaler_eas_max;
+				}
+
+				_trim_values.adjusted_airstream_eas = _propeller_data.ve_eas * airstream_scaler;
+
+				//Calculate aerodynamic moment
+				float aero_moment_flaps = 0.0f;
+				if(unscaled_airspeed <= _param_fw_airspd_land.get()){
+					aero_moment_flaps = _trim_values.aero_moment_eas_land_flaps;
+				} else if(unscaled_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (unscaled_airspeed - _param_fw_airspd_land.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_land.get());
+					aero_moment_flaps = _trim_values.aero_moment_eas_land_flaps + scaler * (_trim_values.aero_moment_eas_trim_flaps - _trim_values.aero_moment_eas_land_flaps);
+				} else{
+					aero_moment_flaps = _trim_values.aero_moment_eas_trim_flaps;
+				}
+
+				float aero_moment_clean = 0.0f;
+				if(unscaled_airspeed <= _param_fw_airspd_min.get()){
+					aero_moment_clean = _trim_values.aero_moment_eas_min;
+				} else if(unscaled_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (unscaled_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
+					aero_moment_clean = _trim_values.aero_moment_eas_min + scaler * (_trim_values.aero_moment_eas_trim - _trim_values.aero_moment_eas_min);
+				} else if(unscaled_airspeed <= _param_fw_airspd_max.get()){
+					float scaler = (unscaled_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
+					aero_moment_clean = _trim_values.aero_moment_eas_trim + scaler * (_trim_values.aero_moment_eas_max - _trim_values.aero_moment_eas_trim);
+				} else{
+					aero_moment_clean = _trim_values.aero_moment_eas_max;
+				}
+
+				trim_pitch = ((_flaps_setpoint.normalized_setpoint * aero_moment_flaps + (1 - _flaps_setpoint.normalized_setpoint) * aero_moment_clean) +
+						 + _param_motor_torque_arm_length.get() * _propeller_data.thrust) / (_trim_values.adjusted_airstream_eas * _trim_values.adjusted_airstream_eas);
+
+				_trim_values.last_updated = hrt_absolute_time();
 			}
 
 			if (_vcontrol_mode.flag_control_rates_enabled) {
@@ -422,12 +477,22 @@ void FixedwingRateControl::Run()
 				const Vector3f angular_acceleration_setpoint = _rate_control.update(rates, body_rates_setpoint, angular_accel, dt,
 						_landed);
 
+				float airspeed_scaling_pitch = 0.0f;
+
+				if(hrt_elapsed_time(&_trim_values.last_updated) < 1_s){
+					airspeed_scaling_pitch = _trim_values.adjusted_airstream_eas / _trim_values.required_airstream_eas_trim_level;
+				} else{
+					airspeed_scaling_pitch = _airspeed_scaling;
+				}
+
 				const float roll_feedforward = _param_fw_rr_ff.get() * _airspeed_scaling * body_rates_setpoint(0);
-				const float pitch_feedforward = _param_fw_pr_ff.get() * _airspeed_scaling * body_rates_setpoint(1);
+				const float pitch_feedforward = _param_fw_pr_ff.get() * airspeed_scaling_pitch * body_rates_setpoint(1);
 				const float yaw_feedforward = _param_fw_yr_ff.get() * _airspeed_scaling * body_rates_setpoint(2);
 
 				const float roll_u = angular_acceleration_setpoint(0) * _airspeed_scaling * _airspeed_scaling + roll_feedforward;
-				const float pitch_u = angular_acceleration_setpoint(1) * _airspeed_scaling * _airspeed_scaling + pitch_feedforward;
+				const float pitch_u = angular_acceleration_setpoint(1) * airspeed_scaling_pitch * airspeed_scaling_pitch + pitch_feedforward;
+
+
 
 				// Special case yaw in Acro: if the parameter FW_ACRO_YAW_CTL is not set then don't control yaw
 				float yaw_u = 0.f;

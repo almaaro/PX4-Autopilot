@@ -58,6 +58,8 @@ PARAM_DEFINE_FLOAT(TRIM_ROLL, 0.0f);
 /**
  * Pitch trim
  *
+ * Mixing should be done so that positive values correspont to nose up moment
+ *
  * The trim value is the actuator control value the system needs
  * for straight and level flight with trim throttle. It can be calibrated by
  * flying manually straight and level using the RC trims and

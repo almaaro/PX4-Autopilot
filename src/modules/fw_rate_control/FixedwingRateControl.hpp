@@ -69,7 +69,7 @@
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_thrust_setpoint.h>
 #include <uORB/topics/vehicle_torque_setpoint.h>
-#include <uORB/topics/stabilizer_airstream.h>
+#include <uORB/topics/propeller_data.h>
 
 using matrix::Eulerf;
 using matrix::Quatf;
@@ -110,7 +110,7 @@ private:
 	uORB::Subscription _vehicle_land_detected_sub{ORB_ID(vehicle_land_detected)};
 	uORB::Subscription _vehicle_status_sub{ORB_ID(vehicle_status)};
 	uORB::Subscription _vehicle_rates_sub{ORB_ID(vehicle_angular_velocity)};
-	uORB::Subscription _stabilizer_airstream_sub{ORB_ID(stabilizer_airstream)};
+	uORB::Subscription _propeller_data_sub{ORB_ID(propeller_data)};
 	uORB::Subscription _flaps_setpoint_sub{ORB_ID(flaps_setpoint)};
 
 	uORB::SubscriptionMultiArray<control_allocator_status_s, 2> _control_allocator_status_subs{ORB_ID::control_allocator_status};
@@ -131,7 +131,7 @@ private:
 	vehicle_torque_setpoint_s		_vehicle_torque_setpoint{};
 	vehicle_rates_setpoint_s		_rates_sp{};
 	vehicle_status_s			_vehicle_status{};
-	stabilizer_airstream_s			_stabilizer_airstream{};
+	propeller_data_s			_propeller_data{};
 	normalized_unsigned_setpoint_s 		_flaps_setpoint{};
 
 	perf_counter_t _loop_perf;
@@ -152,10 +152,28 @@ private:
 
 	bool _in_fw_or_transition_wo_tailsitter_transition{false}; // only run the FW attitude controller in these states
 
-	float elev_trim_k{0.f};
-	float elev_trim_b{0.0f};
-	float elev_trim_k_flaps{0.f};
-	float elev_trim_b_flaps{0.0f};
+	struct TrimValues {
+		float aero_moment_eas_min = 0.0f;
+		float aero_moment_eas_trim = 0.0f;
+		float aero_moment_eas_max = 0.0f;
+
+		float airstream_scaler_eas_min = 0.0f;
+		float airstream_scaler_eas_trim = 0.0f;
+		float airstream_scaler_eas_max = 0.0f;
+
+		float aero_moment_eas_land_flaps = 0.0f;
+		float aero_moment_eas_trim_flaps = 0.0f;
+
+		float required_airstream_eas_trim_level = 0.0f;
+
+		float airspeed = 0.0f;
+
+		float adjusted_airstream_eas = 0.0f;
+
+		hrt_abstime last_updated{0};
+	};
+
+	TrimValues _trim_values;
 
 	// enum for bitmask of VT_FW_DIFTHR_EN parameter options
 	enum class VTOLFixedWingDifferentialThrustEnabledBit : int32_t {
@@ -177,6 +195,7 @@ private:
 		(ParamFloat<px4::params::FW_AIRSPD_MIN>) _param_fw_airspd_min,
 		(ParamFloat<px4::params::FW_AIRSPD_STALL>) _param_fw_airspd_stall,
 		(ParamFloat<px4::params::FW_AIRSPD_TRIM>) _param_fw_airspd_trim,
+		(ParamFloat<px4::params::FW_LND_AIRSPD>) _param_fw_airspd_land,
 		(ParamInt<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
 
 		(ParamInt<px4::params::FW_ARSP_SCALE_EN>) _param_fw_arsp_scale_en,
@@ -217,20 +236,42 @@ private:
 		(ParamFloat<px4::params::TRIM_ROLL>) _param_trim_roll,
 		(ParamFloat<px4::params::TRIM_YAW>) _param_trim_yaw,
 
-		(ParamFloat<px4::params::TRIM_PIT_MIN>) _param_trim_pitch_min_as_sink_min,
-		(ParamFloat<px4::params::TRIM_PIT_F>) _param_trim_pitch_trim_as_level_flaps,
-		(ParamFloat<px4::params::TRIM_PIT_MIN_F>) _param_trim_pitch_min_as_sink_min_flaps,
+		(ParamFloat<px4::params::FW_TRM_P_VL_SI>) _param_trim_pitch_min_eas_sink_min,
+		(ParamFloat<px4::params::FW_TRM_P_VL_LV>) _param_trim_pitch_min_eas_level,
+		//(ParamFloat<px4::params::FW_TRM_P_VL_CL>) _param_trim_pitch_min_eas_max_clb,
+		(ParamFloat<px4::params::FW_TRM_P_VC_SI>) _param_trim_pitch_trim_eas_sink_min,
+		(ParamFloat<px4::params::FW_TRM_P_VC_LV>) _param_trim_pitch_trim_eas_level,
+		//(ParamFloat<px4::params::FW_TRM_P_VC_CL>) _param_trim_pitch_trim_eas_max_clb,
+		(ParamFloat<px4::params::FW_TRM_P_VH_SI>) _param_trim_pitch_max_eas_sink_min,
+		(ParamFloat<px4::params::FW_TRM_P_VH_LV>) _param_trim_pitch_max_eas_level,
+		//(ParamFloat<px4::params::FW_TRM_P_VH_CL>) _param_trim_pitch_max_eas_max_clb,
+		(ParamFloat<px4::params::FW_TRM_PF_VL_SI>) _param_trim_pitch_land_eas_sink_min_flaps,
+		(ParamFloat<px4::params::FW_TRM_PF_VL_LV>) _param_trim_pitch_land_eas_level_flaps,
+		//(ParamFloat<px4::params::FW_TRM_PF_VL_CL>) _param_trim_pitch_land_eas_max_clb_flaps,
+		(ParamFloat<px4::params::FW_TRM_PF_VC_SI>) _param_trim_pitch_trim_eas_sink_min_flaps,
+		(ParamFloat<px4::params::FW_TRM_PF_VC_LV>) _param_trim_pitch_trim_eas_level_flaps,
+		//(ParamFloat<px4::params::FW_TRM_PF_VC_CL>) _param_trim_pitch_trim_eas_max_clb_flaps,
 
 		(ParamInt<px4::params::FW_SPOILERS_MAN>) _param_fw_spoilers_man,
 
-		(ParamFloat<px4::params::FW_T_CLMB_MAX>) _param_fw_t_clmb_max,
-		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min,
-		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_flaps,
+		//(ParamFloat<px4::params::FW_T_CLMB_MAX>) _param_fw_t_clmb_max_trim_eas,
+		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min_trim_eas,
+		//(ParamFloat<px4::params::FW_T_CLMB_MAX_L>) _param_fw_t_clmb_max_min_eas,
+		//(ParamFloat<px4::params::FW_T_CLMB_MAX_H>) _param_fw_t_clmb_max_max_eas,
+		//(ParamFloat<px4::params::FW_T_CL_F_MAX_L>) _param_fw_t_clmb_max_min_eas_flaps,
+		//(ParamFloat<px4::params::FW_T_CLMB_MAX_F>) _param_fw_t_clmb_max_trim_eas_flaps,
+		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_sink_min_trim_eas_flaps,
+		(ParamFloat<px4::params::FW_T_SI_MI_LO>) _param_fw_t_sink_min_min_eas,
+		(ParamFloat<px4::params::FW_T_SI_MI_LA_F>) _param_fw_t_sink_min_land_eas_flaps,
+		(ParamFloat<px4::params::FW_T_SI_MI_HI>) _param_fw_t_sink_min_max_eas,
+
 		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::WEIGHT_GROSS>) _param_weight_gross,
 		(ParamFloat<px4::params::MOTOR_TORQ_ARM>) _param_motor_torque_arm_length,
-		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations
+		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations,
+
+		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_reference_air_density
 	)
 
 	RateControl _rate_control; ///< class for rate control calculations
@@ -245,8 +286,8 @@ private:
 	void		vehicle_manual_poll();
 	void		vehicle_land_detected_poll();
 	void		flaps_setpoint_poll();
-	void 		stabilizer_airstream_poll();
+	void 		propeller_data_poll();
 
 	float 		get_airspeed_and_update_scaling();
-	float 		calculate_stabilizer_airstream_from_thrust(const float thrust, const float eas);
+	float 		calculate_ve_from_thrust(const float thrust, const float eas);
 };

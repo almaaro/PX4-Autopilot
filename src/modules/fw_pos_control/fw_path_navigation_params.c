@@ -461,12 +461,14 @@ PARAM_DEFINE_FLOAT(FW_LND_THRTC_SC, 1.0f);
  */
 
 /**
- * Maximum climb rate
+ * Maximum climb rate at FW_AIRSPD_TRIM
  *
  * This is the maximum climb rate that the aircraft can achieve with
  * the throttle set to THR_MAX and the airspeed set to the
  * trim value. For electric aircraft make sure this number can be
  * achieved towards the end of flight when the battery voltage has reduced.
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -478,11 +480,83 @@ PARAM_DEFINE_FLOAT(FW_LND_THRTC_SC, 1.0f);
 PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
 
 /**
+ * Maximum climb rate at FW_AIRSPD_MIN
+ *
+ * This is the maximum climb rate that the aircraft can achieve with
+ * the throttle set to THR_MAX and the airspeed set to FW_AIRSPD_MIN
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 15.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_L, 5.0f);
+
+/**
+ * Maximum climb rate at FW_AIRSPD_MAX
+ *
+ * This is the maximum climb rate that the aircraft can achieve with
+ * the throttle set to THR_MAX and the airspeed set to FW_AIRSPD_MAX
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 15.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_H, 5.0f);
+
+/**
+ * Maximum climb rate at FW_LND_AIRSPD with flaps extended
+ *
+ * This is the maximum climb rate that the aircraft can achieve with
+ * the throttle set to THR_MAX and the airspeed set to FW_LND_AIRSPD
+ * with full flaps extended
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 15.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CL_F_MAX_L, 5.0f);
+
+/**
+ * Maximum climb rate at FW_AIRSPD_TRIM with flaps extended
+ *
+ * This is the maximum climb rate that the aircraft can achieve with
+ * the throttle set to THR_MAX and the airspeed set to FW_AIRSPD_TRIM
+ * with full flaps extended
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 15.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_F, 5.0f);
+
+/**
  * Minimum descent rate
  *
  * This is the sink rate of the aircraft with the throttle
  * set to THR_MIN and flown at the same airspeed as used
  * to measure FW_T_CLMB_MAX.
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -509,6 +583,56 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
+
+/**
+ * Minimum descent rate at FW_AIRSPD_MIN
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_AIRSPD_MIN
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_LO, 2.0f);
+
+/**
+ * Minimum descent rate at FW_LND_AIRSPD with full flaps
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_AIRSPD_MIN (and ideally with zero thrust/drag from the spinning propeller).
+ *
+ * (set at tecs reference air density FW_T_REF_RHO)
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_LA_F, 2.0f);
+
+/**
+ * Minimum descent rate at FW_AIRSPD_MAX
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_AIRSPD_MAX
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_HI, 2.0f);
+
 
 /**
  * Maximum descent rate
@@ -796,6 +920,20 @@ PARAM_DEFINE_FLOAT(FW_T_SEB_R_FF, 1.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
+
+/**
+ * TECS reference air density (kg/m^3)
+ *
+ * This is the air density at the time and place of measuring the tecs parameters
+ * (climb min/max, trim throttle etc)
+ *
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO, 1.225f);
 
 /**
  * Use dynamic airspeed and air density dependent thottle calculation

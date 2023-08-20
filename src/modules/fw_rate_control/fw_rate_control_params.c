@@ -461,41 +461,184 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_VMAX, 0.0f);
 PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
 
 /**
-* Pitch trim at min airspeed with minimum throttle
-*
+ * Pitch trim at min as, no throttle
  *
- * @group FW Rate Control
- * @min -0.5
- * @max 0.5
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(TRIM_PIT_MIN, 0.0f);
+PARAM_DEFINE_FLOAT(FW_TRM_P_VL_SI, 0.0f);
 
 /**
-* Pitch trim at level flight at trim airspeed with flaps extended
-*
+ * Pitch trim at min as, level flight
  *
- * @group FW Rate Control
- * @min -0.5
- * @max 0.5
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(TRIM_PIT_F, 0.0f);
+PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
 
 /**
-* Pitch trim at min airspeed with minimum throttle with flaps extended
-*
+ * Pitch trim at min as, max climb rate
  *
- * @group FW Rate Control
- * @min -0.5
- * @max 0.5
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(TRIM_PIT_MIN_F, 0.0f);
+PARAM_DEFINE_FLOAT(FW_TRM_P_VL_CL, 0.0f);
 
+/**
+ * Pitch trim at cruise as, no throttle
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VC_SI, 0.0f);
+
+/**
+ * Pitch trim at cruise as, level flight
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
+
+/**
+ * Pitch trim at cruise as, max climb rate
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VC_CL, 0.0f);
+
+/**
+ * Pitch trim at max as, no throttle
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VH_SI, 0.0f);
+
+/**
+ * Pitch trim at max as, level flight
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
+
+/**
+ * Pitch trim at max as, max climb rate
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_P_VH_CL, 0.0f);
+
+/**
+ * Pitch trim at land as, no throttle, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_SI, 0.0f);
+
+/**
+ * Pitch trim at land as, level flight, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
+
+/**
+ * Pitch trim at land as, max climb, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_CL, 0.0f);
+
+/**
+ * Pitch trim at trim as, no throttle, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_SI, 0.0f);
+
+/**
+ * Pitch trim at trim as, level flight, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_LV, 0.0f);
+
+/**
+ * Pitch trim at trim as, max climb rate, flaps deployed
+ *
+ *
+ * @group FW Attitude Control
+ * @min -0.25
+ * @max 0.25
+ * @decimal 2
+ * @increment 0.01
+ */
+PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_CL, 0.0f);
 
 /**
  * Manual roll scale
@@ -581,6 +724,8 @@ PARAM_DEFINE_INT32(FW_ACRO_YAW_EN, 0);
 
 /**
  * Distance of the motor thrust axis from the center of gravity
+ *
+ * If the thrust will induce a nose up moment, the value should be positive and vice versa.
  *
  * @group FW Rate Control
  * @unit m
