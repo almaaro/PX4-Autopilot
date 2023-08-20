@@ -72,7 +72,7 @@ FixedwingPositionControl::FixedwingPositionControl(bool vtol) :
 	_flaps_setpoint_pub.advertise();
 	_spoilers_setpoint_pub.advertise();
 
-	_stabilizer_airstream_pub.advertise();
+	_propeller_data_pub.advertise();
 
 	_airspeed_slew_rate_controller.setSlewRate(ASPD_SP_SLEW_RATE);
 
@@ -205,8 +205,6 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 
 	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());
-
-	_tecs.set_propeller_airstream_at_stabilizer_scaler(_param_fw_t_propeller_airstream_stabilizer_scaler.get());
 
 	int check_ret = PX4_OK;
 
@@ -2930,12 +2928,12 @@ void FixedwingPositionControl::publishOrbitStatus(const position_setpoint_s pos_
 void FixedwingPositionControl::publishStabilizerAirstream()
 {
 	if (_tecs_is_running) {
-		stabilizer_airstream_s stabilizer_airstream{};
-		stabilizer_airstream.timestamp = hrt_absolute_time();
-		stabilizer_airstream.thrust = _tecs.get_thrust_setpoint();
-		stabilizer_airstream.velocity_eas = _tecs.get_stabilizer_airstream_velocity();
+		propeller_data_s propeller_data{};
+		propeller_data.timestamp = hrt_absolute_time();
+		propeller_data.thrust = _tecs.get_thrust_setpoint();
+		propeller_data.ve_eas = _tecs.get_propeller_ve_eas();
 
-		_stabilizer_airstream_pub.publish(stabilizer_airstream);
+		_propeller_data_pub.publish(propeller_data);
 	}
 }
 

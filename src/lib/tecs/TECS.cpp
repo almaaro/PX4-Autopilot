@@ -797,14 +797,8 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			throttle_setpoint = _calcGovernorElectricMotor(dt, rpm, input, param);
 
 
-			// Stabilizer airstream from propulsion device
 			// Calculated from: F = .5 * rho * A * [Ve ^2 – V0 ^2]
-			// The airstream velocity can be approximated to linearly decrease over distance.  If the scaler is measured vhile the vehicle is stationary, the scaler approaches 1 
-			// when the airspeed is infinite.
-			float ve = sqrt(2 * _thrust_setpoint / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas);
-			float scaler = 1-1/(input.tas / ve + 1) + param.propeller_airstream_stabilizer_scaler * 1/(input.tas / ve + 1);
-			_stabilizer_airstream_velocity = ((ve - input.tas) * scaler + input.tas) / input.eas_to_tas;
-
+			_propeller_ve_eas = sqrt(2 * _thrust_setpoint / (input.air_density * M_PI_F * (0.5f * param.propeller_diameter) * (0.5f * param.propeller_diameter)) + input.tas * input.tas) / input.eas_to_tas;
 
 		} else{// thrust/rpm control is not supported with ICE or jet engine yet.
 			goto default_throttle_calculation;
@@ -844,7 +838,7 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			throttle_setpoint = param.throttle_trim_adjusted - STE_rate_setpoint_adj * throttle_below_trim_per_ste_rate;
 		}
 
-		_stabilizer_airstream_velocity = input.tas / input.eas_to_tas;
+		_propeller_ve_eas = input.tas / input.eas_to_tas;
 	}
 
 
