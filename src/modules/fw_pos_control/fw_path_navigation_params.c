@@ -494,7 +494,7 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
  * @increment 0.5
  * @group FW TECS
  */
-PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_L, 5.0f);
+//PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_L, 5.0f);
 
 /**
  * Maximum climb rate at FW_AIRSPD_MAX
@@ -511,7 +511,7 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_L, 5.0f);
  * @increment 0.5
  * @group FW TECS
  */
-PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_H, 5.0f);
+//PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_H, 5.0f);
 
 /**
  * Maximum climb rate at FW_LND_AIRSPD with flaps extended
@@ -529,7 +529,7 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_H, 5.0f);
  * @increment 0.5
  * @group FW TECS
  */
-PARAM_DEFINE_FLOAT(FW_T_CL_F_MAX_L, 5.0f);
+//PARAM_DEFINE_FLOAT(FW_T_CL_F_MAX_L, 5.0f);
 
 /**
  * Maximum climb rate at FW_AIRSPD_TRIM with flaps extended
@@ -547,7 +547,7 @@ PARAM_DEFINE_FLOAT(FW_T_CL_F_MAX_L, 5.0f);
  * @increment 0.5
  * @group FW TECS
  */
-PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_F, 5.0f);
+//PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX_F, 5.0f);
 
 /**
  * Minimum descent rate

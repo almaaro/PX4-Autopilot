@@ -166,7 +166,7 @@ private:
 
 		float required_airstream_eas_trim_level = 0.0f;
 
-		float airspeed = 0.0f;
+		float unscaled_airspeed = 0.0f;
 
 		float adjusted_airstream_eas = 0.0f;
 

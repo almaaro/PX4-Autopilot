@@ -494,7 +494,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(FW_TRM_P_VL_CL, 0.0f);
+//PARAM_DEFINE_FLOAT(FW_TRM_P_VL_CL, 0.0f);
 
 /**
  * Pitch trim at cruise as, no throttle
@@ -530,7 +530,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(FW_TRM_P_VC_CL, 0.0f);
+//PARAM_DEFINE_FLOAT(FW_TRM_P_VC_CL, 0.0f);
 
 /**
  * Pitch trim at max as, no throttle
@@ -566,7 +566,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(FW_TRM_P_VH_CL, 0.0f);
+//PARAM_DEFINE_FLOAT(FW_TRM_P_VH_CL, 0.0f);
 
 /**
  * Pitch trim at land as, no throttle, flaps deployed
@@ -602,7 +602,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_CL, 0.0f);
+//PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_CL, 0.0f);
 
 /**
  * Pitch trim at trim as, no throttle, flaps deployed
@@ -638,7 +638,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_LV, 0.0f);
  * @decimal 2
  * @increment 0.01
  */
-PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_CL, 0.0f);
+//PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_CL, 0.0f);
 
 /**
  * Manual roll scale
