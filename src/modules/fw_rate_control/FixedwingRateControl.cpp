@@ -72,15 +72,16 @@ FixedwingRateControl::init()
 
 	//Calculate elev trim model parameters
 	//M(elev) = M (aero) + M(mot)
-	//a * eas(elev)² * e = k*eas² + b + d(arm) * F
 	//Aerodynaaminen trimmimomentti (olettaen että M ~ trim kun ilmanopeus on vakio) saadaan eri nopeuksille mittaamalla trimmin arvo silloin kun potkuri on seis
 
-	_trim_values.aero_moment_eas_min = _param_trim_pitch_min_eas_sink_min.get()/(_param_fw_airspd_min.get() * _param_fw_airspd_min.get());
-	_trim_values.aero_moment_eas_trim = _param_trim_pitch_trim_eas_sink_min.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
-	_trim_values.aero_moment_eas_max = _param_trim_pitch_max_eas_sink_min.get()/(_param_fw_airspd_max.get() * _param_fw_airspd_max.get());
+	// Hyvä huomata että jos aero_moment on > 0, niin silloin kone on epävakaa -> ei käytetä
 
-	_trim_values.aero_moment_eas_land_flaps = _param_trim_pitch_land_eas_sink_min_flaps.get()/(_param_fw_airspd_land.get() * _param_fw_airspd_land.get());
-	_trim_values.aero_moment_eas_trim_flaps = _param_trim_pitch_trim_eas_sink_min_flaps.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
+	_trim_values.aero_moment_eas_min = - _param_trim_pitch_min_eas_sink_min.get()/(_param_fw_airspd_min.get() * _param_fw_airspd_min.get());
+	_trim_values.aero_moment_eas_trim = - _param_trim_pitch_trim_eas_sink_min.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
+	_trim_values.aero_moment_eas_max = - _param_trim_pitch_max_eas_sink_min.get()/(_param_fw_airspd_max.get() * _param_fw_airspd_max.get());
+
+	_trim_values.aero_moment_eas_land_flaps = - _param_trim_pitch_land_eas_sink_min_flaps.get()/(_param_fw_airspd_land.get() * _param_fw_airspd_land.get());
+	_trim_values.aero_moment_eas_trim_flaps = - _param_trim_pitch_trim_eas_sink_min_flaps.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
 
 	//Laskennallinen peräsimeen osuva ilmavirran nopeus taas saadaan kun tiedetään trimmin arvo, aerodynaaminen momentti ja työntövoimamomentti
 	//Oletetaan että peräsimeen osuvan ilmavirran nopeus (potkurista lähtöisin) on suoraan verrannollinen potkurista lähtevään nopeuteen nopeuden ollessa vakio -> laseketaan vain 1 nopeudelle
@@ -104,9 +105,11 @@ FixedwingRateControl::init()
 	float required_airstream_eas_max_level = sqrt(trim_moment_eas_max_level / _param_trim_pitch_max_eas_level.get());
 	_trim_values.airstream_scaler_eas_max = (required_airstream_eas_max_level - _param_fw_airspd_max.get()) / (calculated_airstream_eas_max_level - _param_fw_airspd_max.get());
 
+	_trim_values.initialized = true;
+
 	if(isnan(_trim_values.airstream_scaler_eas_min) || isnan(_trim_values.airstream_scaler_eas_trim) || isnan(_trim_values.airstream_scaler_eas_max)){
-		PX4_ERR("fail to calc trim params");
-		return false;
+		PX4_ERR("unstable");
+		_trim_values.initialized = false;
 	}
 
 	return true;
@@ -414,7 +417,7 @@ void FixedwingRateControl::Run()
 			}
 
 
-			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled){
+			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled && _trim_values.initialized){
 
 				//Calculate airstream scaler
 				float airstream_scaler = 0.0f;
@@ -456,7 +459,7 @@ void FixedwingRateControl::Run()
 					aero_moment_clean = _trim_values.aero_moment_eas_max;
 				}
 
-				trim_pitch = ((_flaps_setpoint.normalized_setpoint * aero_moment_flaps + (1 - _flaps_setpoint.normalized_setpoint) * aero_moment_clean) +
+				trim_pitch = - ((_flaps_setpoint.normalized_setpoint * aero_moment_flaps + (1 - _flaps_setpoint.normalized_setpoint) * aero_moment_clean) +
 						 + _param_motor_torque_arm_length.get() * _propeller_data.thrust) / (_trim_values.adjusted_airstream_eas * _trim_values.adjusted_airstream_eas);
 
 				_trim_values.last_updated = hrt_absolute_time();
