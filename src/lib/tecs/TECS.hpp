@@ -368,7 +368,7 @@ public:
 	 * 
 	 * @return returns the velocity
 	*/
-	float getStabilizerAirstreamVelocity() const {return _stabilizer_airstream_velocity; };
+	float getPropellerVeEAS() const {return _propeller_ve_eas; };
 
 	/**
 	 * @brief get desired thrust
@@ -628,7 +628,7 @@ private:
 	float _throttle_setpoint{0.0f};				///< Controlled throttle setpoint [0,1].
 	float _ratio_undersped{0.0f};				///< A continuous representation of how "undersped" the TAS is [0,1]
 
-	float _stabilizer_airstream_velocity{0.0f};
+	float _propeller_ve_eas{0.0f};
 	float _thrust_setpoint{0.0f};
 };
 
@@ -836,8 +836,6 @@ public:
 
 	void set_propeller_diameter(float diameter) {_control_param.propeller_diameter = diameter; };
 
-	void set_propeller_airstream_at_stabilizer_scaler(float scaler) {_control_param.propeller_airstream_stabilizer_scaler = scaler; };
-
 
 	/**
 	 * Handle the altitude reset
@@ -856,7 +854,7 @@ public:
 
 	float get_pitch_setpoint() {return _control.getPitchSetpoint();}
 	float get_throttle_setpoint() {return _control.getThrottleSetpoint();}
-	float get_stabilizer_airstream_velocity() {return _control.getStabilizerAirstreamVelocity();}
+	float get_propeller_ve_eas() {return _control.getPropellerVeEAS();}
 	float get_thrust_setpoint() {return _control.getThrustSetpoint();}
 
 	uint64_t timestamp() { return _update_timestamp; }

@@ -152,6 +152,7 @@ set(msg_files
 	PowerButtonState.msg
 	PowerMonitor.msg
 	PpsCapture.msg
+	PropellerData.msg
 	PwmInput.msg
 	Px4ioStatus.msg
 	QshellReq.msg

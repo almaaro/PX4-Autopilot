@@ -96,7 +96,7 @@
 #include <uORB/topics/rpm.h>
 #include <uORB/topics/wind.h>
 #include <uORB/topics/orbit_status.h>
-#include <uORB/topics/stabilizer_airstream.h>
+#include <uORB/topics/propeller_data.h>
 #include <uORB/uORB.h>
 
 using namespace launchdetection;
@@ -221,7 +221,7 @@ private:
 	uORB::Publication<landing_gear_s> _landing_gear_pub{ORB_ID(landing_gear)};
 	uORB::Publication<normalized_unsigned_setpoint_s> _flaps_setpoint_pub{ORB_ID(flaps_setpoint)};
 	uORB::Publication<normalized_unsigned_setpoint_s> _spoilers_setpoint_pub{ORB_ID(spoilers_setpoint)};
-	uORB::Publication<stabilizer_airstream_s> _stabilizer_airstream_pub{ORB_ID(stabilizer_airstream)};
+	uORB::Publication<propeller_data_s> _propeller_data_pub{ORB_ID(propeller_data)};
 
 	manual_control_setpoint_s _manual_control_setpoint{};
 	position_setpoint_triplet_s _pos_sp_triplet{};
@@ -964,7 +964,6 @@ private:
 		(ParamFloat<px4::params::FW_T_DT_NH_I>) _param_fw_t_dynamic_throttle_max_rpm_idle,
 
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
-		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,
 
 		(ParamFloat<px4::params::FW_THR_ASPD_MIN>) _param_fw_thr_aspd_min,
 		(ParamFloat<px4::params::FW_THR_ASPD_MAX>) _param_fw_thr_aspd_max,
