@@ -245,8 +245,6 @@ float FixedwingRateControl::get_airspeed_and_update_scaling()
 
 	_airspeed = airspeed_constrained;
 
-	_trim_values.unscaled_airspeed = airspeed_constrained;
-
 	_airspeed_scaling = (_param_fw_arsp_scale_en.get()) ? (_param_fw_airspd_trim.get() / airspeed_constrained) : 1.0f;
 
 	return airspeed;
@@ -417,43 +415,43 @@ void FixedwingRateControl::Run()
 			}
 
 
-			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled && _trim_values.initialized){
+			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled && _trim_values.initialized && _param_prop_wash_on_elevator.get()){
 
 				//Calculate airstream scaler
 				float airstream_scaler = 0.0f;
-				if(_trim_values.unscaled_airspeed <= _param_fw_airspd_min.get()){
+				if(_airspeed <= _param_fw_airspd_min.get()){
 					airstream_scaler = _trim_values.airstream_scaler_eas_min;
-				} else if(_trim_values.unscaled_airspeed <= _param_fw_airspd_trim.get()){
-					float scaler = (_trim_values.unscaled_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
+				} else if(_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
 					airstream_scaler = _trim_values.airstream_scaler_eas_min + scaler * (_trim_values.airstream_scaler_eas_trim - _trim_values.airstream_scaler_eas_min);
-				} else if(_trim_values.unscaled_airspeed <= _param_fw_airspd_max.get()){
-					float scaler = (_trim_values.unscaled_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
+				} else if(_airspeed <= _param_fw_airspd_max.get()){
+					float scaler = (_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
 					airstream_scaler = _trim_values.airstream_scaler_eas_trim + scaler * (_trim_values.airstream_scaler_eas_max - _trim_values.airstream_scaler_eas_trim);
 				} else {
 					airstream_scaler = _trim_values.airstream_scaler_eas_max;
 				}
 
-				_trim_values.adjusted_airstream_eas = (_propeller_data.ve_eas - _trim_values.unscaled_airspeed) * airstream_scaler + _trim_values.unscaled_airspeed;
+				_trim_values.adjusted_airstream_eas = (calculate_ve_from_thrust(_propeller_data.thrust, _airspeed) - _airspeed) * airstream_scaler + _airspeed;
 
 				//Calculate aerodynamic moment
 				float aero_moment_flaps = 0.0f;
-				if(_trim_values.unscaled_airspeed <= _param_fw_airspd_land.get()){
+				if(_airspeed <= _param_fw_airspd_land.get()){
 					aero_moment_flaps = _trim_values.aero_moment_eas_land_flaps;
-				} else if(_trim_values.unscaled_airspeed <= _param_fw_airspd_trim.get()){
-					float scaler = (_trim_values.unscaled_airspeed - _param_fw_airspd_land.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_land.get());
+				} else if(_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (_airspeed - _param_fw_airspd_land.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_land.get());
 					aero_moment_flaps = _trim_values.aero_moment_eas_land_flaps + scaler * (_trim_values.aero_moment_eas_trim_flaps - _trim_values.aero_moment_eas_land_flaps);
 				} else{
 					aero_moment_flaps = _trim_values.aero_moment_eas_trim_flaps;
 				}
 
 				float aero_moment_clean = 0.0f;
-				if(_trim_values.unscaled_airspeed <= _param_fw_airspd_min.get()){
+				if(_airspeed <= _param_fw_airspd_min.get()){
 					aero_moment_clean = _trim_values.aero_moment_eas_min;
-				} else if(_trim_values.unscaled_airspeed <= _param_fw_airspd_trim.get()){
-					float scaler = (_trim_values.unscaled_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
+				} else if(_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
 					aero_moment_clean = _trim_values.aero_moment_eas_min + scaler * (_trim_values.aero_moment_eas_trim - _trim_values.aero_moment_eas_min);
-				} else if(_trim_values.unscaled_airspeed <= _param_fw_airspd_max.get()){
-					float scaler = (_trim_values.unscaled_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
+				} else if(_airspeed <= _param_fw_airspd_max.get()){
+					float scaler = (_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
 					aero_moment_clean = _trim_values.aero_moment_eas_trim + scaler * (_trim_values.aero_moment_eas_max - _trim_values.aero_moment_eas_trim);
 				} else{
 					aero_moment_clean = _trim_values.aero_moment_eas_max;

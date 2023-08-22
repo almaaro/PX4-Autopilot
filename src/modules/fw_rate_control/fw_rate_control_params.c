@@ -731,3 +731,12 @@ PARAM_DEFINE_INT32(FW_ACRO_YAW_EN, 0);
  * @unit m
 */
 PARAM_DEFINE_FLOAT(MOTOR_TORQ_ARM, 0.f);
+
+/**
+ * Propeller wash on elevator
+ *
+ * Enable this if the propeller wash is hitting the elevator. Used for a more advanced trim pattern.
+ * Requires the dynamic throttle calculations to be enabled and FW_TRM_P_XXX/FW_TRM_PF_XXX,
+ * FW_T_PPLR_DIA, FW_T_SNK_MIN_F, FW_T_SI_MI_XXX and MOTOR_TORQ_ARM params be set.
+*/
+PARAM_DEFINE_INT32(FW_T_PROP_W_ELE, 0);

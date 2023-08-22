@@ -166,11 +166,11 @@ private:
 
 		float required_airstream_eas_trim_level = 0.0f;
 
-		float unscaled_airspeed = 0.0f;
-
 		float adjusted_airstream_eas = 0.0f;
 
 		hrt_abstime last_updated{0};
+
+		bool initialized{false};
 	};
 
 	TrimValues _trim_values;
@@ -265,13 +265,13 @@ private:
 		(ParamFloat<px4::params::FW_T_SI_MI_LA_F>) _param_fw_t_sink_min_land_eas_flaps,
 		(ParamFloat<px4::params::FW_T_SI_MI_HI>) _param_fw_t_sink_min_max_eas,
 
-		(ParamFloat<px4::params::FW_T_PPLR_SCL>) _param_fw_t_propeller_airstream_stabilizer_scaler,
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::WEIGHT_GROSS>) _param_weight_gross,
 		(ParamFloat<px4::params::MOTOR_TORQ_ARM>) _param_motor_torque_arm_length,
 		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations,
 
-		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_reference_air_density
+		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_reference_air_density,
+		(ParamInt<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
 	)
 
 	RateControl _rate_control; ///< class for rate control calculations
