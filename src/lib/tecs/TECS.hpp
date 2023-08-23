@@ -195,10 +195,7 @@ public:
 		// Vehicle specific params
 		float max_sink_rate;			///< Maximum sink rate (with min throttle and max speed) [m/s].
 		float min_sink_rate;			///< Minimum sink rate (with min throttle and trim speed) [m/s].
-		float min_sink_rate_min_eas;
-		float min_sink_rate_max_eas;
 		float min_sink_rate_flaps;		///< Minimum sink rate with full flaps (with min throttle and trim speed) [m/s].
-		float min_sink_rate_land_eas_flaps;
 		float max_climb_rate;			///< Climb rate produced by max allowed throttle [m/s].
 		float vert_accel_limit;			///< Magnitude of the maximum vertical acceleration allowed [m/s²].
 		float equivalent_airspeed_land;
@@ -672,10 +669,7 @@ public:
 
 	void set_max_sink_rate(float max_sink_rate) { _control_param.max_sink_rate = max_sink_rate; _reference_param.max_sink_rate = max_sink_rate; };
 	void set_min_sink_rate(float min_sink_rate) { _control_param.min_sink_rate = min_sink_rate; };
-	void set_min_sink_rate_min_eas(float min_sink_rate) { _control_param.min_sink_rate_min_eas = min_sink_rate; };
-	void set_min_sink_rate_max_eas(float min_sink_rate) { _control_param.min_sink_rate_max_eas = min_sink_rate; };
 	void set_min_sink_rate_flaps(float min_sink_rate_flaps) { _control_param.min_sink_rate_flaps = min_sink_rate_flaps; };
-	void set_min_sink_rate_land_eas_flaps(float min_sink_rate_flaps) { _control_param.min_sink_rate_land_eas_flaps = min_sink_rate_flaps; };
 	void set_max_climb_rate(float climb_rate) { _control_param.max_climb_rate = climb_rate; _reference_param.max_climb_rate = climb_rate; };
 
 	void set_altitude_rate_ff(float altitude_rate_ff) { _control_param.altitude_setpoint_gain_ff = altitude_rate_ff; };

@@ -127,9 +127,6 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
 	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_min_flaps.get());
-	_tecs.set_min_sink_rate_min_eas(_param_fw_t_sink_min_min_eas.get());
-	_tecs.set_min_sink_rate_max_eas(_param_fw_t_sink_min_max_eas.get());
-	_tecs.set_min_sink_rate_land_eas_flaps(_param_fw_t_sink_min_land_eas_flaps.get());
 	_tecs.set_reference_air_density(_param_fw_t_ref_rho0.get(), _param_fw_t_ref_rho1.get(), _param_fw_t_ref_rho2.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());

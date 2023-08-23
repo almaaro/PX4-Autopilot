@@ -298,44 +298,35 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 	// Calculate the specific total energy lower rate limits from the min throttle sink rate
 	const float rate_min = - math::max(param.min_sink_rate, FLT_EPSILON) * CONSTANTS_ONE_G;
 	
+	const float rate_min_flaps = - (input.flaps_setpoint * math::max(param.min_sink_rate_flaps, FLT_EPSILON) + (1.0f - input.flaps_setpoint) * math::max(param.min_sink_rate, FLT_EPSILON)) * CONSTANTS_ONE_G;
+
+	const float drag_trim = rate_min_flaps / param.equivalent_airspeed_trim * param.weight_gross;
 	
 	if (param.use_dynamic_throttle_calculation) {
+		/* Airspeed-dependent drag coefficients */
 
-		const float rate_min_flaps = - math::max(param.min_sink_rate_flaps, FLT_EPSILON) * CONSTANTS_ONE_G;
-		const float rate_min_land_eas_flaps = - math::max(param.min_sink_rate_land_eas_flaps, FLT_EPSILON) * CONSTANTS_ONE_G;
-		const float rate_min_min_eas = - math::max(param.min_sink_rate_min_eas, FLT_EPSILON) * CONSTANTS_ONE_G;
-		const float rate_min_max_eas = - math::max(param.min_sink_rate_max_eas, FLT_EPSILON) * CONSTANTS_ONE_G;
+		// The additional normal load factor is given by 1/cos(bank angle) = load_factor
+		const float lift = param.weight_gross * CONSTANTS_ONE_G * constrain(param.load_factor, 0.1f, 1.f);
+		
+		//Induced drag = L^2/(0.5 * rho0 * eas^2 * pi * wingspan^2 * efficiency factor)
+		// at trim airspeed the induced drag is 
+		float D_i_trim = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		
+		// parasitic drag at trim airspeed
+		float D_p_trim = drag_trim - D_i_trim;
 
-
-		//Calculate rate min for clean config (note that values under min eas wont be extrapolated)
-		const float eas_clean = constrain(input.tas/input.eas_to_tas, param.equivalent_airspeed_min, param.equivalent_airspeed_max);
-		float rate_min_clean;
-
-		if(eas_clean < param.equivalent_airspeed_trim){
-			float scaler = (eas_clean - param.equivalent_airspeed_min) / (param.equivalent_airspeed_trim - param.equivalent_airspeed_min);
-			if(!PX4_ISFINITE(scaler)){
-				scaler = 0;
-			}
-			rate_min_clean = scaler * (rate_min - rate_min_min_eas) + rate_min_min_eas;
-			
-		} else{
-			float scaler = (eas_clean - param.equivalent_airspeed_trim) / (param.equivalent_airspeed_max - param.equivalent_airspeed_trim);
-			if(!PX4_ISFINITE(scaler)){
-				scaler = 0;
-			}
-			rate_min_clean = scaler * (rate_min_max_eas - rate_min) + rate_min;
-		}
-
-		//Calculate rate for flaps config (note that values outside land as and trim as won't be extrapolated)
-		float rate_min_flaps_adj;
-		const float eas_flaps = constrain(input.tas/input.eas_to_tas, param.equivalent_airspeed_land, param.equivalent_airspeed_trim);
-		float scaler = (eas_flaps - param.equivalent_airspeed_land) / (param.equivalent_airspeed_trim - param.equivalent_airspeed_land);
-		rate_min_flaps_adj = scaler * (rate_min_flaps - rate_min_land_eas_flaps) + rate_min_land_eas_flaps;
-
-		//combine the values
-		limit.STE_rate_min = input.flaps_setpoint * rate_min_flaps_adj + (1.0f - input.flaps_setpoint) * rate_min_clean;
-
-		float max_thrust = 0;
+		// Cd_specific: Vehicle specific parasitic drag coefficient, which equals to 1/2*A*rho0*Cd_o
+		float Cd_specific = D_p_trim / (param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		
+		// _STE_rate_min equals to the sum of parasitic and induced drag power.
+		// Drag force = Induced drag + Cd_specific * EAS * EAS;
+		// Drag power = Drag force * _tas_state
+		float eas_sq = constrain(input.tas / input.eas_to_tas * input.tas / input.eas_to_tas, param.equivalent_airspeed_min * param.equivalent_airspeed_min, param.equivalent_airspeed_max * param.equivalent_airspeed_max);
+		
+		const float drag = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * eas_sq) + Cd_specific * eas_sq;
+		limit.STE_rate_min = - drag * input.tas / param.weight_gross;
+		float max_thrust = 0.f;
+		
 		//currently only supports electric motor with propeller / ducted fan 
 		if(param.propulsion_type == 0){
 			max_thrust = _calcMaxThrust(input, param);
@@ -343,16 +334,13 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 		else{
 			goto default_STE_rate_limit_calculation;
 		}
-
 		limit.STE_rate_max = limit.STE_rate_min + max_thrust * input.tas / param.weight_gross;
-
 	}
 	else {
 		default_STE_rate_limit_calculation:
 		// Calculate the specific total energy rate limits from the max throttle limits
 		limit.STE_rate_max = rate_max;
 		limit.STE_rate_min = rate_min;
-
 	}
 	
 	return limit;
