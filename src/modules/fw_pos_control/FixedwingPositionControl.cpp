@@ -157,46 +157,77 @@ FixedwingPositionControl::parameters_update()
 
 
 	_tecs.set_thrust_throttle_parameters(
-		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_100.get(),
+		_param_fw_t_land_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho0.get(),
 
-		_param_fw_t_dynamic_throttle_trim_tas_thrust_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_thrust_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_thrust_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_thrust_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_thrust_rpm_100.get(),
+		_param_fw_t_min_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho0.get(),
 
-		_param_fw_t_dynamic_throttle_max_tas_thrust_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_max_tas_thrust_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_max_tas_thrust_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_max_tas_thrust_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_max_tas_thrust_rpm_100.get(),
+		_param_fw_t_trim_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho0.get(),
 
-		_param_fw_t_dynamic_throttle_min_tas_throttle_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_min_tas_throttle_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_min_tas_throttle_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_min_tas_throttle_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_min_tas_throttle_rpm_100.get(),
+		_param_fw_t_max_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho0.get(),
 
-		_param_fw_t_dynamic_throttle_trim_tas_throttle_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_throttle_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_throttle_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_throttle_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_trim_tas_throttle_rpm_100.get(),
+		_param_fw_t_land_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho1.get(),
 
-		_param_fw_t_dynamic_throttle_max_tas_throttle_rpm_0.get(),
-		_param_fw_t_dynamic_throttle_max_tas_throttle_rpm_25.get(),
-		_param_fw_t_dynamic_throttle_max_tas_throttle_rpm_50.get(),
-		_param_fw_t_dynamic_throttle_max_tas_throttle_rpm_75.get(),
-		_param_fw_t_dynamic_throttle_max_tas_throttle_rpm_100.get(),
+		_param_fw_t_min_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho1.get(),
 
-		_param_fw_t_dynamic_throttle_max_rpm_min_as.get(),
-		_param_fw_t_dynamic_throttle_max_rpm_trim_as.get(),
-		_param_fw_t_dynamic_throttle_max_rpm_max_as.get(),
-		_param_fw_t_dynamic_throttle_max_rpm_idle.get()
+		_param_fw_t_trim_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_max_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_land_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_min_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_trim_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_max_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho2.get()
 	);
 
 	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
@@ -214,7 +245,7 @@ FixedwingPositionControl::parameters_update()
 		 * - <param>FW_AIRSPD_MAX</param>: {1:.1}
 		 * - <param>FW_AIRSPD_MIN</param>: {2:.1}
 		 */
-		events::send<float, float>(events::ID("fixedwing_position_control_conf_invalid_airspeed"), events::Log::Error,
+		events::send<float.get(), float>(events::ID("fixedwing_position_control_conf_invalid_airspeed"), events::Log::Error,
 					   "Invalid configuration: Airspeed max smaller than min",
 					   _param_fw_airspd_max.get(), _param_fw_airspd_min.get());
 		check_ret = PX4_ERROR;
