@@ -256,6 +256,9 @@ public:
 		int propulsion_type;
 
 		float propeller_diameter;
+
+		float Cd_specific_clean;
+		float Cd_specific_flaps;
 	};
 
 	/**
@@ -947,9 +950,6 @@ private:
 		.equivalent_airspeed_trim = 15.0f,
 		.equivalent_airspeed_max = 20.0f,
 		.tas_min = 3.0f,
-		.tas_min_ref = 3.0f,
-		.tas_trim_ref = 10.0f,
-		.tas_max_ref = 20.0f,
 		.pitch_max = 5.0f,
 		.pitch_min = -5.0f,
 		.throttle_trim = 0.0f,
@@ -977,7 +977,9 @@ private:
 		.wingspan = -1.f,							///< wingspan (m)
 		.wing_efficiency = 0.85f,						///< wing efficiency factor
 		.use_dynamic_throttle_calculation = false,
-		.propulsion_type = -1
+		.propulsion_type = -1,
+		.Cd_specific_clean = 0.0f,
+		.Cd_specific_flaps = 0.0f
 	};
 
 	TECSControl::Flag _control_flag{

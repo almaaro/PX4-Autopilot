@@ -241,6 +241,32 @@ void TECSControl::initialize(const Setpoint &setpoint, const Input &input, Param
 
 	_throttle_setpoint = _calcThrottleControlOutput(0.0f, limit, ste_rate, input, param, flag);
 
+	//Calculate drag model params
+
+	
+	if (param.use_dynamic_throttle_calculation) {
+		/* Airspeed-dependent drag coefficients */
+
+		const float drag_trim_clean = math::max(param.min_sink_rate, FLT_EPSILON) * CONSTANTS_ONE_G / param.equivalent_airspeed_trim * param.weight_gross;
+		const float drag_trim_flaps = math::max(param.min_sink_rate_flaps, FLT_EPSILON) * CONSTANTS_ONE_G / param.equivalent_airspeed_trim * param.weight_gross;
+
+		const float lift = param.weight_gross * CONSTANTS_ONE_G;
+		
+		//Induced drag = L^2/(0.5 * rho0 * eas^2 * pi * wingspan^2 * efficiency factor)
+		// at trim airspeed the induced drag is 
+		float D_i_trim = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+
+		// parasitic drag at trim airspeed
+		float D_p_trim_clean = drag_trim_clean - D_i_trim;
+		float D_p_trim_flaps = drag_trim_flaps - D_i_trim;
+
+		// Cd_specific: Vehicle specific parasitic drag coefficient, which equals to 1/2*A*rho0*Cd_o
+		param.Cd_specific_clean = D_p_trim_clean / (param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		param.Cd_specific_flaps = D_p_trim_flaps / (param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		
+	}
+
+
 	// Debug output
 	_debug_output.total_energy_rate_estimate = ste_rate.estimate;
 	_debug_output.total_energy_rate_sp = ste_rate.setpoint;
@@ -297,34 +323,24 @@ TECSControl::STERateLimit TECSControl::_calculateTotalEnergyRateLimit(const Inpu
 
 	// Calculate the specific total energy lower rate limits from the min throttle sink rate
 	const float rate_min = - math::max(param.min_sink_rate, FLT_EPSILON) * CONSTANTS_ONE_G;
-	
-	const float rate_min_flaps = - (input.flaps_setpoint * math::max(param.min_sink_rate_flaps, FLT_EPSILON) + (1.0f - input.flaps_setpoint) * math::max(param.min_sink_rate, FLT_EPSILON)) * CONSTANTS_ONE_G;
 
-	const float drag_trim = rate_min_flaps / param.equivalent_airspeed_trim * param.weight_gross;
-	
 	if (param.use_dynamic_throttle_calculation) {
 		/* Airspeed-dependent drag coefficients */
 
 		// The additional normal load factor is given by 1/cos(bank angle) = load_factor
 		const float lift = param.weight_gross * CONSTANTS_ONE_G * constrain(param.load_factor, 0.1f, 1.f);
-		
-		//Induced drag = L^2/(0.5 * rho0 * eas^2 * pi * wingspan^2 * efficiency factor)
-		// at trim airspeed the induced drag is 
-		float D_i_trim = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
-		
-		// parasitic drag at trim airspeed
-		float D_p_trim = drag_trim - D_i_trim;
 
-		// Cd_specific: Vehicle specific parasitic drag coefficient, which equals to 1/2*A*rho0*Cd_o
-		float Cd_specific = D_p_trim / (param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
-		
 		// _STE_rate_min equals to the sum of parasitic and induced drag power.
 		// Drag force = Induced drag + Cd_specific * EAS * EAS;
 		// Drag power = Drag force * _tas_state
 		float eas_sq = constrain(input.tas / input.eas_to_tas * input.tas / input.eas_to_tas, param.equivalent_airspeed_min * param.equivalent_airspeed_min, param.equivalent_airspeed_max * param.equivalent_airspeed_max);
 		
-		const float drag = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * eas_sq) + Cd_specific * eas_sq;
-		limit.STE_rate_min = - drag * input.tas / param.weight_gross;
+		const float drag_clean = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * eas_sq) + param.Cd_specific_clean * eas_sq;
+		const float drag_flaps = lift * lift / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wingspan * param.wingspan * param.wing_efficiency * eas_sq) + param.Cd_specific_flaps * eas_sq;
+		const float drag_combined = input.flaps_setpoint * drag_flaps + (1.0f - input.flaps_setpoint) * drag_clean;
+		limit.STE_rate_min = - drag_combined * input.tas / param.weight_gross;
+
+
 		float max_thrust = 0.f;
 		
 		//currently only supports electric motor with propeller / ducted fan 
