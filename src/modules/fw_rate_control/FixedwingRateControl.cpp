@@ -75,10 +75,7 @@ FixedwingRateControl::init()
 	if (_param_dynamic_throttle_calculations.get()) {
 		/* Airspeed-dependent drag coefficients */
 
-		// Calculate the specific total energy lower rate limits from the min throttle sink rate
-		const float rate_min_clean = - math::max(_param_fw_t_sink_min_trim_eas.get(), FLT_EPSILON) * CONSTANTS_ONE_G;
-
-		const float drag_trim_clean = rate_min_clean / _param_fw_airspd_trim.get() * _param_weight_gross.get();
+		const float drag_trim_clean = math::max(_param_fw_t_sink_min_trim_eas.get(), FLT_EPSILON) * CONSTANTS_ONE_G / _param_fw_airspd_trim.get() * _param_weight_gross.get();
 
 		// The additional normal load factor is given by 1/cos(bank angle) = load_factor
 		const float lift_sq = _param_weight_gross.get() * CONSTANTS_ONE_G * _param_weight_gross.get() * CONSTANTS_ONE_G;
