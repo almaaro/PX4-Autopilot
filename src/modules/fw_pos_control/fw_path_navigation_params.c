@@ -513,53 +513,6 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
 PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
 
 /**
- * Minimum descent rate at FW_AIRSPD_MIN
- *
- * This is the sink rate of the aircraft with the throttle
- * set to THR_MIN and flown at FW_AIRSPD_MIN
- *
- *
- * @unit m/s
- * @min 1.0
- * @max 5.0
- * @decimal 1
- * @increment 0.5
- * @group FW TECS
- */
-PARAM_DEFINE_FLOAT(FW_T_SI_MI_LO, 2.0f);
-
-/**
- * Minimum descent rate at FW_LND_AIRSPD with full flaps
- *
- * This is the sink rate of the aircraft with the throttle
- * set to THR_MIN and flown at FW_LND_AIRSPD (and ideally with zero thrust/drag from the spinning propeller).
- *
- *
- * @unit m/s
- * @min 1.0
- * @max 5.0
- * @decimal 1
- * @increment 0.5
- * @group FW TECS
- */
-PARAM_DEFINE_FLOAT(FW_T_SI_MI_LA_F, 2.0f);
-
-/**
- * Minimum descent rate at FW_AIRSPD_MAX
- *
- * This is the sink rate of the aircraft with the throttle
- * set to THR_MIN and flown at FW_AIRSPD_MAX
- *
- * @unit m/s
- * @min 1.0
- * @max 5.0
- * @decimal 1
- * @increment 0.5
- * @group FW TECS
- */
-PARAM_DEFINE_FLOAT(FW_T_SI_MI_HI, 2.0f);
-
-/**
  * Maximum descent rate
  *
  * This sets the maximum descent rate that the controller will use.
