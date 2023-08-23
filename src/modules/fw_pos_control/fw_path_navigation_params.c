@@ -429,6 +429,8 @@ PARAM_DEFINE_FLOAT(FW_LND_FL_PMAX, 15.0f);
  * The calibrated airspeed setpoint during landing.
  *
  * If set <= 0.0, landing airspeed = FW_AIRSPD_MIN by default.
+ * 
+ * Should not be set to over FW_AIRSPD_TRIM
  *
  * @unit m/s
  * @min -1.0
@@ -482,9 +484,8 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
  * Minimum descent rate at trim airspeed
  *
  * This is the sink rate of the aircraft with the throttle
- * set to THR_MIN and flown at the same airspeed as used
- * to measure FW_T_CLMB_MAX.
- *
+ * set to THR_MIN and flown at trim airspeed (and ideally with zero thrust/drag from the spinning propeller).
+ * 
  *
  * @unit m/s
  * @min 1.0
@@ -494,12 +495,13 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_MAX, 5.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
+
 /**
  * Minimum descent rate at trim airspeed with full flaps
  *
  * This is the sink rate of the aircraft with the throttle
  * set to THR_MIN and flown at trim airspeed (and ideally with zero thrust/drag from the spinning propeller).
- *
+ * 
  *
  * @unit m/s
  * @min 1.0
@@ -511,6 +513,53 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_MIN, 2.0f);
 PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
 
 /**
+ * Minimum descent rate at FW_AIRSPD_MIN
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_AIRSPD_MIN
+ *
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_LO, 2.0f);
+
+/**
+ * Minimum descent rate at FW_LND_AIRSPD with full flaps
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_LND_AIRSPD (and ideally with zero thrust/drag from the spinning propeller).
+ *
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_LA_F, 2.0f);
+
+/**
+ * Minimum descent rate at FW_AIRSPD_MAX
+ *
+ * This is the sink rate of the aircraft with the throttle
+ * set to THR_MIN and flown at FW_AIRSPD_MAX
+ *
+ * @unit m/s
+ * @min 1.0
+ * @max 5.0
+ * @decimal 1
+ * @increment 0.5
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_SI_MI_HI, 2.0f);
+
+/**
  * Maximum descent rate
  *
  * This sets the maximum descent rate that the controller will use.
@@ -519,7 +568,6 @@ PARAM_DEFINE_FLOAT(FW_T_SNK_MIN_F, 2.0f);
  * exceeding the lower pitch angle limit and without over-speeding
  * the aircraft.
  * 
- * (set at tecs reference air density FW_T_REF_RHO)
  *
  * @unit m/s
  * @min 1.0
@@ -827,6 +875,52 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
  * @group FW TECS
  */
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+
+/**
+ * TECS reference air density 0 (kg/m^3)
+ * 
+ * This is the air density at the time and place of measuring the tecs parameters 
+ * (climb min/max, trim throttle etc)
+ * 
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO_0, 1.225f);
+
+/**
+ * TECS reference air density 1 (kg/m^3)
+ * 
+ * This is the air density at the time and place of measuring the tecs parameters 
+ * (climb min/max, trim throttle etc)
+ * 
+ * Should be lower than FW_T_REF_RHO_0
+ * 
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO_1, 1.225f);
+
+/**
+ * TECS reference air density 2 (kg/m^3)
+ * 
+ * This is the air density at the time and place of measuring the tecs parameters 
+ * (climb min/max, trim throttle etc)
+ * 
+ * Should be lower than FW_T_REF_RHO_1
+ * 
+ * @min 0.1
+ * @max 1.5
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_REF_RHO_2, 1.225f);
 
 
 /**
