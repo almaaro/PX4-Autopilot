@@ -1049,6 +1049,17 @@ PARAM_DEFINE_FLOAT(FW_WING_SPAN, 3.0);
 PARAM_DEFINE_FLOAT(FW_WING_HEIGHT, 0.5);
 
 /**
+ * The aircraft's wing efficiency factor.
+ *
+ * @unit
+ * @min 0.1
+ * @decimal 2
+ * @increment 0.01
+ * @group FW Geometry
+ */
+PARAM_DEFINE_FLOAT(FW_WING_EFF, 0.85);
+
+/**
  * Landing flare time
  *
  * Multiplied by the descent rate to calculate a dynamic altitude at which

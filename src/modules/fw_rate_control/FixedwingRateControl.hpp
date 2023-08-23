@@ -260,15 +260,21 @@ private:
 		//(ParamFloat<px4::params::FW_T_CLMB_MAX_H>) _param_fw_t_clmb_max_max_eas,
 		//(ParamFloat<px4::params::FW_T_CL_F_MAX_L>) _param_fw_t_clmb_max_min_eas_flaps,
 		//(ParamFloat<px4::params::FW_T_CLMB_MAX_F>) _param_fw_t_clmb_max_trim_eas_flaps,
-		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_sink_min_trim_eas_flaps,
-		(ParamFloat<px4::params::FW_T_SI_MI_LO>) _param_fw_t_sink_min_min_eas,
-		(ParamFloat<px4::params::FW_T_SI_MI_LA_F>) _param_fw_t_sink_min_land_eas_flaps,
-		(ParamFloat<px4::params::FW_T_SI_MI_HI>) _param_fw_t_sink_min_max_eas,
+		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_trim_eas_flaps,
+		//(ParamFloat<px4::params::FW_T_SI_MI_LO>) _param_fw_t_sink_min_min_eas,
+		//(ParamFloat<px4::params::FW_T_SI_MI_LA_F>) _param_fw_t_sink_min_land_eas_flaps,
+		//(ParamFloat<px4::params::FW_T_SI_MI_HI>) _param_fw_t_sink_min_max_eas,
 
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::WEIGHT_GROSS>) _param_weight_gross,
 		(ParamFloat<px4::params::MOTOR_TORQ_ARM>) _param_motor_torque_arm_length,
 		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations,
+
+		(ParamFloat<px4::params::FW_WING_SPAN>) _param_fw_wing_span,
+		(ParamFloat<px4::params::FW_WING_EFF>) _param_fw_wing_efficiency_factor,
+
+
+
 
 		(ParamInt<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
 	)
