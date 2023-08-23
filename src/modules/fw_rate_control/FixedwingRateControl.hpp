@@ -270,7 +270,6 @@ private:
 		(ParamFloat<px4::params::MOTOR_TORQ_ARM>) _param_motor_torque_arm_length,
 		(ParamInt<px4::params::FW_T_DYN_THR>) _param_dynamic_throttle_calculations,
 
-		(ParamFloat<px4::params::FW_T_REF_RHO>) _param_reference_air_density,
 		(ParamInt<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
 	)
 
