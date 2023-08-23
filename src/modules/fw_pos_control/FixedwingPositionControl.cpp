@@ -127,16 +127,17 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_max_sink_rate(_param_fw_t_sink_max.get());
 	_tecs.set_min_sink_rate(_param_fw_t_sink_min.get());
 	_tecs.set_min_sink_rate_flaps(_param_fw_t_sink_min_flaps.get());
-	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
+	_tecs.set_min_sink_rate_min_eas(_param_fw_t_sink_min_min_eas.get());
+	_tecs.set_min_sink_rate_max_eas(_param_fw_t_sink_min_max_eas.get());
+	_tecs.set_min_sink_rate_land_eas_flaps(_param_fw_t_sink_min_land_eas_flaps.get());
+	_tecs.set_reference_air_density(_param_fw_t_ref_rho0.get(), _param_fw_t_ref_rho1.get(), _param_fw_t_ref_rho2.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 	_tecs.set_propeller_diameter(_param_fw_t_propeller_diameter.get());
 	_tecs.set_speed_weight(_param_fw_t_spdweight.get());
 	_tecs.set_equivalent_airspeed_trim(_param_fw_airspd_trim.get());
 	_tecs.set_equivalent_airspeed_min(_param_fw_airspd_min.get());
+	_tecs.set_equivalent_airspeed_land((_param_fw_lnd_airspd.get() < FLT_EPSILON) ? _param_fw_airspd_min.get() : _param_fw_lnd_airspd.get());
 	_tecs.set_equivalent_airspeed_max(_param_fw_airspd_max.get());
-	_tecs.set_tas_min_ref(_param_fw_airspd_min.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
-	_tecs.set_tas_trim_ref(_param_fw_airspd_trim.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
-	_tecs.set_tas_max_ref(_param_fw_airspd_max.get() * sqrtf(CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C / _param_fw_t_ref_rho.get()));
 	_tecs.set_throttle_damp(_param_fw_t_thr_damp.get());
 	_tecs.set_integrator_gain_throttle(_param_fw_t_I_gain_thr.get());
 	_tecs.set_integrator_gain_pitch(_param_fw_t_I_gain_pit.get());
@@ -155,11 +156,10 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_weight_gross(_param_weight_gross.get());
 	_tecs.set_wingspan(_param_fw_wing_span.get());
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
-	_tecs.set_reference_air_density(_param_fw_t_ref_rho.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 
 
-	_tecs.set_thrust_rpm_parameters(
+	_tecs.set_thrust_throttle_parameters(
 		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_0.get(),
 		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_25.get(),
 		_param_fw_t_dynamic_throttle_min_tas_thrust_rpm_50.get(),
@@ -201,6 +201,8 @@ FixedwingPositionControl::parameters_update()
 		_param_fw_t_dynamic_throttle_max_rpm_max_as.get(),
 		_param_fw_t_dynamic_throttle_max_rpm_idle.get()
 	);
+
+	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 
@@ -2931,7 +2933,6 @@ void FixedwingPositionControl::publishStabilizerAirstream()
 		propeller_data_s propeller_data{};
 		propeller_data.timestamp = hrt_absolute_time();
 		propeller_data.thrust = _tecs.get_thrust_setpoint();
-		propeller_data.ve_eas = _tecs.get_propeller_ve_eas();
 
 		_propeller_data_pub.publish(propeller_data);
 	}
