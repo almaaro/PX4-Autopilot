@@ -234,9 +234,6 @@ public:
 		float throttle_damping_gain;				///< Damping gain of the throttle demand calculation [s].
 		float throttle_slewrate;				///< Throttle demand slew rate limit [1/s].
 
-		float integrator_gain_rpm;
-		float rpm_error_gain;
-
 		float load_factor_correction;				///< Gain from normal load factor increase to total energy rate demand [m²/s³].
 		float load_factor;					///< Additional normal load factor.
 
@@ -255,8 +252,6 @@ public:
 
 		int propulsion_type;
 
-		float propeller_diameter;
-
 		float Cd_specific_clean;
 		float Cd_specific_flaps;
 	};
@@ -274,6 +269,7 @@ public:
 		float energy_balance_rate_sp;			///< Energy balance rate setpoint [m²/s³].
 		float pitch_integrator;				///< Pitch control integrator state [-].
 		float throttle_integrator;			///< Throttle control integrator state [-].
+		float thrust_setpoint;
 	};
 
 	/**
@@ -668,7 +664,6 @@ public:
 
 	void set_integrator_gain_throttle(float gain) { _control_param.integrator_gain_throttle = gain;};
 	void set_integrator_gain_pitch(float gain) { _control_param.integrator_gain_pitch = gain; };
-	void set_integrator_gain_rpm(float gain) { _control_param.integrator_gain_rpm = gain; };
 
 	void set_max_sink_rate(float max_sink_rate) { _control_param.max_sink_rate = max_sink_rate; _reference_param.max_sink_rate = max_sink_rate; };
 	void set_min_sink_rate(float min_sink_rate) { _control_param.min_sink_rate = min_sink_rate; };
@@ -677,8 +672,6 @@ public:
 
 	void set_altitude_rate_ff(float altitude_rate_ff) { _control_param.altitude_setpoint_gain_ff = altitude_rate_ff; };
 	void set_altitude_error_time_constant(float time_const) { _control_param.altitude_error_gain = 1.0f / math::max(time_const, 0.1f);; };
-
-	void set_rpm_error_gain(float gain) {_control_param.rpm_error_gain = gain; };
 
 	void set_equivalent_airspeed_max(float airspeed) { _control_param.equivalent_airspeed_max = airspeed, _equivalent_airspeed_max = airspeed; };
 	void set_equivalent_airspeed_min(float airspeed) { _control_param.equivalent_airspeed_min = airspeed, _equivalent_airspeed_min = airspeed; };
@@ -876,8 +869,6 @@ public:
 
 	void set_use_dynamic_throttle_calculation(bool use) {_control_param.use_dynamic_throttle_calculation = use; };
 
-	void set_propeller_diameter(float diameter) {_control_param.propeller_diameter = diameter; };
-
 
 	/**
 	 * Handle the altitude reset
@@ -969,8 +960,6 @@ private:
 		.integrator_gain_throttle = 0.0f,
 		.throttle_damping_gain = 0.0f,
 		.throttle_slewrate = 0.0f,
-		.integrator_gain_rpm = 0.0f,
-		.rpm_error_gain = 0.001f,
 		.load_factor_correction = 0.0f,
 		.load_factor = 1.0f,
 		.weight_gross = -1.f,						///< gross weight (kg)
