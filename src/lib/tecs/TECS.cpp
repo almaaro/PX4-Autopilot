@@ -408,7 +408,7 @@ float TECSControl::_interpolateMaxThrustBetweenRho(const int lower_rho_index, co
 	}
 	
 	float rho = constrain(input.air_density, param.ref_air_density[upper_rho_index], param.ref_air_density[lower_rho_index]);
-	float rho_scaler = (input.air_density - param.ref_air_density[lower_rho_index]) / (param.ref_air_density[upper_rho_index] - param.ref_air_density[lower_rho_index]);
+	float rho_scaler = (rho - param.ref_air_density[lower_rho_index]) / (param.ref_air_density[upper_rho_index] - param.ref_air_density[lower_rho_index]);
 	if(!PX4_ISFINITE(rho_scaler)){
 		rho_scaler = 0;
 	}
@@ -448,7 +448,7 @@ float TECSControl::_calcRequiredThrottleForThrust(const float desired_thrust, co
 	}
 
 	float rho = constrain(input.air_density, param.ref_air_density[rho_index_1], param.ref_air_density[rho_index_0]);
-	float rho_scaler = (input.air_density - param.ref_air_density[rho_index_0]) / (param.ref_air_density[rho_index_1] - param.ref_air_density[rho_index_0]);
+	float rho_scaler = (rho - param.ref_air_density[rho_index_0]) / (param.ref_air_density[rho_index_1] - param.ref_air_density[rho_index_0]);
 	if(!PX4_ISFINITE(rho_scaler)){
 		rho_scaler = 0;
 	}
@@ -485,6 +485,8 @@ float TECSControl::_calcThrottleAtConstantAirspeedAndRho(const float desired_thr
 	else {
 		throttle = max_throttle;
 	}
+
+	return throttle;
 }
 
 float TECSControl::_calcAirspeedControlOutput(const Setpoint &setpoint, const Input &input, const Param &param,
@@ -768,6 +770,8 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			_thrust_setpoint = ste_rate.setpoint / input.tas * param.weight_gross;
 
 			throttle_setpoint = _calcRequiredThrottleForThrust(_thrust_setpoint, param.throttle_max, input, param);
+
+			_debug_output.thrust_setpoint = _thrust_setpoint;
 
 
 		} else{// thrust/rpm control is not supported with ICE or jet engine yet.

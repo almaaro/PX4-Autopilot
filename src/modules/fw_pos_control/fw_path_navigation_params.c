@@ -888,21 +888,1097 @@ PARAM_DEFINE_FLOAT(FW_T_REF_RHO_2, 1.225f);
 */
 PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
 
+		
 /**
- * Default target sinkrate.
- *
- *
- * The default rate at which the vehicle will sink in autonomous modes to achieve altitude setpoints.
- * In manual modes this defines the maximum rate at which the altitude setpoint can be decreased.
- *
- * @unit m/s
- * @min 0.5
- * @max 15
- * @decimal 2
- * @increment 0.01
+ * Thrust parameters
+ * 
+ * F -> Force (thrust, Newton)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
  * @group FW TECS
- */
-PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_0_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS 
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_0_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_0_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_0_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_0_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_0_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_0_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_0_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_0_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_0_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_0_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_0_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_0_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_0_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_0_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_0_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_0_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_0_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_0_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_0_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_1_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_1_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_1_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_1_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_1_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_1_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_1_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_1_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_1_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_1_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_1_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_1_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_1_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_1_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_1_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_1_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_1_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_1_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_1_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_1_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_2_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_2_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_2_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_2_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_LA_2_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_2_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_2_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_2_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_2_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MI_2_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_2_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_2_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_2_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_2_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_TR_2_100, 0);
+
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_2_0, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_2_25, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_2_50, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_2_75, 0);
+		
+/**
+ * Thrust parameters
+ * 
+ * F -> Force (thrust)
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ * 
+ * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
+ * 
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_F_MA_2_100, 0);
 
 /**
  * Propeller diameter
