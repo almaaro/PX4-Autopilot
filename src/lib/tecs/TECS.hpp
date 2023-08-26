@@ -294,9 +294,6 @@ public:
 		float flaps_setpoint;	///< Current flap setting.
 		float air_density;		///< Current air density [kg/m^3].
 		float eas_to_tas;
-		float battery_voltage;
-		float electric_motor_current;
-		float motor_rpm;
 	};
 
 	/**
