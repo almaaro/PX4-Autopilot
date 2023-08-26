@@ -519,7 +519,7 @@ private:
 	 * @return specific energy balance rate values in [m²/s³].
 	 */
 	ControlValues _calcPitchControlSebRate(const SpecificEnergyWeighting &weight,
-					       const SpecificEnergyRates &specific_energy_rate) const;
+					       const SpecificEnergyRates &specific_energy_rate, const Param &param) const;
 
 	/**
 	 * @brief Calculate the pitch control update function.
