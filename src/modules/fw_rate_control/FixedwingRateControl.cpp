@@ -130,7 +130,7 @@ FixedwingRateControl::init()
 
 		_trim_values.initialized = true;
 
-		if(isnan(_trim_values.airstream_scaler_eas_min) || isnan(_trim_values.airstream_scaler_eas_trim) || isnan(_trim_values.airstream_scaler_eas_max)){
+		if(!PX4_ISFINITE(_trim_values.airstream_scaler_eas_min) || !PX4_ISFINITE(_trim_values.airstream_scaler_eas_trim) || !PX4_ISFINITE(_trim_values.airstream_scaler_eas_max)){
 			PX4_ERR("unstable");
 			_trim_values.initialized = false;
 		}
