@@ -229,7 +229,7 @@ void TECSControl::initialize(const Setpoint &setpoint, const Input &input, Param
 	_detectUnderspeed(input, param, flag);
 
 	const SpecificEnergyWeighting weight{_updateSpeedAltitudeWeights(param, flag)};
-	ControlValues seb_rate{_calcPitchControlSebRate(weight, specific_energy_rate, param)};
+	ControlValues seb_rate{_calcPitchControlSebRate(weight, specific_energy_rate, input, param)};
 
 	_pitch_setpoint = _calcPitchControlOutput(input, seb_rate, param, flag);
 
@@ -398,7 +398,7 @@ void TECSControl::_calcPitchControl(float dt, const Input &input, const Specific
 				    const Flag &flag)
 {
 	const SpecificEnergyWeighting weight{_updateSpeedAltitudeWeights(param, flag)};
-	ControlValues seb_rate{_calcPitchControlSebRate(weight, specific_energy_rates, param)};
+	ControlValues seb_rate{_calcPitchControlSebRate(weight, specific_energy_rates, input, param)};
 
 	_calcPitchControlUpdate(dt, input, seb_rate, param);
 	const float pitch_setpoint{_calcPitchControlOutput(input, seb_rate, param, flag)};
@@ -416,7 +416,7 @@ void TECSControl::_calcPitchControl(float dt, const Input &input, const Specific
 }
 
 TECSControl::ControlValues TECSControl::_calcPitchControlSebRate(const SpecificEnergyWeighting &weight,
-		const SpecificEnergyRates &specific_energy_rates, const Param &param) const
+		const SpecificEnergyRates &specific_energy_rates, const Input &input, const Param &param) const
 {
 	ControlValues seb_rate;
 	/*
@@ -432,7 +432,7 @@ TECSControl::ControlValues TECSControl::_calcPitchControlSebRate(const SpecificE
 
 	// Because the airspeed is more critical for an airplane than the altitude, limit the _SPE_rate_setpoint
 	// so that the demanded rate in airspeed can be achieved.
-	const STERateLimit limit{_calculateTotalEnergyRateLimit(param)};
+	const STERateLimit limit{_calculateTotalEnergyRateLimit(input, param)};
 	float SPE_rate_setpoint_adj = math::min(specific_energy_rates.spe_rate.setpoint, limit.STE_rate_max - specific_energy_rates.ske_rate.setpoint);
 	
 	seb_rate.setpoint = SPE_rate_setpoint_adj * weight.spe_weighting -
