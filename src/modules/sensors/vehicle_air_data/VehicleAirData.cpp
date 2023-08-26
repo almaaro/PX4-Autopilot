@@ -302,7 +302,7 @@ float VehicleAirData::PressureToAltitude(float pressure_pa, float temperature) c
 	static constexpr float a = -6.5f / 1000.f; // temperature gradient in degrees per metre
 
 	// standard pressure at MSL in kPa (QNH in hPa)
-	const float p1 = 100.0f;
+	const float p1 = 101.325f;
 
 	// measured pressure in kPa
 	const float p = pressure_pa * 0.001f;
