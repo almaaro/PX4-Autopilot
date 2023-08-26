@@ -405,6 +405,9 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 		calibrated_airspeed_setpoint = _param_fw_airspd_trim.get();
 	}
 
+	// Calculate the limit for roll angle at current airspeed
+	calculate_roll_limit(calibrated_min_airspeed);
+
 	// Adapt cruise airspeed when otherwise the min groundspeed couldn't be maintained
 	if (!_wind_valid) {
 		/*
@@ -464,9 +467,6 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 	}
 
 	_tecs.set_equivalent_airspeed_min(calibrated_min_airspeed_without_wind);
-
-	// Calculate also the limit for roll angle
-	calculate_roll_limit(calibrated_min_airspeed_without_wind);
 
 	return calibrated_airspeed_setpoint;
 }
