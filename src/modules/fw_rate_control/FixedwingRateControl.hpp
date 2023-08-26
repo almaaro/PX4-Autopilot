@@ -238,32 +238,19 @@ private:
 
 		(ParamFloat<px4::params::FW_TRM_P_VL_SI>) _param_trim_pitch_min_eas_sink_min,
 		(ParamFloat<px4::params::FW_TRM_P_VL_LV>) _param_trim_pitch_min_eas_level,
-		//(ParamFloat<px4::params::FW_TRM_P_VL_CL>) _param_trim_pitch_min_eas_max_clb,
 		(ParamFloat<px4::params::FW_TRM_P_VC_SI>) _param_trim_pitch_trim_eas_sink_min,
 		(ParamFloat<px4::params::FW_TRM_P_VC_LV>) _param_trim_pitch_trim_eas_level,
-		//(ParamFloat<px4::params::FW_TRM_P_VC_CL>) _param_trim_pitch_trim_eas_max_clb,
 		(ParamFloat<px4::params::FW_TRM_P_VH_SI>) _param_trim_pitch_max_eas_sink_min,
 		(ParamFloat<px4::params::FW_TRM_P_VH_LV>) _param_trim_pitch_max_eas_level,
-		//(ParamFloat<px4::params::FW_TRM_P_VH_CL>) _param_trim_pitch_max_eas_max_clb,
 		(ParamFloat<px4::params::FW_TRM_PF_VL_SI>) _param_trim_pitch_land_eas_sink_min_flaps,
 		(ParamFloat<px4::params::FW_TRM_PF_VL_LV>) _param_trim_pitch_land_eas_level_flaps,
-		//(ParamFloat<px4::params::FW_TRM_PF_VL_CL>) _param_trim_pitch_land_eas_max_clb_flaps,
 		(ParamFloat<px4::params::FW_TRM_PF_VC_SI>) _param_trim_pitch_trim_eas_sink_min_flaps,
 		(ParamFloat<px4::params::FW_TRM_PF_VC_LV>) _param_trim_pitch_trim_eas_level_flaps,
-		//(ParamFloat<px4::params::FW_TRM_PF_VC_CL>) _param_trim_pitch_trim_eas_max_clb_flaps,
 
 		(ParamInt<px4::params::FW_SPOILERS_MAN>) _param_fw_spoilers_man,
 
-		//(ParamFloat<px4::params::FW_T_CLMB_MAX>) _param_fw_t_clmb_max_trim_eas,
 		(ParamFloat<px4::params::FW_T_SINK_MIN>) _param_fw_t_sink_min_trim_eas,
-		//(ParamFloat<px4::params::FW_T_CLMB_MAX_L>) _param_fw_t_clmb_max_min_eas,
-		//(ParamFloat<px4::params::FW_T_CLMB_MAX_H>) _param_fw_t_clmb_max_max_eas,
-		//(ParamFloat<px4::params::FW_T_CL_F_MAX_L>) _param_fw_t_clmb_max_min_eas_flaps,
-		//(ParamFloat<px4::params::FW_T_CLMB_MAX_F>) _param_fw_t_clmb_max_trim_eas_flaps,
 		(ParamFloat<px4::params::FW_T_SNK_MIN_F>) _param_fw_t_sink_min_trim_eas_flaps,
-		//(ParamFloat<px4::params::FW_T_SI_MI_LO>) _param_fw_t_sink_min_min_eas,
-		//(ParamFloat<px4::params::FW_T_SI_MI_LA_F>) _param_fw_t_sink_min_land_eas_flaps,
-		//(ParamFloat<px4::params::FW_T_SI_MI_HI>) _param_fw_t_sink_min_max_eas,
 
 		(ParamFloat<px4::params::FW_T_PPLR_DIA>) _param_fw_t_propeller_diameter,
 		(ParamFloat<px4::params::WEIGHT_GROSS>) _param_weight_gross,
@@ -272,9 +259,6 @@ private:
 
 		(ParamFloat<px4::params::FW_WING_SPAN>) _param_fw_wing_span,
 		(ParamFloat<px4::params::FW_WING_EFF>) _param_fw_wing_efficiency_factor,
-
-
-
 
 		(ParamInt<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
 	)
