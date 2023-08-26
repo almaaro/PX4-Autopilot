@@ -4,14 +4,18 @@
             "name": "PX4",
             "includePath": [
                 "${workspaceFolder}/**",
+                "/home/alvar/Asiakirjat/PX4-Autopilot/boards/px4/fmu-v4/src",
+                "/home/alvar/Asiakirjat/PX4-Autopilot/platforms/nuttx/src/px4/stm/stm32f4/include",
+                "/home/alvar/Asiakirjat/PX4-Autopilot/platforms/nuttx/NuttX/nuttx/include/"
             ],
             "defines": [],
             "macFrameworkPath": [],
             "configurationProvider": "ms-vscode.cmake-tools",
             "cppStandard": "c++14",
             "cStandard": "c11",
+            "dotConfig": "/home/alvar/Asiakirjat/PX4-Autopilot/build/px4_fmu-v4_default/NuttX/nuttx/.config",
             "forcedInclude": [
-                 "/home/alvar/Asiakirjat/PX4-Autopilot/build/px4_boardconfig.h",
+                 "/home/alvar/Asiakirjat/PX4-Autopilot/build/px4_fmu-v4_default/px4_boardconfig.h",
                  "/home/alvar/Asiakirjat/PX4-Autopilot/platforms/common/include/px4_platform_common/defines.h"
                  ]
         }
