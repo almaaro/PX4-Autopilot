@@ -718,10 +718,10 @@ public:
 
 	void set_seb_rate_ff_gain(float ff_gain) { _control_param.seb_rate_ff = ff_gain; };
 
-	void set_pitchsp_offset_rad(float offset) { control_param.pitchsp_offset_rad = offset; }
-	void set_pitchsp_offset_flaps_rad(float offset) { control_param.pitchsp_offset_flaps_rad = offset; }
-	void set_cl_to_alpha_rad_slope(float slope) { control_param.cl_to_alpha_rad_slope = slope; }
-	void set_wing_area(float a) { control_param.wing_area = a; }
+	void set_pitchsp_offset_rad(float offset) { _control_param.pitchsp_offset_rad = offset; }
+	void set_pitchsp_offset_flaps_rad(float offset) { _control_param.pitchsp_offset_flaps_rad = offset; }
+	void set_cl_to_alpha_rad_slope(float slope) { _control_param.cl_to_alpha_rad_slope = slope; }
+	void set_wing_area(float a) { _control_param.wing_area = a; }
 
 	void set_weight_gross(float weight_gross) { _control_param.weight_gross = weight_gross; };
 	void set_wingspan(float wingspan) { _control_param.wingspan = wingspan; };
@@ -995,8 +995,7 @@ private:
 		.use_dynamic_throttle_calculation = false,
 		.propulsion_type = -1,
 		.Cd_specific_clean = 0.0f,
-		.Cd_specific_flaps = 0.0f
-		.weight_gross = 1.0f,
+		.Cd_specific_flaps = 0.0f,
 		.pitchsp_offset_rad = 0.0f,
 		.pitchsp_offset_flaps_rad = 0.0f,
 		.cl_to_alpha_rad_slope = 1.0f,
