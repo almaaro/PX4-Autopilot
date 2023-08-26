@@ -975,7 +975,6 @@ private:
 		.throttle_trim_adjusted = 0.f,
 		.throttle_max = 1.0f,
 		.throttle_min = 0.1f,
-		.ref_air_density = 1.225f,
 		.altitude_error_gain = 0.2f,
 		.altitude_setpoint_gain_ff = 0.0f,
 		.tas_error_percentage = 0.15f,

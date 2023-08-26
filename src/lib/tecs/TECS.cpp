@@ -704,7 +704,7 @@ void TECSControl::_initialize_pitchsp_offset(const Input &input, const Param &pa
 
 		//first calculating the lift coefficient at cruise flight at trim airspeed.
 		// cl = 2*L/(rho*A*V^2)
-		_pitchSetpointOffset.cl_cruise_trim_as = 2.0f * CONSTANTS_ONE_G * param.weight_gross / (param.ref_air_density * param.wing_area * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
+		_pitchSetpointOffset.cl_cruise_trim_as = 2.0f * CONSTANTS_ONE_G * param.weight_gross / (CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * param.wing_area * param.equivalent_airspeed_trim * param.equivalent_airspeed_trim);
 		_pitchSetpointOffset.cl_offset_clean_cruise_trim_as = _pitchSetpointOffset.cl_cruise_trim_as - param.pitchsp_offset_rad / param.cl_to_alpha_rad_slope;
 
 		//Setting the flaps should ideally only change the offset, not the slope angle.
