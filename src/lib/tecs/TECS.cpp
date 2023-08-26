@@ -886,7 +886,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 		  float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		  float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density,
-		  float battery_voltage, float electric_motor_current, float motor_rpm, float hgt_rate_sp)
+		  float hgt_rate_sp)
 {
 
 	// Calculate the time since last update (seconds)
@@ -944,10 +944,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 							.tas_rate = eas_to_tas * eas.speed_rate,
 							.flaps_setpoint = flaps_setpoint,
 							.air_density = air_density,
-							.eas_to_tas = eas_to_tas,
-							.battery_voltage = battery_voltage,
-							.electric_motor_current = electric_motor_current,
-							.motor_rpm = motor_rpm};
+							.eas_to_tas = eas_to_tas};
 
 		_control.update(dt, control_setpoint, control_input, _control_param, _control_flag);
 
