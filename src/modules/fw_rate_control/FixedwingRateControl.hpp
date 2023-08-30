@@ -153,9 +153,9 @@ private:
 	bool _in_fw_or_transition_wo_tailsitter_transition{false}; // only run the FW attitude controller in these states
 
 	struct TrimValues {
-		float aero_moment_eas_min = 0.0f;
-		float aero_moment_eas_trim = 0.0f;
-		float aero_moment_eas_max = 0.0f;
+		float aero_moment_scaler_eas_min = 0.0f;
+		float aero_moment_scaler_eas_trim = 0.0f;
+		float aero_moment_scaler_eas_max = 0.0f;
 
 		float airstream_scaler_eas_min = 0.0f;
 		float airstream_scaler_eas_trim = 0.0f;
@@ -246,6 +246,10 @@ private:
 		(ParamFloat<px4::params::FW_TRM_PF_VL_LV>) _param_trim_pitch_land_eas_level_flaps,
 		(ParamFloat<px4::params::FW_TRM_PF_VC_SI>) _param_trim_pitch_trim_eas_sink_min_flaps,
 		(ParamFloat<px4::params::FW_TRM_PF_VC_LV>) _param_trim_pitch_trim_eas_level_flaps,
+
+		(ParamFloat<px4::params::FW_AERO_MOM_MI>) _param_aerodynamic_pitching_moment_min_eas,
+		(ParamFloat<px4::params::FW_AERO_MOM_TR>) _param_aerodynamic_pitching_moment_trim_eas,
+		(ParamFloat<px4::params::FW_AERO_MOM_MA>) _param_aerodynamic_pitching_moment_max_eas,
 
 		(ParamInt<px4::params::FW_SPOILERS_MAN>) _param_fw_spoilers_man,
 

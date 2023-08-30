@@ -461,7 +461,10 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_P_VMAX, 0.0f);
 PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
 
 /**
- * Pitch trim at min as, no throttle. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at min as, no throttle.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -473,7 +476,10 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VL_SI, 0.0f);
 
 /**
- * Pitch trim at min as, level flight. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at min as, level flight.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -485,7 +491,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VL_SI, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
 
 /**
- * Pitch trim at cruise as, no throttle. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at cruise as, no throttle.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -497,7 +506,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VC_SI, 0.0f);
 
 /**
- * Pitch trim at cruise as, level flight. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at cruise as, level flight.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -509,7 +521,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VC_SI, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
 
 /**
- * Pitch trim at max as, no throttle. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at max as, no throttle.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -521,7 +536,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VH_SI, 0.0f);
 
 /**
- * Pitch trim at max as, level flight. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at max as, level flight.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -533,7 +551,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VH_SI, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
 
 /**
- * Pitch trim at land as, no throttle, flaps deployed. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at land as, no throttle, flaps deployed.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -545,7 +566,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_SI, 0.0f);
 
 /**
- * Pitch trim at land as, level flight, flaps deployed. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at land as, level flight, flaps deployed.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -557,7 +581,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_SI, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
 
 /**
- * Pitch trim at trim as, no throttle, flaps deployed. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at trim as, no throttle, flaps deployed.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -569,7 +596,10 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_SI, 0.0f);
 
 /**
- * Pitch trim at trim as, level flight, flaps deployed. Mixing should be done so that a positive value will induce a nose-up moment.
+ * Pitch trim at trim as, level flight, flaps deployed.
+ *
+ * Mixing should be done so that a positive value will induce a nose-up moment and a zero value will not induce any pitching moment.
+ * Otherwise an error will result
  *
  *
  * @group FW Attitude Control
@@ -579,6 +609,39 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_SI, 0.0f);
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_LV, 0.0f);
+
+/**
+ * Plane aerodynamic pitching moment at FW_AIRSPD_MIN
+ *
+ * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
+ *
+ * @group FW Attitude Control
+ * @decimal 3
+ * @increment 0.01
+*/
+PARAM_DEFINE_FLOAT(FW_AERO_MOM_MI, 0.0f);
+
+/**
+ * Plane aerodynamic pitching moment at FW_AIRSPD_TRIM
+ *
+ * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
+ *
+ * @group FW Attitude Control
+ * @decimal 3
+ * @increment 0.01
+*/
+PARAM_DEFINE_FLOAT(FW_AERO_MOM_TR, 0.0f);
+
+/**
+ * Plane aerodynamic pitching moment at FW_AIRSPD_MAX
+ *
+ * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
+ *
+ * @group FW Attitude Control
+ * @decimal 3
+ * @increment 0.01
+*/
+PARAM_DEFINE_FLOAT(FW_AERO_MOM_MA, 0.0f);
 
 /**
  * Manual roll scale

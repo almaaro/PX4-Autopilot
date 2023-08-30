@@ -72,7 +72,9 @@ FixedwingRateControl::init()
 	// Calculate thrust model variabled
 
 
-	if (_param_dynamic_throttle_calculations.get()) {
+	if (_param_dynamic_throttle_calculations.get() && _param_prop_wash_on_elevator.get()) {
+
+
 		/* Airspeed-dependent drag coefficients */
 
 		const float drag_trim_clean = math::max(_param_fw_t_sink_min_trim_eas.get(), FLT_EPSILON) * CONSTANTS_ONE_G / _param_fw_airspd_trim.get() * _param_weight_gross.get();
@@ -94,14 +96,15 @@ FixedwingRateControl::init()
 		//M(elev) = M (aero) + M(mot)
 		//Aerodynaaminen trimmimomentti (olettaen että M ~ trim kun ilmanopeus on vakio) saadaan eri nopeuksille mittaamalla trimmin arvo silloin kun potkuri on seis
 
-		// Hyvä huomata että jos aero_moment on > 0, niin silloin kone on epävakaa -> ei käytetä
+		//Calculating the coeffcient between elevator deflection and pitching moment.
+		//The minus sign comes from the equilibrium as the elevator moment must be opposite and equal to the aerodynamic moment.
+		_trim_values.aero_moment_scaler_eas_min = - _param_aerodynamic_pitching_moment_min_eas.get() / (_param_trim_pitch_min_eas_sink_min.get() * _param_fw_airspd_min.get() * _param_fw_airspd_min.get());
+		_trim_values.aero_moment_scaler_eas_trim = - _param_aerodynamic_pitching_moment_trim_eas.get() / (_param_trim_pitch_trim_eas_sink_min.get() * _param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
+		_trim_values.aero_moment_scaler_eas_max = - _param_aerodynamic_pitching_moment_max_eas.get() / (_param_trim_pitch_max_eas_sink_min.get() * _param_fw_airspd_max.get() * _param_fw_airspd_max.get());
 
-		_trim_values.aero_moment_eas_min = - _param_trim_pitch_min_eas_sink_min.get()/(_param_fw_airspd_min.get() * _param_fw_airspd_min.get());
-		_trim_values.aero_moment_eas_trim = - _param_trim_pitch_trim_eas_sink_min.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
-		_trim_values.aero_moment_eas_max = - _param_trim_pitch_max_eas_sink_min.get()/(_param_fw_airspd_max.get() * _param_fw_airspd_max.get());
-
-		_trim_values.aero_moment_eas_land_flaps = - _param_trim_pitch_land_eas_sink_min_flaps.get()/(_param_fw_airspd_land.get() * _param_fw_airspd_land.get());
-		_trim_values.aero_moment_eas_trim_flaps = - _param_trim_pitch_trim_eas_sink_min_flaps.get()/(_param_fw_airspd_trim.get() * _param_fw_airspd_trim.get());
+		//Since modeling flaps is a bit more challenging, just use the previous scalers to calculate the aerodynamic moment (also approximating that min airspeed is close to land airspeed)
+		_trim_values.aero_moment_eas_land_flaps = - _trim_values.aero_moment_scaler_eas_min * _param_trim_pitch_land_eas_sink_min_flaps.get() * _param_fw_airspd_land.get() * _param_fw_airspd_land.get();
+		_trim_values.aero_moment_eas_trim_flaps = - _trim_values.aero_moment_scaler_eas_trim * _param_trim_pitch_trim_eas_sink_min_flaps.get() * _param_fw_airspd_trim.get() * _param_fw_airspd_trim.get();
 
 		//Laskennallinen peräsimeen osuva ilmavirran nopeus taas saadaan kun tiedetään trimmin arvo, aerodynaaminen momentti ja työntövoimamomentti
 		//Oletetaan että peräsimeen osuvan ilmavirran nopeus (potkurista lähtöisin) on suoraan verrannollinen potkurista lähtevään nopeuteen nopeuden ollessa vakio -> laseketaan vain 1 nopeudelle
@@ -110,30 +113,40 @@ FixedwingRateControl::init()
 		float eas_sq = _param_fw_airspd_min.get() * _param_fw_airspd_min.get();
 		float thrust_eas_min_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
 		float calculated_airstream_eas_min_level = calculate_ve_from_thrust(thrust_eas_min_level, _param_fw_airspd_trim.get());
-		float trim_moment_eas_min_level =  _trim_values.aero_moment_eas_min + _param_motor_torque_arm_length.get() * thrust_eas_min_level;
-		float required_airstream_eas_min_level = sqrt(trim_moment_eas_min_level / _param_trim_pitch_min_eas_level.get());
-		_trim_values.airstream_scaler_eas_min = (required_airstream_eas_min_level - _param_fw_airspd_min.get()) / (calculated_airstream_eas_min_level - _param_fw_airspd_min.get());
+		float trim_moment_eas_min_level =  _param_aerodynamic_pitching_moment_min_eas.get() + _param_motor_torque_arm_length.get() * thrust_eas_min_level;
+		float required_airstream_eas_min_level = sqrt(trim_moment_eas_min_level / (_trim_values.aero_moment_scaler_eas_min * _param_trim_pitch_min_eas_level.get()));
+		_trim_values.airstream_scaler_eas_min = constrain((required_airstream_eas_min_level - _param_fw_airspd_min.get()) / (calculated_airstream_eas_min_level - _param_fw_airspd_min.get()), 0.0f, 1.0f);
 
 		eas_sq = _param_fw_airspd_trim.get() * _param_fw_airspd_trim.get();
 		float thrust_eas_trim_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
 		float calculated_airstream_eas_trim_level = calculate_ve_from_thrust(thrust_eas_trim_level, _param_fw_airspd_trim.get());
-		float trim_moment_eas_trim_level =  _trim_values.aero_moment_eas_trim + _param_motor_torque_arm_length.get() * thrust_eas_trim_level;
-		_trim_values.required_airstream_eas_trim_level = sqrt(trim_moment_eas_trim_level / _param_trim_pitch_trim_eas_level.get());
-		_trim_values.airstream_scaler_eas_trim = (_trim_values.required_airstream_eas_trim_level - _param_fw_airspd_trim.get()) / (calculated_airstream_eas_trim_level - _param_fw_airspd_trim.get());
+		float trim_moment_eas_trim_level =  _param_aerodynamic_pitching_moment_trim_eas.get() + _param_motor_torque_arm_length.get() * thrust_eas_trim_level;
+		_trim_values.required_airstream_eas_trim_level = sqrt(trim_moment_eas_trim_level / (_trim_values.aero_moment_scaler_eas_trim * _param_trim_pitch_trim_eas_level.get()));
+		_trim_values.airstream_scaler_eas_trim = constrain((_trim_values.required_airstream_eas_trim_level - _param_fw_airspd_trim.get()) / (calculated_airstream_eas_trim_level - _param_fw_airspd_trim.get()), 0.0f, 1.0f);
 
 		eas_sq = _param_fw_airspd_max.get() * _param_fw_airspd_max.get();
 		float thrust_eas_max_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
 		float calculated_airstream_eas_max_level = calculate_ve_from_thrust(thrust_eas_max_level, _param_fw_airspd_trim.get());
-		float trim_moment_eas_max_level =  _trim_values.aero_moment_eas_max + _param_motor_torque_arm_length.get() * thrust_eas_max_level;
-		float required_airstream_eas_max_level = sqrt(trim_moment_eas_max_level / _param_trim_pitch_max_eas_level.get());
-		_trim_values.airstream_scaler_eas_max = (required_airstream_eas_max_level - _param_fw_airspd_max.get()) / (calculated_airstream_eas_max_level - _param_fw_airspd_max.get());
+		float trim_moment_eas_max_level =  _param_aerodynamic_pitching_moment_max_eas.get()  + _param_motor_torque_arm_length.get() * thrust_eas_max_level;
+		float required_airstream_eas_max_level = sqrt(trim_moment_eas_max_level / (_trim_values.aero_moment_scaler_eas_max * _param_trim_pitch_max_eas_level.get()));
+		_trim_values.airstream_scaler_eas_max = constrain((required_airstream_eas_max_level - _param_fw_airspd_max.get()) / (calculated_airstream_eas_max_level - _param_fw_airspd_max.get()), 0.0f, 1.0f);
 
 		_trim_values.initialized = true;
 
-		if(!PX4_ISFINITE(_trim_values.airstream_scaler_eas_min) || !PX4_ISFINITE(_trim_values.airstream_scaler_eas_trim) || !PX4_ISFINITE(_trim_values.airstream_scaler_eas_max)){
-			PX4_ERR("unstable");
+
+
+		//feasibility checks. They fail if the trim values are not consistent (ie aerodynamic and/or thrust moments are in the same direction as the elevator deflection moment)
+		if(_trim_values.aero_moment_scaler_eas_min < 0 || _trim_values.aero_moment_scaler_eas_trim < 0 || _trim_values.aero_moment_scaler_eas_max < 0){
+			PX4_ERR("prop wash trim value calculation failed");
 			_trim_values.initialized = false;
 		}
+
+		//feasibility checks
+		if(!PX4_ISFINITE(required_airstream_eas_min_level) || !PX4_ISFINITE(_trim_values.required_airstream_eas_trim_level) || !PX4_ISFINITE(required_airstream_eas_max_level)){
+			PX4_ERR("prop wash trim value calculation failed");
+			_trim_values.initialized = false;
+		}
+
 	}
 
 	return true;
@@ -457,6 +470,21 @@ void FixedwingRateControl::Run()
 
 				_trim_values.adjusted_airstream_eas = (calculate_ve_from_thrust(_propeller_data.thrust, _airspeed) - _airspeed) * airstream_scaler + _airspeed;
 
+				//Calculate elevator pitch moment coefficient
+				float moment_coefficient = 0.0f;
+				if(_airspeed <= _param_fw_airspd_min.get()){
+					moment_coefficient = _trim_values.aero_moment_scaler_eas_min;
+				} else if(_airspeed <= _param_fw_airspd_trim.get()){
+					float scaler = (_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
+					moment_coefficient = _trim_values.aero_moment_scaler_eas_min + scaler * (_trim_values.aero_moment_scaler_eas_trim - _trim_values.aero_moment_scaler_eas_min);
+				} else if(_airspeed <= _param_fw_airspd_max.get()){
+					float scaler = (_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
+					moment_coefficient = _trim_values.aero_moment_scaler_eas_trim + scaler * (_trim_values.aero_moment_scaler_eas_max - _trim_values.aero_moment_scaler_eas_trim);
+				} else {
+					moment_coefficient = _trim_values.aero_moment_scaler_eas_max;
+				}
+
+
 				//Calculate aerodynamic moment
 				float aero_moment_flaps = 0.0f;
 				if(_airspeed <= _param_fw_airspd_land.get()){
@@ -470,19 +498,19 @@ void FixedwingRateControl::Run()
 
 				float aero_moment_clean = 0.0f;
 				if(_airspeed <= _param_fw_airspd_min.get()){
-					aero_moment_clean = _trim_values.aero_moment_eas_min;
+					aero_moment_clean = _param_aerodynamic_pitching_moment_min_eas.get();
 				} else if(_airspeed <= _param_fw_airspd_trim.get()){
 					float scaler = (_airspeed - _param_fw_airspd_min.get()) / (_param_fw_airspd_trim.get() - _param_fw_airspd_min.get());
-					aero_moment_clean = _trim_values.aero_moment_eas_min + scaler * (_trim_values.aero_moment_eas_trim - _trim_values.aero_moment_eas_min);
+					aero_moment_clean = _param_aerodynamic_pitching_moment_min_eas.get() + scaler * (_param_aerodynamic_pitching_moment_trim_eas.get() - _param_aerodynamic_pitching_moment_min_eas.get());
 				} else if(_airspeed <= _param_fw_airspd_max.get()){
 					float scaler = (_airspeed - _param_fw_airspd_trim.get()) / (_param_fw_airspd_max.get() - _param_fw_airspd_trim.get());
-					aero_moment_clean = _trim_values.aero_moment_eas_trim + scaler * (_trim_values.aero_moment_eas_max - _trim_values.aero_moment_eas_trim);
+					aero_moment_clean = _param_aerodynamic_pitching_moment_trim_eas.get() + scaler * (_param_aerodynamic_pitching_moment_max_eas.get() - _param_aerodynamic_pitching_moment_trim_eas.get());
 				} else{
-					aero_moment_clean = _trim_values.aero_moment_eas_max;
+					aero_moment_clean = _param_aerodynamic_pitching_moment_max_eas.get();
 				}
 
 				trim_pitch = - ((_flaps_setpoint.normalized_setpoint * aero_moment_flaps + (1 - _flaps_setpoint.normalized_setpoint) * aero_moment_clean) +
-						 + _param_motor_torque_arm_length.get() * _propeller_data.thrust) / (_trim_values.adjusted_airstream_eas * _trim_values.adjusted_airstream_eas);
+						 + _param_motor_torque_arm_length.get() * _propeller_data.thrust) / (moment_coefficient * _trim_values.adjusted_airstream_eas * _trim_values.adjusted_airstream_eas);
 
 				_trim_values.last_updated = hrt_absolute_time();
 			}
