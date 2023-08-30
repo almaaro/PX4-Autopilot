@@ -925,6 +925,9 @@ private:
 		(ParamInt<px4::params::FW_T_PROP_TYPE>) _param_fw_t_propulsion_type,
 		(ParamBool<px4::params::FW_T_DYN_THR>) _param_fw_t_use_dynamic_throttle_calculation,
 
+		(ParamFloat<px4::params::FW_T_CL_ALPHA>) _param_fw_t_cl_alpha,
+		(ParamFloat<px4::params::FW_T_WING_AREA>) _param_fw_t_wing_area,
+
 		(ParamFloat<px4::params::FW_T_F_LA_0_0>) _param_fw_t_land_eas_thrust_throttle_0_rho0,
 		(ParamFloat<px4::params::FW_T_F_LA_0_25>) _param_fw_t_land_eas_thrust_throttle_25_rho0,
 		(ParamFloat<px4::params::FW_T_F_LA_0_50>) _param_fw_t_land_eas_thrust_throttle_50_rho0,

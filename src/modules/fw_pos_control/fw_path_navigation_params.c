@@ -847,6 +847,39 @@ PARAM_DEFINE_FLOAT(FW_T_CLMB_R_SP, 3.0f);
 PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 
 /**
+ * Propeller diameter
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
+
+/**
+ * The slope between angle of attack and the coefficient of lift.
+ *
+ * Calculated from the wing airfoil's Alpha v Cl polar as
+ * FW_T_ALPHA_V_CL = (delta Alpha)/(delta Cl)
+ *
+ * @unit deg
+ * @min 0.0
+ * @max 30.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_CL_ALPHA, 0.0f);
+
+/**
+ * The wing area in square meters.
+ *
+ * @unit m^2
+ * @min 0.0
+ * @max 10.0
+ * @decimal 2
+ * @increment 0.01
+ * @group FW TECS
+ */
+PARAM_DEFINE_FLOAT(FW_T_WING_AREA, 0.0f);
+
+/**
  * TECS reference air density 0 (kg/m^3)
  * 
  * This is the air density at the time and place of measuring the tecs parameters 
