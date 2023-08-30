@@ -366,7 +366,7 @@ float TECSControl::_calcMaxThrust(const Input &input, const Param &param) const
 {
 	float max_thrust;
 
-	if(input.air_density < param.ref_air_density[1]){
+	if(input.air_density > param.ref_air_density[1]){
 		max_thrust = _interpolateMaxThrustBetweenRho(0, 1, 4, 4, input, param); //throttle index 4 for max thrust
 	} else {
 		max_thrust = _interpolateMaxThrustBetweenRho(1, 2, 4, 4, input, param);
@@ -421,7 +421,7 @@ float TECSControl::_calcRequiredThrottleForThrust(const float desired_thrust, co
 	int rho_index_0, rho_index_1;
 	float eas = input.tas / input.eas_to_tas;
 	bool min_as_is_land = (param.equivalent_airspeed_land < param.equivalent_airspeed_min);
-	if(input.air_density < param.ref_air_density[1]){
+	if(input.air_density > param.ref_air_density[1]){
 		rho_index_0 = 0;
 		rho_index_1 = 1;
 	} else {
@@ -458,7 +458,7 @@ float TECSControl::_calcRequiredThrottleForThrust(const float desired_thrust, co
 
 float TECSControl::_calcThrottleAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_throttle) const
 {
-	float eas_adj = constrain(eas, upper_airspeed, lower_airspeed);
+	float eas_adj = constrain(eas, lower_airspeed, upper_airspeed);
 	float scaler = (eas_adj - lower_airspeed) / (upper_airspeed - lower_airspeed);
 	if(!PX4_ISFINITE(scaler)){
 		scaler = 0;
@@ -813,9 +813,9 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 		// Throttle calculations...
 		if(param.propulsion_type == 0){ // electric motor with propeller / ducted fan
 
-			_thrust_setpoint = ste_rate.setpoint / input.tas * param.weight_gross;
+			_thrust_setpoint = (ste_rate.setpoint + _STE_rate_integ_state + _getControlError(ste_rate) * param.throttle_damping_gain - limit.STE_rate_min) / input.tas * param.weight_gross;
 
-			throttle_setpoint = _calcRequiredThrottleForThrust(_thrust_setpoint, param.throttle_max, input, param);
+			throttle_setpoint = max(0.0f, _calcRequiredThrottleForThrust(_thrust_setpoint, param.throttle_max, input, param));
 
 			_debug_output.thrust_setpoint = _thrust_setpoint;
 

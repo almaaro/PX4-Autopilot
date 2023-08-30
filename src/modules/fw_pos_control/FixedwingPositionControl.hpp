@@ -996,10 +996,7 @@ private:
 		(ParamFloat<px4::params::FW_T_F_MA_2_50>) _param_fw_t_max_eas_thrust_throttle_50_rho2,
 		(ParamFloat<px4::params::FW_T_F_MA_2_75>) _param_fw_t_max_eas_thrust_throttle_75_rho2,
 		(ParamFloat<px4::params::FW_T_F_MA_2_100>) _param_fw_t_max_eas_thrust_throttle_100_rho2,
-
-		(ParamFloat<px4::params::FW_T_CL_ALPHA>) _param_fw_t_cl_alpha,
-		(ParamFloat<px4::params::FW_T_WING_AREA>) _param_fw_t_wing_area,
-
+		
 		(ParamFloat<px4::params::FW_THR_ASPD_MIN>) _param_fw_thr_aspd_min,
 		(ParamFloat<px4::params::FW_THR_ASPD_MAX>) _param_fw_thr_aspd_max,
 

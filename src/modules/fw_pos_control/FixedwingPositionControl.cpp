@@ -149,6 +149,88 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_airspeed_measurement_std_dev(_param_speed_standard_dev.get());
 	_tecs.set_airspeed_rate_measurement_std_dev(_param_speed_rate_standard_dev.get());
 	_tecs.set_airspeed_filter_process_std_dev(_param_process_noise_standard_dev.get());
+	_tecs.set_weight_gross(_param_weight_gross.get());
+	_tecs.set_wingspan(_param_fw_wing_span.get());
+	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
+	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
+
+	_tecs.set_thrust_throttle_parameters(
+		_param_fw_t_land_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho0.get(),
+
+		_param_fw_t_min_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho0.get(),
+
+		_param_fw_t_trim_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho0.get(),
+
+		_param_fw_t_max_eas_thrust_throttle_0_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho0.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho0.get(),
+
+		_param_fw_t_land_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_min_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_trim_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_max_eas_thrust_throttle_0_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho1.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho1.get(),
+
+		_param_fw_t_land_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_land_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_min_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_min_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_trim_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_trim_eas_thrust_throttle_100_rho2.get(),
+
+		_param_fw_t_max_eas_thrust_throttle_0_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_25_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_50_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_75_rho2.get(),
+		_param_fw_t_max_eas_thrust_throttle_100_rho2.get()
+	);
+	
+	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
+
+	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 	_tecs.set_wingspan(_param_fw_wing_span.get());
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
@@ -156,7 +238,7 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
-	_tecs.set_weight_gross(_param_weight_gross.get());
+
 	_tecs.set_pitchsp_offset_rad(radians(_param_fw_psp_off.get()));
 	_tecs.set_pitchsp_offset_flaps_rad(radians(_param_fw_psp_off_flps.get()));
 	_tecs.set_cl_to_alpha_rad_slope(radians(_param_fw_t_cl_alpha.get()));
