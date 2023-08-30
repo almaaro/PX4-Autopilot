@@ -834,25 +834,6 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
 
 /**
- * Scaling factor for the propeller airstream velocity at stabilizers
- *
- * How much the airstream from the propeller effects the stabilizers trim.
- * If set to 100%, the airspeed at the stabilizers is assumed equal to the
- * airspeed right behind the propeller. If 0%, the air stream from the propeller
- * is not hitting the stabilizers at all
- *
- * Only applicable it the vehicle is propeller driven and FW_T_PPLR_DIA is set.
- *
- * @group FW TECS
- * @unit norm
- * @min 0
- * @max 1
- * @decimal 2
- * @increment 0.01
- */
-PARAM_DEFINE_FLOAT(FW_T_PPLR_SCL, 0.f);
-
-/**
  * GPS failure loiter time
  *
  * The time in seconds the system should do open loop loiter and wait for GPS recovery

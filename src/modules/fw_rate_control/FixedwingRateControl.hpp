@@ -264,7 +264,7 @@ private:
 		(ParamFloat<px4::params::FW_WING_SPAN>) _param_fw_wing_span,
 		(ParamFloat<px4::params::FW_WING_EFF>) _param_fw_wing_efficiency_factor,
 
-		(ParamInt<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
+		(ParamBool<px4::params::FW_T_PROP_W_ELE>) _param_prop_wash_on_elevator
 	)
 
 	RateControl _rate_control; ///< class for rate control calculations
