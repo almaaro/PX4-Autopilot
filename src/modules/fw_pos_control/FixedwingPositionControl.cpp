@@ -1700,11 +1700,6 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 				local_position - local_land_point);
 	const float glide_slope = _landing_approach_entrance_rel_alt / _landing_approach_entrance_offset_vector.norm();
 
-	//Abort landing if overshoot enough
-	if(- along_track_dist_to_touchdown > _param_fw_lnd_max_overshoot.get() && _param_fw_lnd_max_overshoot.get() > FLT_EPSILON){
-		updateLandingAbortStatus(position_controller_landing_status_s::OVERSHOOT);
-	}
-
 	// NOTE: this relative altitude can go below zero, this is intentional. in the case the vehicle is tracking the glide
 	// slope at an offset above the track, making the altitude setpoint constant on intersection with terrain causes
 	// an increase in throttle (to slow down and smoothly intersect the flattened altitude setpoint), which is undesirable
@@ -1726,6 +1721,12 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 
 	// flare at the maximum of the altitude determined by the time before touchdown and a minimum flare altitude
 	const float flare_rel_alt = math::max(_param_fw_lnd_fl_time.get() * _local_pos.vz, _param_fw_lnd_flalt.get());
+
+	//Abort landing if overshoot the calculated flare point enough
+	float flare_length = flare_rel_alt / glide_slope;
+	if(along_track_dist_to_touchdown < flare_length - _param_fw_lnd_max_overshoot.get() && _param_fw_lnd_max_overshoot.get() > FLT_EPSILON){
+		updateLandingAbortStatus(position_controller_landing_status_s::OVERSHOOT);
+	}
 
 	// the terrain estimate (if enabled) is always used to determine the flaring altitude
 	if ((_current_altitude < terrain_alt + flare_rel_alt) || _flare_states.flaring) {
