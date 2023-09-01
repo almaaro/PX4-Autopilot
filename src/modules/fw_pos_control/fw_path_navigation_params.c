@@ -829,6 +829,7 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 
 /**
  * Propeller diameter
+ * @decimal 3
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);

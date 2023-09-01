@@ -470,7 +470,7 @@ PARAM_DEFINE_FLOAT(FW_DTRIM_Y_VMAX, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VL_SI, 0.0f);
@@ -485,7 +485,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VL_SI, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
@@ -500,7 +500,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VL_LV, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VC_SI, 0.0f);
@@ -515,7 +515,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VC_SI, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
@@ -530,7 +530,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VC_LV, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VH_SI, 0.0f);
@@ -545,7 +545,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VH_SI, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
@@ -560,7 +560,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_P_VH_LV, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_SI, 0.0f);
@@ -575,7 +575,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_SI, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
@@ -590,7 +590,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VL_LV, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_SI, 0.0f);
@@ -605,7 +605,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_SI, 0.0f);
  * @group FW Attitude Control
  * @min -0.25
  * @max 0.25
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  */
 PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_LV, 0.0f);
@@ -616,7 +616,7 @@ PARAM_DEFINE_FLOAT(FW_TRM_PF_VC_LV, 0.0f);
  * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
  *
  * @group FW Attitude Control
- * @decimal 3
+ * @decimal 4
  * @increment 0.01
 */
 PARAM_DEFINE_FLOAT(FW_AERO_MOM_MI, 0.0f);
@@ -627,7 +627,7 @@ PARAM_DEFINE_FLOAT(FW_AERO_MOM_MI, 0.0f);
  * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
  *
  * @group FW Attitude Control
- * @decimal 3
+ * @decimal 4
  * @increment 0.01
 */
 PARAM_DEFINE_FLOAT(FW_AERO_MOM_TR, 0.0f);
@@ -638,7 +638,7 @@ PARAM_DEFINE_FLOAT(FW_AERO_MOM_TR, 0.0f);
  * Positive values for pitch up moment. You can get this value from eg XFLR5. Unit Nm.
  *
  * @group FW Attitude Control
- * @decimal 3
+ * @decimal 4
  * @increment 0.01
 */
 PARAM_DEFINE_FLOAT(FW_AERO_MOM_MA, 0.0f);
@@ -731,6 +731,7 @@ PARAM_DEFINE_INT32(FW_ACRO_YAW_EN, 0);
  * If the thrust will induce a nose up moment, the value should be positive and vice versa.
  *
  * @group FW Attitude Control
+ * @decimal 3
  * @unit m
 */
 PARAM_DEFINE_FLOAT(MOTOR_TORQ_ARM, 0.f);
@@ -740,7 +741,7 @@ PARAM_DEFINE_FLOAT(MOTOR_TORQ_ARM, 0.f);
  *
  * Enable this if the propeller wash is hitting the elevator. Used for a more advanced trim pattern.
  * Requires the dynamic throttle calculations to be enabled and FW_TRM_P_XXX/FW_TRM_PF_XXX,
- * FW_T_PPLR_DIA, FW_T_SNK_MIN_F, FW_T_SI_MI_XXX and MOTOR_TORQ_ARM params be set.
+ * FW_T_PPLR_DIA, FW_T_SNK_MIN_F, FW_T_SI_MI_XXX, FW_AERO_MOM_XX and MOTOR_TORQ_ARM params be set.
  *
  * @boolean
  * @group FW Attitude Control
