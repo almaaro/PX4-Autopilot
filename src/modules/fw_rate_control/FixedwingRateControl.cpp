@@ -112,40 +112,46 @@ FixedwingRateControl::init()
 
 		float eas_sq = _param_fw_airspd_min.get() * _param_fw_airspd_min.get();
 		float thrust_eas_min_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
-		float calculated_airstream_eas_min_level = calculate_ve_from_thrust(thrust_eas_min_level, _param_fw_airspd_trim.get());
+		float calculated_airstream_eas_min_level = calculate_ve_from_thrust(thrust_eas_min_level, _param_fw_airspd_min.get());
 		float trim_moment_eas_min_level =  _param_aerodynamic_pitching_moment_min_eas.get() + _param_motor_torque_arm_length.get() * thrust_eas_min_level;
-		float required_airstream_eas_min_level = sqrt(trim_moment_eas_min_level / (_trim_values.aero_moment_scaler_eas_min * _param_trim_pitch_min_eas_level.get()));
-		_trim_values.airstream_scaler_eas_min = constrain((required_airstream_eas_min_level - _param_fw_airspd_min.get()) / (calculated_airstream_eas_min_level - _param_fw_airspd_min.get()), 0.0f, 1.0f);
+		float required_airstream_eas_min_level = sqrt(-trim_moment_eas_min_level / (_trim_values.aero_moment_scaler_eas_min * _param_trim_pitch_min_eas_level.get()));
+		_trim_values.airstream_scaler_eas_min = (required_airstream_eas_min_level - _param_fw_airspd_min.get()) / (calculated_airstream_eas_min_level - _param_fw_airspd_min.get());
 
 		eas_sq = _param_fw_airspd_trim.get() * _param_fw_airspd_trim.get();
 		float thrust_eas_trim_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
 		float calculated_airstream_eas_trim_level = calculate_ve_from_thrust(thrust_eas_trim_level, _param_fw_airspd_trim.get());
 		float trim_moment_eas_trim_level =  _param_aerodynamic_pitching_moment_trim_eas.get() + _param_motor_torque_arm_length.get() * thrust_eas_trim_level;
-		_trim_values.required_airstream_eas_trim_level = sqrt(trim_moment_eas_trim_level / (_trim_values.aero_moment_scaler_eas_trim * _param_trim_pitch_trim_eas_level.get()));
-		_trim_values.airstream_scaler_eas_trim = constrain((_trim_values.required_airstream_eas_trim_level - _param_fw_airspd_trim.get()) / (calculated_airstream_eas_trim_level - _param_fw_airspd_trim.get()), 0.0f, 1.0f);
+		_trim_values.required_airstream_eas_trim_level = sqrt(-trim_moment_eas_trim_level / (_trim_values.aero_moment_scaler_eas_trim * _param_trim_pitch_trim_eas_level.get()));
+		_trim_values.airstream_scaler_eas_trim = (_trim_values.required_airstream_eas_trim_level - _param_fw_airspd_trim.get()) / (calculated_airstream_eas_trim_level - _param_fw_airspd_trim.get());
 
 		eas_sq = _param_fw_airspd_max.get() * _param_fw_airspd_max.get();
 		float thrust_eas_max_level = lift_sq / (0.5f * M_PI_F * CONSTANTS_AIR_DENSITY_SEA_LEVEL_15C * _param_fw_wing_span.get() * _param_fw_wing_span.get() * _param_fw_wing_efficiency_factor.get() * eas_sq) + Cd_specific_clean * eas_sq;
-		float calculated_airstream_eas_max_level = calculate_ve_from_thrust(thrust_eas_max_level, _param_fw_airspd_trim.get());
+		float calculated_airstream_eas_max_level = calculate_ve_from_thrust(thrust_eas_max_level, _param_fw_airspd_max.get());
 		float trim_moment_eas_max_level =  _param_aerodynamic_pitching_moment_max_eas.get()  + _param_motor_torque_arm_length.get() * thrust_eas_max_level;
-		float required_airstream_eas_max_level = sqrt(trim_moment_eas_max_level / (_trim_values.aero_moment_scaler_eas_max * _param_trim_pitch_max_eas_level.get()));
-		_trim_values.airstream_scaler_eas_max = constrain((required_airstream_eas_max_level - _param_fw_airspd_max.get()) / (calculated_airstream_eas_max_level - _param_fw_airspd_max.get()), 0.0f, 1.0f);
+		float required_airstream_eas_max_level = sqrt(-trim_moment_eas_max_level / (_trim_values.aero_moment_scaler_eas_max * _param_trim_pitch_max_eas_level.get()));
+		_trim_values.airstream_scaler_eas_max = (required_airstream_eas_max_level - _param_fw_airspd_max.get()) / (calculated_airstream_eas_max_level - _param_fw_airspd_max.get());
 
 		_trim_values.initialized = true;
 
 
 
 		//feasibility checks. They fail if the trim values are not consistent (ie aerodynamic and/or thrust moments are in the same direction as the elevator deflection moment)
-		if(_trim_values.aero_moment_scaler_eas_min < 0 || _trim_values.aero_moment_scaler_eas_trim < 0 || _trim_values.aero_moment_scaler_eas_max < 0){
-			PX4_ERR("prop wash trim value calculation failed");
+		if(_trim_values.aero_moment_scaler_eas_min < 0 || _trim_values.aero_moment_scaler_eas_trim < 0 || _trim_values.aero_moment_scaler_eas_max < 0 || 
+					!PX4_ISFINITE(required_airstream_eas_min_level) || !PX4_ISFINITE(_trim_values.required_airstream_eas_trim_level) || !PX4_ISFINITE(required_airstream_eas_max_level)){
+			PX4_ERR("Prop wash trim calculations failed");
 			_trim_values.initialized = false;
 		}
 
-		//feasibility checks
-		if(!PX4_ISFINITE(required_airstream_eas_min_level) || !PX4_ISFINITE(_trim_values.required_airstream_eas_trim_level) || !PX4_ISFINITE(required_airstream_eas_max_level)){
-			PX4_ERR("prop wash trim value calculation failed");
-			_trim_values.initialized = false;
+		//not so-so-strict checks but not much use of the throttle airstream mapping
+		if(_trim_values.airstream_scaler_eas_min < 0.0f || _trim_values.airstream_scaler_eas_min > 1.0f || 
+				_trim_values.airstream_scaler_eas_trim < 0.0f || _trim_values.airstream_scaler_eas_trim > 1.0f ||
+				_trim_values.airstream_scaler_eas_max < 0.0f || _trim_values.airstream_scaler_eas_max > 1.0f){
+			PX4_ERR("Motor airstream scaler value invalid");
+			
 		}
+		_trim_values.airstream_scaler_eas_min = constrain(_trim_values.airstream_scaler_eas_min, 0.0f, 1.0f);
+		_trim_values.airstream_scaler_eas_trim = constrain(_trim_values.airstream_scaler_eas_trim, 0.0f, 1.0f);
+		_trim_values.airstream_scaler_eas_max = constrain(_trim_values.airstream_scaler_eas_max, 0.0f, 1.0f);
 
 	}
 
@@ -360,6 +366,8 @@ void FixedwingRateControl::Run()
 
 		vehicle_manual_poll();
 		vehicle_land_detected_poll();
+
+		propeller_data_poll();
 
 		/* if we are in rotary wing mode, do nothing */
 		if (_vehicle_status.vehicle_type == vehicle_status_s::VEHICLE_TYPE_ROTARY_WING && !_vehicle_status.is_vtol) {

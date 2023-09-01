@@ -848,6 +848,8 @@ PARAM_DEFINE_FLOAT(FW_T_SINK_R_SP, 2.0f);
 
 /**
  * Propeller diameter
+ * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_PPLR_DIA, 0.f);
@@ -887,7 +889,7 @@ PARAM_DEFINE_FLOAT(FW_T_WING_AREA, 0.0f);
  * 
  * @min 0.1
  * @max 1.5
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  * @group FW TECS
 */
@@ -903,7 +905,7 @@ PARAM_DEFINE_FLOAT(FW_T_REF_RHO_0, 1.225f);
  * 
  * @min 0.1
  * @max 1.5
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  * @group FW TECS
 */
@@ -919,7 +921,7 @@ PARAM_DEFINE_FLOAT(FW_T_REF_RHO_1, 1.225f);
  * 
  * @min 0.1
  * @max 1.5
- * @decimal 2
+ * @decimal 3
  * @increment 0.01
  * @group FW TECS
 */
@@ -953,6 +955,7 @@ PARAM_DEFINE_INT32(FW_T_DYN_THR, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_0_0, 0);
@@ -971,7 +974,8 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_0_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
- * @group FW TECS 
+ * @decimal 2
+ * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_0_25, 0);
 		
@@ -989,6 +993,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_0_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_0_50, 0);
@@ -1007,6 +1012,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_0_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_0_75, 0);
@@ -1025,6 +1031,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_0_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_0_100, 0);
@@ -1044,6 +1051,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_0_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_0_0, 0);
@@ -1062,6 +1070,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_0_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_0_25, 0);
@@ -1080,6 +1089,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_0_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_0_50, 0);
@@ -1098,6 +1108,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_0_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_0_75, 0);
@@ -1116,6 +1127,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_0_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_0_100, 0);
@@ -1135,6 +1147,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_0_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_0_0, 0);
@@ -1153,6 +1166,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_0_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_0_25, 0);
@@ -1171,6 +1185,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_0_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_0_50, 0);
@@ -1189,6 +1204,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_0_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_0_75, 0);
@@ -1207,6 +1223,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_0_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_0_100, 0);
@@ -1226,6 +1243,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_0_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_0_0, 0);
@@ -1244,6 +1262,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_0_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_0_25, 0);
@@ -1262,6 +1281,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_0_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_0_50, 0);
@@ -1280,6 +1300,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_0_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_0_75, 0);
@@ -1298,6 +1319,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_0_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_0_100, 0);
@@ -1317,6 +1339,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_0_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_1_0, 0);
@@ -1335,6 +1358,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_1_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_1_25, 0);
@@ -1353,6 +1377,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_1_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_1_50, 0);
@@ -1371,6 +1396,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_1_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_1_75, 0);
@@ -1389,6 +1415,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_1_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_1_100, 0);
@@ -1408,6 +1435,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_1_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_1_0, 0);
@@ -1426,6 +1454,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_1_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_1_25, 0);
@@ -1444,6 +1473,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_1_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_1_50, 0);
@@ -1462,6 +1492,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_1_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_1_75, 0);
@@ -1480,6 +1511,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_1_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_1_100, 0);
@@ -1499,6 +1531,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_1_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_1_0, 0);
@@ -1517,6 +1550,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_1_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_1_25, 0);
@@ -1535,6 +1569,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_1_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_1_50, 0);
@@ -1553,6 +1588,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_1_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_1_75, 0);
@@ -1571,6 +1607,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_1_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_1_100, 0);
@@ -1590,6 +1627,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_1_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_1_0, 0);
@@ -1608,6 +1646,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_1_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_1_25, 0);
@@ -1626,6 +1665,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_1_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_1_50, 0);
@@ -1644,6 +1684,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_1_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_1_75, 0);
@@ -1662,6 +1703,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_1_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_1_100, 0);
@@ -1681,6 +1723,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_1_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_2_0, 0);
@@ -1699,6 +1742,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_2_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_2_25, 0);
@@ -1717,6 +1761,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_2_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_2_50, 0);
@@ -1735,6 +1780,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_2_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_2_75, 0);
@@ -1753,6 +1799,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_2_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_LA_2_100, 0);
@@ -1772,6 +1819,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_LA_2_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_2_0, 0);
@@ -1790,6 +1838,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_2_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_2_25, 0);
@@ -1808,6 +1857,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_2_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_2_50, 0);
@@ -1826,6 +1876,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_2_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_2_75, 0);
@@ -1844,6 +1895,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_2_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MI_2_100, 0);
@@ -1863,6 +1915,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MI_2_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_2_0, 0);
@@ -1881,6 +1934,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_2_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_2_25, 0);
@@ -1899,6 +1953,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_2_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_2_50, 0);
@@ -1917,6 +1972,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_2_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_2_75, 0);
@@ -1935,6 +1991,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_2_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_TR_2_100, 0);
@@ -1954,6 +2011,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_TR_2_100, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_2_0, 0);
@@ -1972,6 +2030,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_0, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_2_25, 0);
@@ -1990,6 +2049,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_25, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_2_50, 0);
@@ -2008,6 +2068,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_50, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_2_75, 0);
@@ -2026,6 +2087,7 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_75, 0);
  * 
  * 0/25/50/75/100 -> at throttle setting, percent of the max_throttle at the current flight state
  * 
+ * @decimal 2
  * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_F_MA_2_100, 0);
