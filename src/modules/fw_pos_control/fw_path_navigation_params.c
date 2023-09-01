@@ -379,15 +379,10 @@ PARAM_DEFINE_FLOAT(FW_LND_FLALT, 0.5f);
 PARAM_DEFINE_INT32(FW_LND_USETER, 1);
 
 /**
- * Maximum tolerable oveshoot distance
+ * Maximum tolerable flare start overshoot distance
  *
- * If the plane hasn't landed within this distance from the set landing point, the landing will be aborted
- *
- * Note that the plane will never touch down at the set point if there is any flare, so take the flare length into account.
- *
- * Doesn't work with loiter landings.
- *
- * Disabled if set to a negative number.
+ * If the plane hasn't started flaring within this distance from the planned flare start point, the landing will be aborted.
+ * Disabled if set to a negative number. Doesn't work with circular landings.
  *
  * @unit m
  *
