@@ -142,16 +142,13 @@ FixedwingRateControl::init()
 			_trim_values.initialized = false;
 		}
 
-		//not so-so-strict checks but not much use of the throttle airstream mapping
+		//not much use of the throttle airstream mapping
 		if(_trim_values.airstream_scaler_eas_min < 0.0f || _trim_values.airstream_scaler_eas_min > 1.0f ||
 				_trim_values.airstream_scaler_eas_trim < 0.0f || _trim_values.airstream_scaler_eas_trim > 1.0f ||
 				_trim_values.airstream_scaler_eas_max < 0.0f || _trim_values.airstream_scaler_eas_max > 1.0f){
 			PX4_ERR("Motor airstream scaler value invalid");
-
+			_trim_values.initialized = false;
 		}
-		_trim_values.airstream_scaler_eas_min = constrain(_trim_values.airstream_scaler_eas_min, 0.0f, 1.0f);
-		_trim_values.airstream_scaler_eas_trim = constrain(_trim_values.airstream_scaler_eas_trim, 0.0f, 1.0f);
-		_trim_values.airstream_scaler_eas_max = constrain(_trim_values.airstream_scaler_eas_max, 0.0f, 1.0f);
 
 	}
 
