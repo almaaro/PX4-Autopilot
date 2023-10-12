@@ -613,9 +613,15 @@ FixedwingPositionControl::tecs_status_publish(float alt_sp, float equivalent_air
 	tecs_status.total_energy_balance_rate_sp = debug_output.control.energy_balance_rate_sp;
 	tecs_status.throttle_integ = debug_output.control.throttle_integrator;
 	tecs_status.pitch_integ = debug_output.control.pitch_integrator;
+	tecs_status.thrust_setpoint = debug_output.thrust_setpoint;
+	tecs_status.ste_rate_min = debug_output.ste_rate_min;
+	tecs_status.ste_rate_max = debug_output.ste_rate_max;
+	tecs_status.rpm_setpoint = debug_output.rpm_setpoint;
+	tecs_status.max_rpm = debug_output.max_rpm;
 	tecs_status.throttle_sp = _tecs.get_throttle_setpoint();
 	tecs_status.pitch_sp_rad = _tecs.get_pitch_setpoint();
 	tecs_status.throttle_trim = throttle_trim;
+	
 
 	tecs_status.timestamp = hrt_absolute_time();
 
