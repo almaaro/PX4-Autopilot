@@ -1,0 +1,5 @@
+menuconfig DRIVERS_RPM_GENERIC_I2C_RPM
+	bool "generic_i2c_rpm"
+	default n
+	---help---
+		Enable support for generic_i2c_rpm
