@@ -240,6 +240,10 @@ void FixedwingRateControl::propeller_data_poll(){
 
 	if(_propeller_data_sub.updated()) {
 		_propeller_data_sub.copy(&_propeller_data);
+		_propeller_data_valid = true;
+	} else {
+		// invalidate estimate usage after subscription timeout
+		_propeller_data_valid = _propeller_data_valid && (hrt_absolute_time() - _time_propeller_data_last_received) < PROPELLER_DATA_EST_TIMEOUT;
 	}
 }
 
@@ -455,7 +459,7 @@ void FixedwingRateControl::Run()
 			}
 
 
-			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled && _trim_values.initialized && _param_prop_wash_on_elevator.get()){
+			if(_param_dynamic_throttle_calculations.get() && _vcontrol_mode.flag_control_auto_enabled && _trim_values.initialized && _param_prop_wash_on_elevator.get() && _propeller_data_valid){
 
 				//Calculate airstream scaler
 				float airstream_scaler = 0.0f;

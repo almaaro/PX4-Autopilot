@@ -152,6 +152,12 @@ private:
 
 	bool _in_fw_or_transition_wo_tailsitter_transition{false}; // only run the FW attitude controller in these states
 
+	// [us] time after which the propeller data estimate is disabled if no longer updating
+	static constexpr hrt_abstime PROPELLER_DATA_EST_TIMEOUT = 1_s;
+
+	bool _propeller_data_valid{false};
+	hrt_abstime _time_propeller_data_last_received{0};
+
 	struct TrimValues {
 		float aero_moment_scaler_eas_min = 0.0f;
 		float aero_moment_scaler_eas_trim = 0.0f;
