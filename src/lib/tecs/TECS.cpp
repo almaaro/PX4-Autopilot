@@ -567,8 +567,8 @@ float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float m
 	//D term
 	throttle_setpoint += (rpm_error - _rpm_error_prev) / dt * param.rpm_damping_gain;
 	_rpm_error_prev = rpm_error;
-	
-	return throttle_setpoint;
+
+	return throttle_setpoint * param.throttle_max;
 }
 
 float TECSControl::_calcAirspeedControlOutput(const Setpoint &setpoint, const Input &input, const Param &param,
