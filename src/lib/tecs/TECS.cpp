@@ -864,6 +864,8 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			_debug_output.rpm_setpoint = rpm_setpoint;
 			_debug_output.max_rpm = max_rpm;
 
+			_thrust_setpoint_valid = true;
+
 
 		} else{// thrust/rpm control is not supported with ICE or jet engine yet.
 			goto default_throttle_calculation;
@@ -874,7 +876,7 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 		
 		default_throttle_calculation:
 		//The traditional way without dynamic throttle calculation (but with integrated STE rate setpoint calc for I and D terms)
-
+		_thrust_setpoint_valid = false;
 
 		// Calculate a predicted throttle from the demanded rate of change of energy, using the cruise throttle
 		// as the starting point. Assume:

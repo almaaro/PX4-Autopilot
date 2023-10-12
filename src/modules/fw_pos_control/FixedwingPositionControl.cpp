@@ -413,10 +413,12 @@ FixedwingPositionControl::rpm_poll()
 	if (_rpm_sub.updated()) {
 		rpm_s rpm;
 		_rpm_sub.update(&rpm);
-
+		
 		_time_rpm_last_received = hrt_absolute_time();
 
 		_rpm = rpm.indicated_frequency_rpm;
+
+		_rpm_valid = PX4_ISFINITE(_rpm);
 
 	} else {
 		// invalidate rpm estimate usage after subscription timeout
@@ -2966,7 +2968,7 @@ void FixedwingPositionControl::publishOrbitStatus(const position_setpoint_s pos_
 
 void FixedwingPositionControl::publishStabilizerAirstream()
 {
-	if (_tecs_is_running) {
+	if (_tecs_is_running && _tecs.get_thrust_valid()) {
 		propeller_data_s propeller_data{};
 		propeller_data.timestamp = hrt_absolute_time();
 		propeller_data.thrust = _tecs.get_thrust_setpoint();

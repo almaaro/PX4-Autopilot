@@ -370,6 +370,8 @@ public:
 	*/
 	float getThrustSetpoint() const {return _thrust_setpoint; };
 
+	bool getThrustValid() const {return _thrust_setpoint_valid; };
+
 private:
 	/**
 	 * @brief Specific total energy rate limit.
@@ -610,6 +612,7 @@ private:
 	float _ratio_undersped{0.0f};				///< A continuous representation of how "undersped" the TAS is [0,1]
 
 	float _thrust_setpoint{0.0f};
+	bool _thrust_setpoint_valid{false};
 };
 
 class TECS
@@ -910,6 +913,7 @@ public:
 	float get_pitch_setpoint() {return _control.getPitchSetpoint();}
 	float get_throttle_setpoint() {return _control.getThrottleSetpoint();}
 	float get_thrust_setpoint() {return _control.getThrustSetpoint();}
+	bool get_thrust_valid() {return _control.getThrustValid();}
 
 	uint64_t timestamp() { return _update_timestamp; }
 	ECL_TECS_MODE tecs_mode() { return _tecs_mode; }
