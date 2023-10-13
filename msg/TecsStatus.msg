@@ -22,6 +22,12 @@ float32 total_energy_balance_rate	# Energy balance rate estimate [m^2/s^3]
 float32 throttle_integ			# Throttle integrator value [-]
 float32 pitch_integ			# Pitch integrator value [rad]
 
+float32 thrust_setpoint
+float32 ste_rate_min
+float32 ste_rate_max
+float32 rpm_setpoint
+float32 max_rpm
+
 float32 throttle_sp			# Current throttle setpoint [-]
 float32 pitch_sp_rad			# Current pitch setpoint [rad]
 float32 throttle_trim			# estimated throttle value [0,1] required to fly level at equivalent_airspeed_sp in the current atmospheric conditions

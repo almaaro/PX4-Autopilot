@@ -80,6 +80,7 @@
 #include <uORB/topics/position_controller_status.h>
 #include <uORB/topics/position_setpoint_triplet.h>
 #include <uORB/topics/tecs_status.h>
+#include <uORB/topics/rpm.h>
 #include <uORB/topics/trajectory_setpoint.h>
 #include <uORB/topics/vehicle_air_data.h>
 #include <uORB/topics/vehicle_angular_velocity.h>
@@ -135,6 +136,9 @@ static constexpr float ASPD_SP_SLEW_RATE = 1.f;
 
 // [us] time after which the wind estimate is disabled if no longer updating
 static constexpr hrt_abstime WIND_EST_TIMEOUT = 10_s;
+
+// [us] time after which the rpm estimate is disabled if no longer updating
+static constexpr hrt_abstime RPM_EST_TIMEOUT = 1_s;
 
 // [s] minimum time step between auto control updates
 static constexpr float MIN_AUTO_TIMESTEP = 0.01f;
@@ -198,6 +202,7 @@ private:
 	uORB::Subscription _global_pos_sub{ORB_ID(vehicle_global_position)};
 	uORB::Subscription _manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};
 	uORB::Subscription _pos_sp_triplet_sub{ORB_ID(position_setpoint_triplet)};
+	uORB::Subscription _rpm_sub{ORB_ID(rpm)};
 	uORB::Subscription _trajectory_setpoint_sub{ORB_ID(trajectory_setpoint)};
 	uORB::Subscription _vehicle_air_data_sub{ORB_ID(vehicle_air_data)};
 	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
@@ -389,6 +394,14 @@ private:
 
 	hrt_abstime _time_wind_last_received{0}; // [us]
 
+	// RPM
+
+	float _rpm{0.0f};
+
+	bool _rpm_valid{false};
+
+	hrt_abstime _time_rpm_last_received{0}; // [us]
+
 	// TECS
 
 	// total energy control system - airspeed / altitude control
@@ -449,6 +462,7 @@ private:
 	void vehicle_control_mode_poll();
 	void vehicle_status_poll();
 	void wind_poll();
+	void rpm_poll();
 
 	void status_publish();
 	void landing_status_publish();
@@ -928,77 +942,83 @@ private:
 		(ParamFloat<px4::params::FW_T_CL_ALPHA>) _param_fw_t_cl_alpha,
 		(ParamFloat<px4::params::FW_T_WING_AREA>) _param_fw_t_wing_area,
 
-		(ParamFloat<px4::params::FW_T_F_LA_0_0>) _param_fw_t_land_eas_thrust_throttle_0_rho0,
-		(ParamFloat<px4::params::FW_T_F_LA_0_25>) _param_fw_t_land_eas_thrust_throttle_25_rho0,
-		(ParamFloat<px4::params::FW_T_F_LA_0_50>) _param_fw_t_land_eas_thrust_throttle_50_rho0,
-		(ParamFloat<px4::params::FW_T_F_LA_0_75>) _param_fw_t_land_eas_thrust_throttle_75_rho0,
-		(ParamFloat<px4::params::FW_T_F_LA_0_100>) _param_fw_t_land_eas_thrust_throttle_100_rho0,
+		(ParamFloat<px4::params::FW_T_F_LA_0_0>) _param_fw_t_land_eas_thrust_rpm_0_rho0,
+		(ParamFloat<px4::params::FW_T_F_LA_0_25>) _param_fw_t_land_eas_thrust_rpm_25_rho0,
+		(ParamFloat<px4::params::FW_T_F_LA_0_50>) _param_fw_t_land_eas_thrust_rpm_50_rho0,
+		(ParamFloat<px4::params::FW_T_F_LA_0_75>) _param_fw_t_land_eas_thrust_rpm_75_rho0,
+		(ParamFloat<px4::params::FW_T_F_LA_0_100>) _param_fw_t_land_eas_thrust_rpm_100_rho0,
 
-		(ParamFloat<px4::params::FW_T_F_MI_0_0>) _param_fw_t_min_eas_thrust_throttle_0_rho0,
-		(ParamFloat<px4::params::FW_T_F_MI_0_25>) _param_fw_t_min_eas_thrust_throttle_25_rho0,
-		(ParamFloat<px4::params::FW_T_F_MI_0_50>) _param_fw_t_min_eas_thrust_throttle_50_rho0,
-		(ParamFloat<px4::params::FW_T_F_MI_0_75>) _param_fw_t_min_eas_thrust_throttle_75_rho0,
-		(ParamFloat<px4::params::FW_T_F_MI_0_100>) _param_fw_t_min_eas_thrust_throttle_100_rho0,
+		(ParamFloat<px4::params::FW_T_F_MI_0_0>) _param_fw_t_min_eas_thrust_rpm_0_rho0,
+		(ParamFloat<px4::params::FW_T_F_MI_0_25>) _param_fw_t_min_eas_thrust_rpm_25_rho0,
+		(ParamFloat<px4::params::FW_T_F_MI_0_50>) _param_fw_t_min_eas_thrust_rpm_50_rho0,
+		(ParamFloat<px4::params::FW_T_F_MI_0_75>) _param_fw_t_min_eas_thrust_rpm_75_rho0,
+		(ParamFloat<px4::params::FW_T_F_MI_0_100>) _param_fw_t_min_eas_thrust_rpm_100_rho0,
 
-		(ParamFloat<px4::params::FW_T_F_TR_0_0>) _param_fw_t_trim_eas_thrust_throttle_0_rho0,
-		(ParamFloat<px4::params::FW_T_F_TR_0_25>) _param_fw_t_trim_eas_thrust_throttle_25_rho0,
-		(ParamFloat<px4::params::FW_T_F_TR_0_50>) _param_fw_t_trim_eas_thrust_throttle_50_rho0,
-		(ParamFloat<px4::params::FW_T_F_TR_0_75>) _param_fw_t_trim_eas_thrust_throttle_75_rho0,
-		(ParamFloat<px4::params::FW_T_F_TR_0_100>) _param_fw_t_trim_eas_thrust_throttle_100_rho0,
+		(ParamFloat<px4::params::FW_T_F_TR_0_0>) _param_fw_t_trim_eas_thrust_rpm_0_rho0,
+		(ParamFloat<px4::params::FW_T_F_TR_0_25>) _param_fw_t_trim_eas_thrust_rpm_25_rho0,
+		(ParamFloat<px4::params::FW_T_F_TR_0_50>) _param_fw_t_trim_eas_thrust_rpm_50_rho0,
+		(ParamFloat<px4::params::FW_T_F_TR_0_75>) _param_fw_t_trim_eas_thrust_rpm_75_rho0,
+		(ParamFloat<px4::params::FW_T_F_TR_0_100>) _param_fw_t_trim_eas_thrust_rpm_100_rho0,
 
-		(ParamFloat<px4::params::FW_T_F_MA_0_0>) _param_fw_t_max_eas_thrust_throttle_0_rho0,
-		(ParamFloat<px4::params::FW_T_F_MA_0_25>) _param_fw_t_max_eas_thrust_throttle_25_rho0,
-		(ParamFloat<px4::params::FW_T_F_MA_0_50>) _param_fw_t_max_eas_thrust_throttle_50_rho0,
-		(ParamFloat<px4::params::FW_T_F_MA_0_75>) _param_fw_t_max_eas_thrust_throttle_75_rho0,
-		(ParamFloat<px4::params::FW_T_F_MA_0_100>) _param_fw_t_max_eas_thrust_throttle_100_rho0,
+		(ParamFloat<px4::params::FW_T_F_MA_0_0>) _param_fw_t_max_eas_thrust_rpm_0_rho0,
+		(ParamFloat<px4::params::FW_T_F_MA_0_25>) _param_fw_t_max_eas_thrust_rpm_25_rho0,
+		(ParamFloat<px4::params::FW_T_F_MA_0_50>) _param_fw_t_max_eas_thrust_rpm_50_rho0,
+		(ParamFloat<px4::params::FW_T_F_MA_0_75>) _param_fw_t_max_eas_thrust_rpm_75_rho0,
+		(ParamFloat<px4::params::FW_T_F_MA_0_100>) _param_fw_t_max_eas_thrust_rpm_100_rho0,
 
-		(ParamFloat<px4::params::FW_T_F_LA_1_0>) _param_fw_t_land_eas_thrust_throttle_0_rho1,
-		(ParamFloat<px4::params::FW_T_F_LA_1_25>) _param_fw_t_land_eas_thrust_throttle_25_rho1,
-		(ParamFloat<px4::params::FW_T_F_LA_1_50>) _param_fw_t_land_eas_thrust_throttle_50_rho1,
-		(ParamFloat<px4::params::FW_T_F_LA_1_75>) _param_fw_t_land_eas_thrust_throttle_75_rho1,
-		(ParamFloat<px4::params::FW_T_F_LA_1_100>) _param_fw_t_land_eas_thrust_throttle_100_rho1,
+		(ParamFloat<px4::params::FW_T_F_LA_1_0>) _param_fw_t_land_eas_thrust_rpm_0_rho1,
+		(ParamFloat<px4::params::FW_T_F_LA_1_25>) _param_fw_t_land_eas_thrust_rpm_25_rho1,
+		(ParamFloat<px4::params::FW_T_F_LA_1_50>) _param_fw_t_land_eas_thrust_rpm_50_rho1,
+		(ParamFloat<px4::params::FW_T_F_LA_1_75>) _param_fw_t_land_eas_thrust_rpm_75_rho1,
+		(ParamFloat<px4::params::FW_T_F_LA_1_100>) _param_fw_t_land_eas_thrust_rpm_100_rho1,
 
-		(ParamFloat<px4::params::FW_T_F_MI_1_0>) _param_fw_t_min_eas_thrust_throttle_0_rho1,
-		(ParamFloat<px4::params::FW_T_F_MI_1_25>) _param_fw_t_min_eas_thrust_throttle_25_rho1,
-		(ParamFloat<px4::params::FW_T_F_MI_1_50>) _param_fw_t_min_eas_thrust_throttle_50_rho1,
-		(ParamFloat<px4::params::FW_T_F_MI_1_75>) _param_fw_t_min_eas_thrust_throttle_75_rho1,
-		(ParamFloat<px4::params::FW_T_F_MI_1_100>) _param_fw_t_min_eas_thrust_throttle_100_rho1,
+		(ParamFloat<px4::params::FW_T_F_MI_1_0>) _param_fw_t_min_eas_thrust_rpm_0_rho1,
+		(ParamFloat<px4::params::FW_T_F_MI_1_25>) _param_fw_t_min_eas_thrust_rpm_25_rho1,
+		(ParamFloat<px4::params::FW_T_F_MI_1_50>) _param_fw_t_min_eas_thrust_rpm_50_rho1,
+		(ParamFloat<px4::params::FW_T_F_MI_1_75>) _param_fw_t_min_eas_thrust_rpm_75_rho1,
+		(ParamFloat<px4::params::FW_T_F_MI_1_100>) _param_fw_t_min_eas_thrust_rpm_100_rho1,
 
-		(ParamFloat<px4::params::FW_T_F_TR_1_0>) _param_fw_t_trim_eas_thrust_throttle_0_rho1,
-		(ParamFloat<px4::params::FW_T_F_TR_1_25>) _param_fw_t_trim_eas_thrust_throttle_25_rho1,
-		(ParamFloat<px4::params::FW_T_F_TR_1_50>) _param_fw_t_trim_eas_thrust_throttle_50_rho1,
-		(ParamFloat<px4::params::FW_T_F_TR_1_75>) _param_fw_t_trim_eas_thrust_throttle_75_rho1,
-		(ParamFloat<px4::params::FW_T_F_TR_1_100>) _param_fw_t_trim_eas_thrust_throttle_100_rho1,
+		(ParamFloat<px4::params::FW_T_F_TR_1_0>) _param_fw_t_trim_eas_thrust_rpm_0_rho1,
+		(ParamFloat<px4::params::FW_T_F_TR_1_25>) _param_fw_t_trim_eas_thrust_rpm_25_rho1,
+		(ParamFloat<px4::params::FW_T_F_TR_1_50>) _param_fw_t_trim_eas_thrust_rpm_50_rho1,
+		(ParamFloat<px4::params::FW_T_F_TR_1_75>) _param_fw_t_trim_eas_thrust_rpm_75_rho1,
+		(ParamFloat<px4::params::FW_T_F_TR_1_100>) _param_fw_t_trim_eas_thrust_rpm_100_rho1,
 
-		(ParamFloat<px4::params::FW_T_F_MA_1_0>) _param_fw_t_max_eas_thrust_throttle_0_rho1,
-		(ParamFloat<px4::params::FW_T_F_MA_1_25>) _param_fw_t_max_eas_thrust_throttle_25_rho1,
-		(ParamFloat<px4::params::FW_T_F_MA_1_50>) _param_fw_t_max_eas_thrust_throttle_50_rho1,
-		(ParamFloat<px4::params::FW_T_F_MA_1_75>) _param_fw_t_max_eas_thrust_throttle_75_rho1,
-		(ParamFloat<px4::params::FW_T_F_MA_1_100>) _param_fw_t_max_eas_thrust_throttle_100_rho1,
+		(ParamFloat<px4::params::FW_T_F_MA_1_0>) _param_fw_t_max_eas_thrust_rpm_0_rho1,
+		(ParamFloat<px4::params::FW_T_F_MA_1_25>) _param_fw_t_max_eas_thrust_rpm_25_rho1,
+		(ParamFloat<px4::params::FW_T_F_MA_1_50>) _param_fw_t_max_eas_thrust_rpm_50_rho1,
+		(ParamFloat<px4::params::FW_T_F_MA_1_75>) _param_fw_t_max_eas_thrust_rpm_75_rho1,
+		(ParamFloat<px4::params::FW_T_F_MA_1_100>) _param_fw_t_max_eas_thrust_rpm_100_rho1,
 
-		(ParamFloat<px4::params::FW_T_F_LA_2_0>) _param_fw_t_land_eas_thrust_throttle_0_rho2,
-		(ParamFloat<px4::params::FW_T_F_LA_2_25>) _param_fw_t_land_eas_thrust_throttle_25_rho2,
-		(ParamFloat<px4::params::FW_T_F_LA_2_50>) _param_fw_t_land_eas_thrust_throttle_50_rho2,
-		(ParamFloat<px4::params::FW_T_F_LA_2_75>) _param_fw_t_land_eas_thrust_throttle_75_rho2,
-		(ParamFloat<px4::params::FW_T_F_LA_2_100>) _param_fw_t_land_eas_thrust_throttle_100_rho2,
+		(ParamFloat<px4::params::FW_T_F_LA_2_0>) _param_fw_t_land_eas_thrust_rpm_0_rho2,
+		(ParamFloat<px4::params::FW_T_F_LA_2_25>) _param_fw_t_land_eas_thrust_rpm_25_rho2,
+		(ParamFloat<px4::params::FW_T_F_LA_2_50>) _param_fw_t_land_eas_thrust_rpm_50_rho2,
+		(ParamFloat<px4::params::FW_T_F_LA_2_75>) _param_fw_t_land_eas_thrust_rpm_75_rho2,
+		(ParamFloat<px4::params::FW_T_F_LA_2_100>) _param_fw_t_land_eas_thrust_rpm_100_rho2,
 
-		(ParamFloat<px4::params::FW_T_F_MI_2_0>) _param_fw_t_min_eas_thrust_throttle_0_rho2,
-		(ParamFloat<px4::params::FW_T_F_MI_2_25>) _param_fw_t_min_eas_thrust_throttle_25_rho2,
-		(ParamFloat<px4::params::FW_T_F_MI_2_50>) _param_fw_t_min_eas_thrust_throttle_50_rho2,
-		(ParamFloat<px4::params::FW_T_F_MI_2_75>) _param_fw_t_min_eas_thrust_throttle_75_rho2,
-		(ParamFloat<px4::params::FW_T_F_MI_2_100>) _param_fw_t_min_eas_thrust_throttle_100_rho2,
+		(ParamFloat<px4::params::FW_T_F_MI_2_0>) _param_fw_t_min_eas_thrust_rpm_0_rho2,
+		(ParamFloat<px4::params::FW_T_F_MI_2_25>) _param_fw_t_min_eas_thrust_rpm_25_rho2,
+		(ParamFloat<px4::params::FW_T_F_MI_2_50>) _param_fw_t_min_eas_thrust_rpm_50_rho2,
+		(ParamFloat<px4::params::FW_T_F_MI_2_75>) _param_fw_t_min_eas_thrust_rpm_75_rho2,
+		(ParamFloat<px4::params::FW_T_F_MI_2_100>) _param_fw_t_min_eas_thrust_rpm_100_rho2,
 
-		(ParamFloat<px4::params::FW_T_F_TR_2_0>) _param_fw_t_trim_eas_thrust_throttle_0_rho2,
-		(ParamFloat<px4::params::FW_T_F_TR_2_25>) _param_fw_t_trim_eas_thrust_throttle_25_rho2,
-		(ParamFloat<px4::params::FW_T_F_TR_2_50>) _param_fw_t_trim_eas_thrust_throttle_50_rho2,
-		(ParamFloat<px4::params::FW_T_F_TR_2_75>) _param_fw_t_trim_eas_thrust_throttle_75_rho2,
-		(ParamFloat<px4::params::FW_T_F_TR_2_100>) _param_fw_t_trim_eas_thrust_throttle_100_rho2,
+		(ParamFloat<px4::params::FW_T_F_TR_2_0>) _param_fw_t_trim_eas_thrust_rpm_0_rho2,
+		(ParamFloat<px4::params::FW_T_F_TR_2_25>) _param_fw_t_trim_eas_thrust_rpm_25_rho2,
+		(ParamFloat<px4::params::FW_T_F_TR_2_50>) _param_fw_t_trim_eas_thrust_rpm_50_rho2,
+		(ParamFloat<px4::params::FW_T_F_TR_2_75>) _param_fw_t_trim_eas_thrust_rpm_75_rho2,
+		(ParamFloat<px4::params::FW_T_F_TR_2_100>) _param_fw_t_trim_eas_thrust_rpm_100_rho2,
 
-		(ParamFloat<px4::params::FW_T_F_MA_2_0>) _param_fw_t_max_eas_thrust_throttle_0_rho2,
-		(ParamFloat<px4::params::FW_T_F_MA_2_25>) _param_fw_t_max_eas_thrust_throttle_25_rho2,
-		(ParamFloat<px4::params::FW_T_F_MA_2_50>) _param_fw_t_max_eas_thrust_throttle_50_rho2,
-		(ParamFloat<px4::params::FW_T_F_MA_2_75>) _param_fw_t_max_eas_thrust_throttle_75_rho2,
-		(ParamFloat<px4::params::FW_T_F_MA_2_100>) _param_fw_t_max_eas_thrust_throttle_100_rho2,
+		(ParamFloat<px4::params::FW_T_F_MA_2_0>) _param_fw_t_max_eas_thrust_rpm_0_rho2,
+		(ParamFloat<px4::params::FW_T_F_MA_2_25>) _param_fw_t_max_eas_thrust_rpm_25_rho2,
+		(ParamFloat<px4::params::FW_T_F_MA_2_50>) _param_fw_t_max_eas_thrust_rpm_50_rho2,
+		(ParamFloat<px4::params::FW_T_F_MA_2_75>) _param_fw_t_max_eas_thrust_rpm_75_rho2,
+		(ParamFloat<px4::params::FW_T_F_MA_2_100>) _param_fw_t_max_eas_thrust_rpm_100_rho2,
+
+		(ParamFloat<px4::params::FW_T_MAX_RPM>) _param_fw_t_max_rpm,
+
+		(ParamFloat<px4::params::FW_T_I_GAIN_RPM>) _param_fw_t_rpm_integ_gain,
+		(ParamFloat<px4::params::FW_T_P_GAIN_RPM>) _param_fw_t_rpm_error_gain,
+		(ParamFloat<px4::params::FW_T_D_GAIN_RPM>) _param_fw_t_rpm_damping_gain,
 		
 		(ParamFloat<px4::params::FW_THR_ASPD_MIN>) _param_fw_thr_aspd_min,
 		(ParamFloat<px4::params::FW_THR_ASPD_MAX>) _param_fw_thr_aspd_max,

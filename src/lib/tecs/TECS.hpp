@@ -241,12 +241,12 @@ public:
 		float wingspan;							///< wingspan (m)
 		float wing_efficiency;					///< wing efficiency factor
 
-		float land_eas_thrust_throttle[3][5]; //first index is air density and second one is throttle
-		float min_eas_thrust_throttle[3][5];
-		float trim_eas_thrust_throttle[3][5];
-		float max_eas_thrust_throttle[3][5];
+		float land_eas_thrust_rpm[3][5]; //first index is air density and second one is throttle
+		float min_eas_thrust_rpm[3][5];
+		float trim_eas_thrust_rpm[3][5];
+		float max_eas_thrust_rpm[3][5];
 
-		float throttle_max_dynamic[3][4]; //First index is air density and the second one is airspeed selector [land|min|trim|max];
+		float rpm_max_dynamic[3][4]; //First index is air density and the second one is airspeed selector [land|min|trim|max];
 
 		bool use_dynamic_throttle_calculation;
 
@@ -259,6 +259,11 @@ public:
 		float pitchsp_offset_flaps_rad;
 		float cl_to_alpha_rad_slope;
 		float wing_area;
+
+		// RPM control param
+		float rpm_integrator_gain;
+		float rpm_error_gain;
+		float rpm_damping_gain;
 
 	};
 
@@ -276,6 +281,10 @@ public:
 		float pitch_integrator;				///< Pitch control integrator state [-].
 		float throttle_integrator;			///< Throttle control integrator state [-].
 		float thrust_setpoint;
+		float ste_rate_min;
+		float ste_rate_max;
+		float rpm_setpoint;
+		float max_rpm;
 	};
 
 	/**
@@ -301,6 +310,7 @@ public:
 		float flaps_setpoint;	///< Current flap setting.
 		float air_density;		///< Current air density [kg/m^3].
 		float eas_to_tas;
+		float rpm;
 	};
 
 	/**
@@ -366,6 +376,9 @@ public:
 	*/
 	float getThrustSetpoint() const {return _thrust_setpoint; };
 
+	bool getThrustValid() const {return _thrust_setpoint_valid; };
+
+
 private:
 	/**
 	 * @brief Specific total energy rate limit.
@@ -413,6 +426,8 @@ private:
 		float ske_weighting;	///< Specific kinetic energy weight.
 	};
 
+	ControlValues rpm_control;
+
 	/**
 	 *  @brief values for controlling the pitch setpoint offset
 	*/
@@ -448,11 +463,19 @@ private:
 
 	float _interpolateMaxThrustBetweenRho(const int lower_rho_index, const int upper_rho_index, const int throttle_index_upper_rho, const int throttle_index_lower_rho, const Input &input, const Param &param) const;
 
-	float _calcRequiredThrottleForThrust(const float desired_thrust, const float max_throttle, const Input &input, const Param &param) const;
+	float _calcMaxRPM(const Input &input, const Param &param) const;
 
-	float _calcThrottleAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_throttle, const int data_length) const;
+	float _calcMaxRPMtAtConstantRho(const float max_rpm_lower_airspeed, const float max_rpm_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const Input &input, const Param &param) const;
 
-	float _calcThrottleAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_throttle) const;
+	float _interpolateMaxRPMBetweenRho(const int lower_rho_index, const int upper_rho_index, const Input &input, const Param &param) const;
+
+	float _calcRequiredRPMForThrust(const float desired_thrust, const Input &input, const Param &param) const;
+
+	float _calcRPMAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_throttle, const int data_length) const;
+
+	float _calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_rpm_upper_as, const float max_rpm_lower_as) const;
+
+	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const Param &param);
 
 	/**
 	 * @brief calculate airspeed control proportional output.
@@ -604,6 +627,8 @@ private:
 	float _pitch_integ_state{0.0f};				///< Pitch integrator state [rad].
 	float _STE_rate_integ_state{0.0f};			///< Throttle integrator state [-].
 	float _rpm_integ_state{0.0f};
+	float _rpm_error_prev{0.0f};
+
 
 	// Output
 	DebugOutput _debug_output;				///< Debug output.
@@ -612,6 +637,8 @@ private:
 	float _ratio_undersped{0.0f};				///< A continuous representation of how "undersped" the TAS is [0,1]
 
 	float _thrust_setpoint{0.0f};
+	bool _thrust_setpoint_valid{false};
+
 
 	PitchSetpointOffset _pitchSetpointOffset;
 };
@@ -664,14 +691,14 @@ public:
 	void update(float pitch, float altitude, float hgt_setpoint, float EAS_setpoint, float equivalent_airspeed,
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
-		    float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density,
+		    float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density, float rpm,
 			float hgt_rate_sp = NAN);
 
 	/**
 	 * @brief Initialize the control loop
 	 *
 	 */
-	void initialize(float altitude, float altitude_rate, float equivalent_airspeed, float eas_to_tas);
+	void initialize(float altitude, float altitude_rate, float equivalent_airspeed, float eas_to_tas, float rpm);
 
 	void resetIntegrals()
 	{
@@ -730,173 +757,176 @@ public:
 
 	void set_propulsion_type(int type) {_control_param.propulsion_type = type;};
 
-	void set_thrust_throttle_parameters(
-		float land_eas_thrust_throttle_0_rho0,
-		float land_eas_thrust_throttle_25_rho0,
-		float land_eas_thrust_throttle_50_rho0,
-		float land_eas_thrust_throttle_75_rho0,
-		float land_eas_thrust_throttle_100_rho0,
+	void set_thrust_rpm_parameters(
+		float land_eas_thrust_rpm_0_rho0,
+		float land_eas_thrust_rpm_25_rho0,
+		float land_eas_thrust_rpm_50_rho0,
+		float land_eas_thrust_rpm_75_rho0,
+		float land_eas_thrust_rpm_100_rho0,
 
-		float min_eas_thrust_throttle_0_rho0,
-		float min_eas_thrust_throttle_25_rho0,
-		float min_eas_thrust_throttle_50_rho0,
-		float min_eas_thrust_throttle_75_rho0,
-		float min_eas_thrust_throttle_100_rho0,
+		float min_eas_thrust_rpm_0_rho0,
+		float min_eas_thrust_rpm_25_rho0,
+		float min_eas_thrust_rpm_50_rho0,
+		float min_eas_thrust_rpm_75_rho0,
+		float min_eas_thrust_rpm_100_rho0,
 
-		float trim_eas_thrust_throttle_0_rho0,
-		float trim_eas_thrust_throttle_25_rho0,
-		float trim_eas_thrust_throttle_50_rho0,
-		float trim_eas_thrust_throttle_75_rho0,
-		float trim_eas_thrust_throttle_100_rho0,
+		float trim_eas_thrust_rpm_0_rho0,
+		float trim_eas_thrust_rpm_25_rho0,
+		float trim_eas_thrust_rpm_50_rho0,
+		float trim_eas_thrust_rpm_75_rho0,
+		float trim_eas_thrust_rpm_100_rho0,
 
-		float max_eas_thrust_throttle_0_rho0,
-		float max_eas_thrust_throttle_25_rho0,
-		float max_eas_thrust_throttle_50_rho0,
-		float max_eas_thrust_throttle_75_rho0,
-		float max_eas_thrust_throttle_100_rho0,
+		float max_eas_thrust_rpm_0_rho0,
+		float max_eas_thrust_rpm_25_rho0,
+		float max_eas_thrust_rpm_50_rho0,
+		float max_eas_thrust_rpm_75_rho0,
+		float max_eas_thrust_rpm_100_rho0,
 
-		float land_eas_thrust_throttle_0_rho1,
-		float land_eas_thrust_throttle_25_rho1,
-		float land_eas_thrust_throttle_50_rho1,
-		float land_eas_thrust_throttle_75_rho1,
-		float land_eas_thrust_throttle_100_rho1,
+		float land_eas_thrust_rpm_0_rho1,
+		float land_eas_thrust_rpm_25_rho1,
+		float land_eas_thrust_rpm_50_rho1,
+		float land_eas_thrust_rpm_75_rho1,
+		float land_eas_thrust_rpm_100_rho1,
 
-		float min_eas_thrust_throttle_0_rho1,
-		float min_eas_thrust_throttle_25_rho1,
-		float min_eas_thrust_throttle_50_rho1,
-		float min_eas_thrust_throttle_75_rho1,
-		float min_eas_thrust_throttle_100_rho1,
+		float min_eas_thrust_rpm_0_rho1,
+		float min_eas_thrust_rpm_25_rho1,
+		float min_eas_thrust_rpm_50_rho1,
+		float min_eas_thrust_rpm_75_rho1,
+		float min_eas_thrust_rpm_100_rho1,
 
-		float trim_eas_thrust_throttle_0_rho1,
-		float trim_eas_thrust_throttle_25_rho1,
-		float trim_eas_thrust_throttle_50_rho1,
-		float trim_eas_thrust_throttle_75_rho1,
-		float trim_eas_thrust_throttle_100_rho1,
+		float trim_eas_thrust_rpm_0_rho1,
+		float trim_eas_thrust_rpm_25_rho1,
+		float trim_eas_thrust_rpm_50_rho1,
+		float trim_eas_thrust_rpm_75_rho1,
+		float trim_eas_thrust_rpm_100_rho1,
 
-		float max_eas_thrust_throttle_0_rho1,
-		float max_eas_thrust_throttle_25_rho1,
-		float max_eas_thrust_throttle_50_rho1,
-		float max_eas_thrust_throttle_75_rho1,
-		float max_eas_thrust_throttle_100_rho1,
+		float max_eas_thrust_rpm_0_rho1,
+		float max_eas_thrust_rpm_25_rho1,
+		float max_eas_thrust_rpm_50_rho1,
+		float max_eas_thrust_rpm_75_rho1,
+		float max_eas_thrust_rpm_100_rho1,
 
-		float land_eas_thrust_throttle_0_rho2,
-		float land_eas_thrust_throttle_25_rho2,
-		float land_eas_thrust_throttle_50_rho2,
-		float land_eas_thrust_throttle_75_rho2,
-		float land_eas_thrust_throttle_100_rho2,
+		float land_eas_thrust_rpm_0_rho2,
+		float land_eas_thrust_rpm_25_rho2,
+		float land_eas_thrust_rpm_50_rho2,
+		float land_eas_thrust_rpm_75_rho2,
+		float land_eas_thrust_rpm_100_rho2,
 
-		float min_eas_thrust_throttle_0_rho2,
-		float min_eas_thrust_throttle_25_rho2,
-		float min_eas_thrust_throttle_50_rho2,
-		float min_eas_thrust_throttle_75_rho2,
-		float min_eas_thrust_throttle_100_rho2,
+		float min_eas_thrust_rpm_0_rho2,
+		float min_eas_thrust_rpm_25_rho2,
+		float min_eas_thrust_rpm_50_rho2,
+		float min_eas_thrust_rpm_75_rho2,
+		float min_eas_thrust_rpm_100_rho2,
 
-		float trim_eas_thrust_throttle_0_rho2,
-		float trim_eas_thrust_throttle_25_rho2,
-		float trim_eas_thrust_throttle_50_rho2,
-		float trim_eas_thrust_throttle_75_rho2,
-		float trim_eas_thrust_throttle_100_rho2,
+		float trim_eas_thrust_rpm_0_rho2,
+		float trim_eas_thrust_rpm_25_rho2,
+		float trim_eas_thrust_rpm_50_rho2,
+		float trim_eas_thrust_rpm_75_rho2,
+		float trim_eas_thrust_rpm_100_rho2,
 
-		float max_eas_thrust_throttle_0_rho2,
-		float max_eas_thrust_throttle_25_rho2,
-		float max_eas_thrust_throttle_50_rho2,
-		float max_eas_thrust_throttle_75_rho2,
-		float max_eas_thrust_throttle_100_rho2
+		float max_eas_thrust_rpm_0_rho2,
+		float max_eas_thrust_rpm_25_rho2,
+		float max_eas_thrust_rpm_50_rho2,
+		float max_eas_thrust_rpm_75_rho2,
+		float max_eas_thrust_rpm_100_rho2
 	)
 		{
-		_control_param.land_eas_thrust_throttle[0][0] = land_eas_thrust_throttle_0_rho0;
-		_control_param.land_eas_thrust_throttle[0][1] = land_eas_thrust_throttle_25_rho0;
-		_control_param.land_eas_thrust_throttle[0][2] = land_eas_thrust_throttle_50_rho0;
-		_control_param.land_eas_thrust_throttle[0][3] = land_eas_thrust_throttle_75_rho0;
-		_control_param.land_eas_thrust_throttle[0][4] = land_eas_thrust_throttle_100_rho0;
+		_control_param.land_eas_thrust_rpm[0][0] = land_eas_thrust_rpm_0_rho0;
+		_control_param.land_eas_thrust_rpm[0][1] = land_eas_thrust_rpm_25_rho0;
+		_control_param.land_eas_thrust_rpm[0][2] = land_eas_thrust_rpm_50_rho0;
+		_control_param.land_eas_thrust_rpm[0][3] = land_eas_thrust_rpm_75_rho0;
+		_control_param.land_eas_thrust_rpm[0][4] = land_eas_thrust_rpm_100_rho0;
 
-		_control_param.min_eas_thrust_throttle[0][0] = min_eas_thrust_throttle_0_rho0;
-		_control_param.min_eas_thrust_throttle[0][1] = min_eas_thrust_throttle_25_rho0;
-		_control_param.min_eas_thrust_throttle[0][2] = min_eas_thrust_throttle_50_rho0;
-		_control_param.min_eas_thrust_throttle[0][3] = min_eas_thrust_throttle_75_rho0;
-		_control_param.min_eas_thrust_throttle[0][4] = min_eas_thrust_throttle_100_rho0;
+		_control_param.min_eas_thrust_rpm[0][0] = min_eas_thrust_rpm_0_rho0;
+		_control_param.min_eas_thrust_rpm[0][1] = min_eas_thrust_rpm_25_rho0;
+		_control_param.min_eas_thrust_rpm[0][2] = min_eas_thrust_rpm_50_rho0;
+		_control_param.min_eas_thrust_rpm[0][3] = min_eas_thrust_rpm_75_rho0;
+		_control_param.min_eas_thrust_rpm[0][4] = min_eas_thrust_rpm_100_rho0;
 
-		_control_param.trim_eas_thrust_throttle[0][0] = trim_eas_thrust_throttle_0_rho0;
-		_control_param.trim_eas_thrust_throttle[0][1] = trim_eas_thrust_throttle_25_rho0;
-		_control_param.trim_eas_thrust_throttle[0][2] = trim_eas_thrust_throttle_50_rho0;
-		_control_param.trim_eas_thrust_throttle[0][3] = trim_eas_thrust_throttle_75_rho0;
-		_control_param.trim_eas_thrust_throttle[0][4] = trim_eas_thrust_throttle_100_rho0;
+		_control_param.trim_eas_thrust_rpm[0][0] = trim_eas_thrust_rpm_0_rho0;
+		_control_param.trim_eas_thrust_rpm[0][1] = trim_eas_thrust_rpm_25_rho0;
+		_control_param.trim_eas_thrust_rpm[0][2] = trim_eas_thrust_rpm_50_rho0;
+		_control_param.trim_eas_thrust_rpm[0][3] = trim_eas_thrust_rpm_75_rho0;
+		_control_param.trim_eas_thrust_rpm[0][4] = trim_eas_thrust_rpm_100_rho0;
 
-		_control_param.max_eas_thrust_throttle[0][0] = max_eas_thrust_throttle_0_rho0;
-		_control_param.max_eas_thrust_throttle[0][1] = max_eas_thrust_throttle_25_rho0;
-		_control_param.max_eas_thrust_throttle[0][2] = max_eas_thrust_throttle_50_rho0;
-		_control_param.max_eas_thrust_throttle[0][3] = max_eas_thrust_throttle_75_rho0;
-		_control_param.max_eas_thrust_throttle[0][4] = max_eas_thrust_throttle_100_rho0;
+		_control_param.max_eas_thrust_rpm[0][0] = max_eas_thrust_rpm_0_rho0;
+		_control_param.max_eas_thrust_rpm[0][1] = max_eas_thrust_rpm_25_rho0;
+		_control_param.max_eas_thrust_rpm[0][2] = max_eas_thrust_rpm_50_rho0;
+		_control_param.max_eas_thrust_rpm[0][3] = max_eas_thrust_rpm_75_rho0;
+		_control_param.max_eas_thrust_rpm[0][4] = max_eas_thrust_rpm_100_rho0;
 
-		_control_param.land_eas_thrust_throttle[1][0] = land_eas_thrust_throttle_0_rho1;
-		_control_param.land_eas_thrust_throttle[1][1] = land_eas_thrust_throttle_25_rho1;
-		_control_param.land_eas_thrust_throttle[1][2] = land_eas_thrust_throttle_50_rho1;
-		_control_param.land_eas_thrust_throttle[1][3] = land_eas_thrust_throttle_75_rho1;
-		_control_param.land_eas_thrust_throttle[1][4] = land_eas_thrust_throttle_100_rho1;
+		_control_param.land_eas_thrust_rpm[1][0] = land_eas_thrust_rpm_0_rho1;
+		_control_param.land_eas_thrust_rpm[1][1] = land_eas_thrust_rpm_25_rho1;
+		_control_param.land_eas_thrust_rpm[1][2] = land_eas_thrust_rpm_50_rho1;
+		_control_param.land_eas_thrust_rpm[1][3] = land_eas_thrust_rpm_75_rho1;
+		_control_param.land_eas_thrust_rpm[1][4] = land_eas_thrust_rpm_100_rho1;
 
-		_control_param.min_eas_thrust_throttle[1][0] = min_eas_thrust_throttle_0_rho1;
-		_control_param.min_eas_thrust_throttle[1][1] = min_eas_thrust_throttle_25_rho1;
-		_control_param.min_eas_thrust_throttle[1][2] = min_eas_thrust_throttle_50_rho1;
-		_control_param.min_eas_thrust_throttle[1][3] = min_eas_thrust_throttle_75_rho1;
-		_control_param.min_eas_thrust_throttle[1][4] = min_eas_thrust_throttle_100_rho1;
+		_control_param.min_eas_thrust_rpm[1][0] = min_eas_thrust_rpm_0_rho1;
+		_control_param.min_eas_thrust_rpm[1][1] = min_eas_thrust_rpm_25_rho1;
+		_control_param.min_eas_thrust_rpm[1][2] = min_eas_thrust_rpm_50_rho1;
+		_control_param.min_eas_thrust_rpm[1][3] = min_eas_thrust_rpm_75_rho1;
+		_control_param.min_eas_thrust_rpm[1][4] = min_eas_thrust_rpm_100_rho1;
 
-		_control_param.trim_eas_thrust_throttle[1][0] = trim_eas_thrust_throttle_0_rho1;
-		_control_param.trim_eas_thrust_throttle[1][1] = trim_eas_thrust_throttle_25_rho1;
-		_control_param.trim_eas_thrust_throttle[1][2] = trim_eas_thrust_throttle_50_rho1;
-		_control_param.trim_eas_thrust_throttle[1][3] = trim_eas_thrust_throttle_75_rho1;
-		_control_param.trim_eas_thrust_throttle[1][4] = trim_eas_thrust_throttle_100_rho1;
+		_control_param.trim_eas_thrust_rpm[1][0] = trim_eas_thrust_rpm_0_rho1;
+		_control_param.trim_eas_thrust_rpm[1][1] = trim_eas_thrust_rpm_25_rho1;
+		_control_param.trim_eas_thrust_rpm[1][2] = trim_eas_thrust_rpm_50_rho1;
+		_control_param.trim_eas_thrust_rpm[1][3] = trim_eas_thrust_rpm_75_rho1;
+		_control_param.trim_eas_thrust_rpm[1][4] = trim_eas_thrust_rpm_100_rho1;
 
-		_control_param.max_eas_thrust_throttle[1][0] = max_eas_thrust_throttle_0_rho1;
-		_control_param.max_eas_thrust_throttle[1][1] = max_eas_thrust_throttle_25_rho1;
-		_control_param.max_eas_thrust_throttle[1][2] = max_eas_thrust_throttle_50_rho1;
-		_control_param.max_eas_thrust_throttle[1][3] = max_eas_thrust_throttle_75_rho1;
-		_control_param.max_eas_thrust_throttle[1][4] = max_eas_thrust_throttle_100_rho1;
+		_control_param.max_eas_thrust_rpm[1][0] = max_eas_thrust_rpm_0_rho1;
+		_control_param.max_eas_thrust_rpm[1][1] = max_eas_thrust_rpm_25_rho1;
+		_control_param.max_eas_thrust_rpm[1][2] = max_eas_thrust_rpm_50_rho1;
+		_control_param.max_eas_thrust_rpm[1][3] = max_eas_thrust_rpm_75_rho1;
+		_control_param.max_eas_thrust_rpm[1][4] = max_eas_thrust_rpm_100_rho1;
 
-		_control_param.land_eas_thrust_throttle[2][0] = land_eas_thrust_throttle_0_rho2;
-		_control_param.land_eas_thrust_throttle[2][1] = land_eas_thrust_throttle_25_rho2;
-		_control_param.land_eas_thrust_throttle[2][2] = land_eas_thrust_throttle_50_rho2;
-		_control_param.land_eas_thrust_throttle[2][3] = land_eas_thrust_throttle_75_rho2;
-		_control_param.land_eas_thrust_throttle[2][4] = land_eas_thrust_throttle_100_rho2;
+		_control_param.land_eas_thrust_rpm[2][0] = land_eas_thrust_rpm_0_rho2;
+		_control_param.land_eas_thrust_rpm[2][1] = land_eas_thrust_rpm_25_rho2;
+		_control_param.land_eas_thrust_rpm[2][2] = land_eas_thrust_rpm_50_rho2;
+		_control_param.land_eas_thrust_rpm[2][3] = land_eas_thrust_rpm_75_rho2;
+		_control_param.land_eas_thrust_rpm[2][4] = land_eas_thrust_rpm_100_rho2;
 
-		_control_param.min_eas_thrust_throttle[2][0] = min_eas_thrust_throttle_0_rho2;
-		_control_param.min_eas_thrust_throttle[2][1] = min_eas_thrust_throttle_25_rho2;
-		_control_param.min_eas_thrust_throttle[2][2] = min_eas_thrust_throttle_50_rho2;
-		_control_param.min_eas_thrust_throttle[2][3] = min_eas_thrust_throttle_75_rho2;
-		_control_param.min_eas_thrust_throttle[2][4] = min_eas_thrust_throttle_100_rho2;
+		_control_param.min_eas_thrust_rpm[2][0] = min_eas_thrust_rpm_0_rho2;
+		_control_param.min_eas_thrust_rpm[2][1] = min_eas_thrust_rpm_25_rho2;
+		_control_param.min_eas_thrust_rpm[2][2] = min_eas_thrust_rpm_50_rho2;
+		_control_param.min_eas_thrust_rpm[2][3] = min_eas_thrust_rpm_75_rho2;
+		_control_param.min_eas_thrust_rpm[2][4] = min_eas_thrust_rpm_100_rho2;
 
-		_control_param.trim_eas_thrust_throttle[2][0] = trim_eas_thrust_throttle_0_rho2;
-		_control_param.trim_eas_thrust_throttle[2][1] = trim_eas_thrust_throttle_25_rho2;
-		_control_param.trim_eas_thrust_throttle[2][2] = trim_eas_thrust_throttle_50_rho2;
-		_control_param.trim_eas_thrust_throttle[2][3] = trim_eas_thrust_throttle_75_rho2;
-		_control_param.trim_eas_thrust_throttle[2][4] = trim_eas_thrust_throttle_100_rho2;
+		_control_param.trim_eas_thrust_rpm[2][0] = trim_eas_thrust_rpm_0_rho2;
+		_control_param.trim_eas_thrust_rpm[2][1] = trim_eas_thrust_rpm_25_rho2;
+		_control_param.trim_eas_thrust_rpm[2][2] = trim_eas_thrust_rpm_50_rho2;
+		_control_param.trim_eas_thrust_rpm[2][3] = trim_eas_thrust_rpm_75_rho2;
+		_control_param.trim_eas_thrust_rpm[2][4] = trim_eas_thrust_rpm_100_rho2;
 
-		_control_param.max_eas_thrust_throttle[2][0] = max_eas_thrust_throttle_0_rho2;
-		_control_param.max_eas_thrust_throttle[2][1] = max_eas_thrust_throttle_25_rho2;
-		_control_param.max_eas_thrust_throttle[2][2] = max_eas_thrust_throttle_50_rho2;
-		_control_param.max_eas_thrust_throttle[2][3] = max_eas_thrust_throttle_75_rho2;
-		_control_param.max_eas_thrust_throttle[2][4] = max_eas_thrust_throttle_100_rho2;
+		_control_param.max_eas_thrust_rpm[2][0] = max_eas_thrust_rpm_0_rho2;
+		_control_param.max_eas_thrust_rpm[2][1] = max_eas_thrust_rpm_25_rho2;
+		_control_param.max_eas_thrust_rpm[2][2] = max_eas_thrust_rpm_50_rho2;
+		_control_param.max_eas_thrust_rpm[2][3] = max_eas_thrust_rpm_75_rho2;
+		_control_param.max_eas_thrust_rpm[2][4] = max_eas_thrust_rpm_100_rho2;
 		};
 
-	void set_throttle_max_dynamic(float throttle_max){
+	void set_rpm_max_dynamic(float rpm_max){
 		//In the future this could change
-		_control_param.throttle_max_dynamic[0][0] = throttle_max;
-		_control_param.throttle_max_dynamic[0][1] = throttle_max;
-		_control_param.throttle_max_dynamic[0][2] = throttle_max;
-		_control_param.throttle_max_dynamic[0][3] = throttle_max;
+		_control_param.rpm_max_dynamic[0][0] = rpm_max;
+		_control_param.rpm_max_dynamic[0][1] = rpm_max;
+		_control_param.rpm_max_dynamic[0][2] = rpm_max;
+		_control_param.rpm_max_dynamic[0][3] = rpm_max;
 
-		_control_param.throttle_max_dynamic[1][0] = throttle_max;
-		_control_param.throttle_max_dynamic[1][1] = throttle_max;
-		_control_param.throttle_max_dynamic[1][2] = throttle_max;
-		_control_param.throttle_max_dynamic[1][3] = throttle_max;
+		_control_param.rpm_max_dynamic[1][0] = rpm_max;
+		_control_param.rpm_max_dynamic[1][1] = rpm_max;
+		_control_param.rpm_max_dynamic[1][2] = rpm_max;
+		_control_param.rpm_max_dynamic[1][3] = rpm_max;
 
-		_control_param.throttle_max_dynamic[2][0] = throttle_max;
-		_control_param.throttle_max_dynamic[2][1] = throttle_max;
-		_control_param.throttle_max_dynamic[2][2] = throttle_max;
-		_control_param.throttle_max_dynamic[2][3] = throttle_max;
+		_control_param.rpm_max_dynamic[2][0] = rpm_max;
+		_control_param.rpm_max_dynamic[2][1] = rpm_max;
+		_control_param.rpm_max_dynamic[2][2] = rpm_max;
+		_control_param.rpm_max_dynamic[2][3] = rpm_max;
 	}
 
 	void set_use_dynamic_throttle_calculation(bool use) {_control_param.use_dynamic_throttle_calculation = use; };
 
+	void set_rpm_integ_gain(float ki) {_control_param.rpm_integrator_gain = ki; };
+	void set_rpm_error_gain(float kp) {_control_param.rpm_error_gain = kp; };
+	void set_rpm_damping_gain(float kd) {_control_param.rpm_damping_gain = kd; };
 
 	/**
 	 * Handle the altitude reset
@@ -916,6 +946,8 @@ public:
 	float get_pitch_setpoint() {return _control.getPitchSetpoint();}
 	float get_throttle_setpoint() {return _control.getThrottleSetpoint();}
 	float get_thrust_setpoint() {return _control.getThrustSetpoint();}
+	bool get_thrust_valid() {return _control.getThrustValid();}
+
 
 	uint64_t timestamp() { return _update_timestamp; }
 	ECL_TECS_MODE tecs_mode() { return _tecs_mode; }

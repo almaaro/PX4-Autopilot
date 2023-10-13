@@ -154,90 +154,92 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 
-	_tecs.set_thrust_throttle_parameters(
-		_param_fw_t_land_eas_thrust_throttle_0_rho0.get(),
-		_param_fw_t_land_eas_thrust_throttle_25_rho0.get(),
-		_param_fw_t_land_eas_thrust_throttle_50_rho0.get(),
-		_param_fw_t_land_eas_thrust_throttle_75_rho0.get(),
-		_param_fw_t_land_eas_thrust_throttle_100_rho0.get(),
+	_tecs.set_thrust_rpm_parameters(
+		_param_fw_t_land_eas_thrust_rpm_0_rho0.get(),
+		_param_fw_t_land_eas_thrust_rpm_25_rho0.get(),
+		_param_fw_t_land_eas_thrust_rpm_50_rho0.get(),
+		_param_fw_t_land_eas_thrust_rpm_75_rho0.get(),
+		_param_fw_t_land_eas_thrust_rpm_100_rho0.get(),
 
-		_param_fw_t_min_eas_thrust_throttle_0_rho0.get(),
-		_param_fw_t_min_eas_thrust_throttle_25_rho0.get(),
-		_param_fw_t_min_eas_thrust_throttle_50_rho0.get(),
-		_param_fw_t_min_eas_thrust_throttle_75_rho0.get(),
-		_param_fw_t_min_eas_thrust_throttle_100_rho0.get(),
+		_param_fw_t_min_eas_thrust_rpm_0_rho0.get(),
+		_param_fw_t_min_eas_thrust_rpm_25_rho0.get(),
+		_param_fw_t_min_eas_thrust_rpm_50_rho0.get(),
+		_param_fw_t_min_eas_thrust_rpm_75_rho0.get(),
+		_param_fw_t_min_eas_thrust_rpm_100_rho0.get(),
 
-		_param_fw_t_trim_eas_thrust_throttle_0_rho0.get(),
-		_param_fw_t_trim_eas_thrust_throttle_25_rho0.get(),
-		_param_fw_t_trim_eas_thrust_throttle_50_rho0.get(),
-		_param_fw_t_trim_eas_thrust_throttle_75_rho0.get(),
-		_param_fw_t_trim_eas_thrust_throttle_100_rho0.get(),
+		_param_fw_t_trim_eas_thrust_rpm_0_rho0.get(),
+		_param_fw_t_trim_eas_thrust_rpm_25_rho0.get(),
+		_param_fw_t_trim_eas_thrust_rpm_50_rho0.get(),
+		_param_fw_t_trim_eas_thrust_rpm_75_rho0.get(),
+		_param_fw_t_trim_eas_thrust_rpm_100_rho0.get(),
 
-		_param_fw_t_max_eas_thrust_throttle_0_rho0.get(),
-		_param_fw_t_max_eas_thrust_throttle_25_rho0.get(),
-		_param_fw_t_max_eas_thrust_throttle_50_rho0.get(),
-		_param_fw_t_max_eas_thrust_throttle_75_rho0.get(),
-		_param_fw_t_max_eas_thrust_throttle_100_rho0.get(),
+		_param_fw_t_max_eas_thrust_rpm_0_rho0.get(),
+		_param_fw_t_max_eas_thrust_rpm_25_rho0.get(),
+		_param_fw_t_max_eas_thrust_rpm_50_rho0.get(),
+		_param_fw_t_max_eas_thrust_rpm_75_rho0.get(),
+		_param_fw_t_max_eas_thrust_rpm_100_rho0.get(),
 
-		_param_fw_t_land_eas_thrust_throttle_0_rho1.get(),
-		_param_fw_t_land_eas_thrust_throttle_25_rho1.get(),
-		_param_fw_t_land_eas_thrust_throttle_50_rho1.get(),
-		_param_fw_t_land_eas_thrust_throttle_75_rho1.get(),
-		_param_fw_t_land_eas_thrust_throttle_100_rho1.get(),
+		_param_fw_t_land_eas_thrust_rpm_0_rho1.get(),
+		_param_fw_t_land_eas_thrust_rpm_25_rho1.get(),
+		_param_fw_t_land_eas_thrust_rpm_50_rho1.get(),
+		_param_fw_t_land_eas_thrust_rpm_75_rho1.get(),
+		_param_fw_t_land_eas_thrust_rpm_100_rho1.get(),
 
-		_param_fw_t_min_eas_thrust_throttle_0_rho1.get(),
-		_param_fw_t_min_eas_thrust_throttle_25_rho1.get(),
-		_param_fw_t_min_eas_thrust_throttle_50_rho1.get(),
-		_param_fw_t_min_eas_thrust_throttle_75_rho1.get(),
-		_param_fw_t_min_eas_thrust_throttle_100_rho1.get(),
+		_param_fw_t_min_eas_thrust_rpm_0_rho1.get(),
+		_param_fw_t_min_eas_thrust_rpm_25_rho1.get(),
+		_param_fw_t_min_eas_thrust_rpm_50_rho1.get(),
+		_param_fw_t_min_eas_thrust_rpm_75_rho1.get(),
+		_param_fw_t_min_eas_thrust_rpm_100_rho1.get(),
 
-		_param_fw_t_trim_eas_thrust_throttle_0_rho1.get(),
-		_param_fw_t_trim_eas_thrust_throttle_25_rho1.get(),
-		_param_fw_t_trim_eas_thrust_throttle_50_rho1.get(),
-		_param_fw_t_trim_eas_thrust_throttle_75_rho1.get(),
-		_param_fw_t_trim_eas_thrust_throttle_100_rho1.get(),
+		_param_fw_t_trim_eas_thrust_rpm_0_rho1.get(),
+		_param_fw_t_trim_eas_thrust_rpm_25_rho1.get(),
+		_param_fw_t_trim_eas_thrust_rpm_50_rho1.get(),
+		_param_fw_t_trim_eas_thrust_rpm_75_rho1.get(),
+		_param_fw_t_trim_eas_thrust_rpm_100_rho1.get(),
 
-		_param_fw_t_max_eas_thrust_throttle_0_rho1.get(),
-		_param_fw_t_max_eas_thrust_throttle_25_rho1.get(),
-		_param_fw_t_max_eas_thrust_throttle_50_rho1.get(),
-		_param_fw_t_max_eas_thrust_throttle_75_rho1.get(),
-		_param_fw_t_max_eas_thrust_throttle_100_rho1.get(),
+		_param_fw_t_max_eas_thrust_rpm_0_rho1.get(),
+		_param_fw_t_max_eas_thrust_rpm_25_rho1.get(),
+		_param_fw_t_max_eas_thrust_rpm_50_rho1.get(),
+		_param_fw_t_max_eas_thrust_rpm_75_rho1.get(),
+		_param_fw_t_max_eas_thrust_rpm_100_rho1.get(),
 
-		_param_fw_t_land_eas_thrust_throttle_0_rho2.get(),
-		_param_fw_t_land_eas_thrust_throttle_25_rho2.get(),
-		_param_fw_t_land_eas_thrust_throttle_50_rho2.get(),
-		_param_fw_t_land_eas_thrust_throttle_75_rho2.get(),
-		_param_fw_t_land_eas_thrust_throttle_100_rho2.get(),
+		_param_fw_t_land_eas_thrust_rpm_0_rho2.get(),
+		_param_fw_t_land_eas_thrust_rpm_25_rho2.get(),
+		_param_fw_t_land_eas_thrust_rpm_50_rho2.get(),
+		_param_fw_t_land_eas_thrust_rpm_75_rho2.get(),
+		_param_fw_t_land_eas_thrust_rpm_100_rho2.get(),
 
-		_param_fw_t_min_eas_thrust_throttle_0_rho2.get(),
-		_param_fw_t_min_eas_thrust_throttle_25_rho2.get(),
-		_param_fw_t_min_eas_thrust_throttle_50_rho2.get(),
-		_param_fw_t_min_eas_thrust_throttle_75_rho2.get(),
-		_param_fw_t_min_eas_thrust_throttle_100_rho2.get(),
+		_param_fw_t_min_eas_thrust_rpm_0_rho2.get(),
+		_param_fw_t_min_eas_thrust_rpm_25_rho2.get(),
+		_param_fw_t_min_eas_thrust_rpm_50_rho2.get(),
+		_param_fw_t_min_eas_thrust_rpm_75_rho2.get(),
+		_param_fw_t_min_eas_thrust_rpm_100_rho2.get(),
 
-		_param_fw_t_trim_eas_thrust_throttle_0_rho2.get(),
-		_param_fw_t_trim_eas_thrust_throttle_25_rho2.get(),
-		_param_fw_t_trim_eas_thrust_throttle_50_rho2.get(),
-		_param_fw_t_trim_eas_thrust_throttle_75_rho2.get(),
-		_param_fw_t_trim_eas_thrust_throttle_100_rho2.get(),
+		_param_fw_t_trim_eas_thrust_rpm_0_rho2.get(),
+		_param_fw_t_trim_eas_thrust_rpm_25_rho2.get(),
+		_param_fw_t_trim_eas_thrust_rpm_50_rho2.get(),
+		_param_fw_t_trim_eas_thrust_rpm_75_rho2.get(),
+		_param_fw_t_trim_eas_thrust_rpm_100_rho2.get(),
 
-		_param_fw_t_max_eas_thrust_throttle_0_rho2.get(),
-		_param_fw_t_max_eas_thrust_throttle_25_rho2.get(),
-		_param_fw_t_max_eas_thrust_throttle_50_rho2.get(),
-		_param_fw_t_max_eas_thrust_throttle_75_rho2.get(),
-		_param_fw_t_max_eas_thrust_throttle_100_rho2.get()
+		_param_fw_t_max_eas_thrust_rpm_0_rho2.get(),
+		_param_fw_t_max_eas_thrust_rpm_25_rho2.get(),
+		_param_fw_t_max_eas_thrust_rpm_50_rho2.get(),
+		_param_fw_t_max_eas_thrust_rpm_75_rho2.get(),
+		_param_fw_t_max_eas_thrust_rpm_100_rho2.get()
 	);
 	
-	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
+	_tecs.set_rpm_max_dynamic(_param_fw_t_max_rpm.get());
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 	_tecs.set_wingspan(_param_fw_wing_span.get());
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 
-	_tecs.set_throttle_max_dynamic(_param_fw_thr_max.get());
-
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
+
+	_tecs.set_rpm_integ_gain(_param_fw_t_rpm_integ_gain.get());
+	_tecs.set_rpm_error_gain(_param_fw_t_rpm_error_gain.get());
+	_tecs.set_rpm_damping_gain(_param_fw_t_rpm_damping_gain.get());
 
 	_tecs.set_pitchsp_offset_rad(radians(_param_fw_psp_off.get()));
 	_tecs.set_pitchsp_offset_flaps_rad(radians(_param_fw_psp_off_flps.get()));
@@ -418,6 +420,31 @@ FixedwingPositionControl::wind_poll()
 		_wind_vel(1) = 0.f;
 	}
 }
+
+void
+FixedwingPositionControl::rpm_poll()
+{
+	if (_rpm_sub.updated()) {
+		rpm_s rpm;
+		_rpm_sub.update(&rpm);
+
+		_time_rpm_last_received = hrt_absolute_time();
+
+		_rpm = rpm.indicated_frequency_rpm;
+
+		_rpm_valid = PX4_ISFINITE(_rpm);
+
+
+	} else {
+		// invalidate rpm estimate usage after subscription timeout
+		_rpm_valid = _rpm_valid && (hrt_absolute_time() - _time_rpm_last_received) < RPM_EST_TIMEOUT;
+	}
+
+	if (!_rpm_valid) {
+		_rpm = -1.0f;
+	}
+}
+
 
 void
 FixedwingPositionControl::manual_control_setpoint_poll()
@@ -640,6 +667,11 @@ FixedwingPositionControl::tecs_status_publish(float alt_sp, float equivalent_air
 	tecs_status.total_energy_balance_rate_sp = debug_output.control.energy_balance_rate_sp;
 	tecs_status.throttle_integ = debug_output.control.throttle_integrator;
 	tecs_status.pitch_integ = debug_output.control.pitch_integrator;
+	tecs_status.thrust_setpoint = debug_output.control.thrust_setpoint;
+	tecs_status.ste_rate_min = debug_output.control.ste_rate_min;
+	tecs_status.ste_rate_max = debug_output.control.ste_rate_max;
+	tecs_status.rpm_setpoint = debug_output.control.rpm_setpoint;
+	tecs_status.max_rpm = debug_output.control.max_rpm;
 	tecs_status.throttle_sp = _tecs.get_throttle_setpoint();
 	tecs_status.pitch_sp_rad = _tecs.get_pitch_setpoint();
 	tecs_status.throttle_trim = throttle_trim;
@@ -966,7 +998,7 @@ FixedwingPositionControl::update_in_air_states(const hrt_abstime now)
 		_was_in_air = true;
 		_time_went_in_air = now;
 
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 
 	/* reset flag when airplane landed */
@@ -974,7 +1006,7 @@ FixedwingPositionControl::update_in_air_states(const hrt_abstime now)
 		_was_in_air = false;
 		_completed_manual_takeoff = false;
 
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 }
 
@@ -2520,7 +2552,7 @@ FixedwingPositionControl::Run()
 		case FW_POSCTRL_MODE_OTHER: {
 				_att_sp.thrust_body[0] = min(_att_sp.thrust_body[0], _param_fw_thr_max.get());
 
-				_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+				_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 
 				break;
 			}
@@ -2717,7 +2749,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	}
 
 	if (_reinitialize_tecs) {
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 		_reinitialize_tecs = false;
 	}
 
@@ -2725,7 +2757,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	_tecs.set_detect_underspeed_enabled(!disable_underspeed_detection);
 
 	if (_landed) {
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 
 	/* update TECS vehicle state estimates */
@@ -2754,6 +2786,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 		     -_local_pos.vz,
 			 _flaps_setpoint,
 			 _air_density,
+			 _rpm,
 			 hgt_rate_sp);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);
@@ -3004,7 +3037,7 @@ void FixedwingPositionControl::publishOrbitStatus(const position_setpoint_s pos_
 
 void FixedwingPositionControl::publishStabilizerAirstream()
 {
-	if (_tecs_is_running) {
+	if (_tecs_is_running  && _tecs.get_thrust_valid()) {
 		propeller_data_s propeller_data{};
 		propeller_data.timestamp = hrt_absolute_time();
 		propeller_data.thrust = _tecs.get_thrust_setpoint();
