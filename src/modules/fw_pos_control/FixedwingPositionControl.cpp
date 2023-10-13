@@ -228,7 +228,7 @@ FixedwingPositionControl::parameters_update()
 		_param_fw_t_max_eas_thrust_rpm_100_rho2.get()
 	);
 	
-	_tecs.set_rpm_max_dynamic(_param_fw_max_rpm.get());
+	_tecs.set_rpm_max_dynamic(_param_fw_t_max_rpm.get());
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 
@@ -615,11 +615,11 @@ FixedwingPositionControl::tecs_status_publish(float alt_sp, float equivalent_air
 	tecs_status.total_energy_balance_rate_sp = debug_output.control.energy_balance_rate_sp;
 	tecs_status.throttle_integ = debug_output.control.throttle_integrator;
 	tecs_status.pitch_integ = debug_output.control.pitch_integrator;
-	tecs_status.thrust_setpoint = debug_output.thrust_setpoint;
-	tecs_status.ste_rate_min = debug_output.ste_rate_min;
-	tecs_status.ste_rate_max = debug_output.ste_rate_max;
-	tecs_status.rpm_setpoint = debug_output.rpm_setpoint;
-	tecs_status.max_rpm = debug_output.max_rpm;
+	tecs_status.thrust_setpoint = debug_output.control.thrust_setpoint;
+	tecs_status.ste_rate_min = debug_output.control.ste_rate_min;
+	tecs_status.ste_rate_max = debug_output.control.ste_rate_max;
+	tecs_status.rpm_setpoint = debug_output.control.rpm_setpoint;
+	tecs_status.max_rpm = debug_output.control.max_rpm;
 	tecs_status.throttle_sp = _tecs.get_throttle_setpoint();
 	tecs_status.pitch_sp_rad = _tecs.get_pitch_setpoint();
 	tecs_status.throttle_trim = throttle_trim;
@@ -941,7 +941,7 @@ FixedwingPositionControl::update_in_air_states(const hrt_abstime now)
 		_was_in_air = true;
 		_time_went_in_air = now;
 
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 
 	/* reset flag when airplane landed */
@@ -949,7 +949,7 @@ FixedwingPositionControl::update_in_air_states(const hrt_abstime now)
 		_was_in_air = false;
 		_completed_manual_takeoff = false;
 
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 }
 
@@ -2486,7 +2486,7 @@ FixedwingPositionControl::Run()
 		case FW_POSCTRL_MODE_OTHER: {
 				_att_sp.thrust_body[0] = min(_att_sp.thrust_body[0], _param_fw_thr_max.get());
 
-				_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+				_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 
 				break;
 			}
@@ -2680,7 +2680,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	}
 
 	if (_reinitialize_tecs) {
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 		_reinitialize_tecs = false;
 	}
 
@@ -2688,7 +2688,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	_tecs.set_detect_underspeed_enabled(!disable_underspeed_detection);
 
 	if (_landed) {
-		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas);
+		_tecs.initialize(_current_altitude, -_local_pos.vz, _airspeed, _eas2tas, _rpm);
 	}
 
 	/* update TECS vehicle state estimates */

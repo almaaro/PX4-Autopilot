@@ -670,7 +670,7 @@ public:
 	 * @brief Initialize the control loop
 	 *
 	 */
-	void initialize(float altitude, float altitude_rate, float equivalent_airspeed, float eas_to_tas);
+	void initialize(float altitude, float altitude_rate, float equivalent_airspeed, float eas_to_tas, float rpm);
 
 	void resetIntegrals()
 	{

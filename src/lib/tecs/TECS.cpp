@@ -942,7 +942,7 @@ float TECS::_update_speed_setpoint(const float tas_min, const float tas_max, con
 }
 
 void TECS::initialize(const float altitude, const float altitude_rate, const float equivalent_airspeed,
-		      const float eas_to_tas)
+		      const float eas_to_tas, const float rpm)
 {
 	// Init subclasses
 	TECSAltitudeReferenceModel::AltitudeReferenceState current_state{.alt = altitude,
@@ -960,7 +960,8 @@ void TECS::initialize(const float altitude, const float altitude_rate, const flo
 						.altitude_rate = altitude_rate,
 						.tas = eas_to_tas * equivalent_airspeed,
 						.tas_rate = 0.0f,
-						.flaps_setpoint= 0.0f};
+						.flaps_setpoint= 0.0f,
+						.rpm = rpm};
 
 	_control.initialize(control_setpoint, control_input, _control_param, _control_flag);
 
@@ -1006,7 +1007,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 
 	if (dt > DT_MAX || _update_timestamp == 0UL) {
 		// Update time intervall too large, can't guarantee sanity of state updates anymore. reset the control loop.
-		initialize(altitude, hgt_rate, equivalent_airspeed, eas_to_tas);
+		initialize(altitude, hgt_rate, equivalent_airspeed, eas_to_tas, rpm);
 
 	} else {
 		// Update airspeedfilter submodule
