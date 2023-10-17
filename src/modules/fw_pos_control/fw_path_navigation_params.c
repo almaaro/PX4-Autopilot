@@ -2043,23 +2043,32 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_100, 0);
  * Motor max RPM
  * 
  * By default this should be Kv * V_batt * throttle_max. In the future this would be adjustable for each flight regime.
+ * @decimal 1
+ * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_MAX_RPM, 0);
 
 /**
  * RPM control integral gain
+ * @decimal 3
+ * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_I_GAIN_RPM, 0);
 
 /**
  * RPM control proportional gain
+ * @decimal 3
+ * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_P_GAIN_RPM, 0);
 
 /**
  * RPM control derivative gain
+ * @decimal 3
+ * @group FW TECS
 */
 PARAM_DEFINE_FLOAT(FW_T_D_GAIN_RPM, 0);
+
 
 /**
  * GPS failure loiter time
