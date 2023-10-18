@@ -408,15 +408,15 @@ FixedwingPositionControl::wind_poll()
 }
 
 void
-FixedwingPositionControl::rpm_poll()
+FixedwingPositionControl::esc_report_poll()
 {
-	if (_rpm_sub.updated()) {
-		rpm_s rpm;
-		_rpm_sub.update(&rpm);
+	if (_esc_report_sub.updated()) {
+		esc_report_s esc_report;
+		_esc_report_sub.update(&esc_report);
 		
 		_time_rpm_last_received = hrt_absolute_time();
 
-		_rpm = rpm.indicated_frequency_rpm;
+		_rpm = esc_report.esc_rpm;
 
 		_rpm_valid = PX4_ISFINITE(_rpm);
 
