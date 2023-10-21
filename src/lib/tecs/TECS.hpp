@@ -247,6 +247,7 @@ public:
 		float max_eas_thrust_rpm[3][5];
 
 		float rpm_max_dynamic[3][4]; //First index is air density and the second one is airspeed selector [land|min|trim|max];
+		float rpm_min_dynamic[3][4]; //First index is air density and the second one is airspeed selector [land|min|trim|max];
 
 		bool use_dynamic_throttle_calculation;
 
@@ -446,18 +447,20 @@ private:
 
 	float _calcMaxRPM(const Input &input, const Param &param) const;
 
-	float _calcMaxRPMtAtConstantRho(const float max_rpm_lower_airspeed, const float max_rpm_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const Input &input, const Param &param) const;
+	float _calcMinRPM(const Input &input, const Param &param) const;
 
-	float _interpolateMaxRPMBetweenRho(const int lower_rho_index, const int upper_rho_index, const Input &input, const Param &param) const;
+	float _calcRPMLimitAtConstantRho(const float rpm_limit_lower_airspeed, const float rpm_limit_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const Input &input, const Param &param) const;
 
+	float _interpolateRPMLimitBetweenRho(const int lower_rho_index, const int upper_rho_index, const float rpm_limits[][4], const Input &input, const Param &param) const;
+	
 	float _calcRequiredRPMForThrust(const float desired_thrust, const Input &input, const Param &param) const;
 
-	float _calcRPMAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_throttle, const int data_length) const;
+	float _calcRPMAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_rpm, const float min_rpm, const int data_length) const;
 
-	float _calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_rpm_upper_as, const float max_rpm_lower_as) const;
+	float _calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, 
+			const float max_rpm_upper_as, const float max_rpm_lower_as, const float min_rpm_upper_as, const float min_rpm_lower_as) const;
 
-	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float windmill_rpm, const Param &param);
-
+	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float min_rpm, const Param &param);
 	/**
 	 * @brief calculate airspeed control proportional output.
 	 *
@@ -890,6 +893,26 @@ public:
 		_control_param.rpm_max_dynamic[2][1] = min_eas_max_rpm_rho2;
 		_control_param.rpm_max_dynamic[2][2] = trim_eas_max_rpm_rho2;
 		_control_param.rpm_max_dynamic[2][3] = max_eas_max_rpm_rho2;
+	}
+
+	void set_rpm_min_dynamic(float land_eas_min_rpm_rho0, float min_eas_min_rpm_rho0, float trim_eas_min_rpm_rho0, float max_eas_min_rpm_rho0,
+	 	float land_eas_min_rpm_rho1, float min_eas_min_rpm_rho1, float trim_eas_min_rpm_rho1, float max_eas_min_rpm_rho1,
+	  	float land_eas_min_rpm_rho2, float min_eas_min_rpm_rho2, float trim_eas_min_rpm_rho2, float max_eas_min_rpm_rho2){
+
+		_control_param.rpm_min_dynamic[0][0] = land_eas_min_rpm_rho0;
+		_control_param.rpm_min_dynamic[0][1] = min_eas_min_rpm_rho0;
+		_control_param.rpm_min_dynamic[0][2] = trim_eas_min_rpm_rho0;
+		_control_param.rpm_min_dynamic[0][3] = max_eas_min_rpm_rho0;
+
+		_control_param.rpm_min_dynamic[1][0] = land_eas_min_rpm_rho1;
+		_control_param.rpm_min_dynamic[1][1] = min_eas_min_rpm_rho1;
+		_control_param.rpm_min_dynamic[1][2] = trim_eas_min_rpm_rho1;
+		_control_param.rpm_min_dynamic[1][3] = max_eas_min_rpm_rho1;
+
+		_control_param.rpm_min_dynamic[2][0] = land_eas_min_rpm_rho2;
+		_control_param.rpm_min_dynamic[2][1] = min_eas_min_rpm_rho2;
+		_control_param.rpm_min_dynamic[2][2] = trim_eas_min_rpm_rho2;
+		_control_param.rpm_min_dynamic[2][3] = max_eas_min_rpm_rho2;
 	}
 
 	void set_use_dynamic_throttle_calculation(bool use) {_control_param.use_dynamic_throttle_calculation = use; };

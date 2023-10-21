@@ -424,44 +424,56 @@ float TECSControl::_calcMaxRPM(const Input &input, const Param &param) const
 	float max_rpm;
 
 	if(input.air_density > param.ref_air_density[1]){
-		max_rpm = _interpolateMaxRPMBetweenRho(0, 1, input, param);
+		max_rpm = _interpolateRPMLimitBetweenRho(0, 1, param.rpm_max_dynamic, input, param);
 	} else {
-		max_rpm = _interpolateMaxRPMBetweenRho(1, 2, input, param);
+		max_rpm = _interpolateRPMLimitBetweenRho(1, 2, param.rpm_max_dynamic, input, param);
 	}
 
 	return max_rpm;
 }
 
-float TECSControl::_calcMaxRPMtAtConstantRho(const float max_rpm_lower_airspeed, const float max_rpm_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const Input &input, const Param &param) const
+float TECSControl::_calcMinRPM(const Input &input, const Param &param) const
 {
+	float min_rpm;
+
+	if(input.air_density > param.ref_air_density[1]){
+		min_rpm = _interpolateRPMLimitBetweenRho(0, 1, param.rpm_min_dynamic, input, param);
+	} else {
+		min_rpm = _interpolateRPMLimitBetweenRho(1, 2, param.rpm_min_dynamic, input, param);
+	}
+
+	return min_rpm;
+}
+
+float TECSControl::_calcRPMLimitAtConstantRho(const float rpm_limit_lower_airspeed, const float rpm_limit_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const Input &input, const Param &param) const{
 	float eas = constrain(input.tas / input.eas_to_tas, airspeed_lower, airspeed_upper);
 	float scaler = (eas - airspeed_lower) / (airspeed_upper - airspeed_lower);
 	if(!PX4_ISFINITE(scaler)){
 		scaler = 0;
 	}
-	return scaler * (max_rpm_upper_airspeed - max_rpm_lower_airspeed) + max_rpm_lower_airspeed;
+	return scaler * (rpm_limit_upper_airspeed - rpm_limit_lower_airspeed) + rpm_limit_lower_airspeed;
 }
 
-float TECSControl::_interpolateMaxRPMBetweenRho(const int lower_rho_index, const int upper_rho_index, const Input &input, const Param &param) const
+float TECSControl::_interpolateRPMLimitBetweenRho(const int lower_rho_index, const int upper_rho_index, const float rpm_limits[][4], const Input &input, const Param &param) const
 {
-	float max_rpm_upper_rho;
-	float max_rpm_lower_rho;
+	float rpm_limit_upper_rho;
+	float rpm_limit_lower_rho;
 	bool min_as_is_land = (param.equivalent_airspeed_land < param.equivalent_airspeed_min);
 
 	float eas = input.tas / input.eas_to_tas;
 	
 	if(eas < param.equivalent_airspeed_min && min_as_is_land){
-		max_rpm_lower_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[lower_rho_index][0], param.rpm_max_dynamic[lower_rho_index][1], param.equivalent_airspeed_land, param.equivalent_airspeed_min, input, param);
-		max_rpm_upper_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[upper_rho_index][0], param.rpm_max_dynamic[upper_rho_index][1], param.equivalent_airspeed_land, param.equivalent_airspeed_min, input, param);
+		rpm_limit_lower_rho = _calcMaxRPMtAtConstantRho(rpm_limits[lower_rho_index][0], rpm_limits[lower_rho_index][1], param.equivalent_airspeed_land, param.equivalent_airspeed_min, input, param);
+		rpm_limit_upper_rho = _calcMaxRPMtAtConstantRho(rpm_limits[upper_rho_index][0], rpm_limits[upper_rho_index][1], param.equivalent_airspeed_land, param.equivalent_airspeed_min, input, param);
 	} else if(eas < param.equivalent_airspeed_land && !min_as_is_land){
-		max_rpm_lower_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[lower_rho_index][1], param.rpm_max_dynamic[lower_rho_index][0], param.equivalent_airspeed_min, param.equivalent_airspeed_land, input, param);
-		max_rpm_upper_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[upper_rho_index][1], param.rpm_max_dynamic[upper_rho_index][0], param.equivalent_airspeed_min, param.equivalent_airspeed_land, input, param);
+		rpm_limit_lower_rho = _calcMaxRPMtAtConstantRho(rpm_limits[lower_rho_index][1], rpm_limits[lower_rho_index][0], param.equivalent_airspeed_min, param.equivalent_airspeed_land, input, param);
+		rpm_limit_upper_rho = _calcMaxRPMtAtConstantRho(rpm_limits[upper_rho_index][1], rpm_limits[upper_rho_index][0], param.equivalent_airspeed_min, param.equivalent_airspeed_land, input, param);
 	} else if(eas < param.equivalent_airspeed_trim){
-		max_rpm_lower_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[lower_rho_index][1], param.rpm_max_dynamic[lower_rho_index][2], param.equivalent_airspeed_min, param.equivalent_airspeed_trim, input, param);
-		max_rpm_upper_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[upper_rho_index][1], param.rpm_max_dynamic[upper_rho_index][2], param.equivalent_airspeed_min, param.equivalent_airspeed_trim, input, param);
+		rpm_limit_lower_rho = _calcMaxRPMtAtConstantRho(rpm_limits[lower_rho_index][1], rpm_limits[lower_rho_index][2], param.equivalent_airspeed_min, param.equivalent_airspeed_trim, input, param);
+		rpm_limit_upper_rho = _calcMaxRPMtAtConstantRho(rpm_limits[upper_rho_index][1], rpm_limits[upper_rho_index][2], param.equivalent_airspeed_min, param.equivalent_airspeed_trim, input, param);
 	} else {
-		max_rpm_lower_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[lower_rho_index][2], param.rpm_max_dynamic[lower_rho_index][3], param.equivalent_airspeed_trim, param.equivalent_airspeed_max, input, param);
-		max_rpm_upper_rho = _calcMaxRPMtAtConstantRho(param.rpm_max_dynamic[upper_rho_index][2], param.rpm_max_dynamic[upper_rho_index][3], param.equivalent_airspeed_trim, param.equivalent_airspeed_max, input, param);
+		rpm_limit_lower_rho = _calcMaxRPMtAtConstantRho(rpm_limits[lower_rho_index][2], rpm_limits[lower_rho_index][3], param.equivalent_airspeed_trim, param.equivalent_airspeed_max, input, param);
+		rpm_limit_upper_rho = _calcMaxRPMtAtConstantRho(rpm_limits[upper_rho_index][2], rpm_limits[upper_rho_index][3], param.equivalent_airspeed_trim, param.equivalent_airspeed_max, input, param);
 	}
 	
 	float rho = constrain(input.air_density, param.ref_air_density[upper_rho_index], param.ref_air_density[lower_rho_index]);
@@ -469,7 +481,7 @@ float TECSControl::_interpolateMaxRPMBetweenRho(const int lower_rho_index, const
 	if(!PX4_ISFINITE(rho_scaler)){
 		rho_scaler = 0;
 	}
-	return rho_scaler * (max_rpm_upper_rho - max_rpm_lower_rho) + max_rpm_lower_rho;
+	return rho_scaler * (rpm_limit_upper_rho - rpm_limit_lower_rho) + rpm_limit_lower_rho;
 }
 
 float TECSControl::_calcRequiredRPMForThrust(const float desired_thrust, const Input &input, const Param &param) const
@@ -487,21 +499,20 @@ float TECSControl::_calcRequiredRPMForThrust(const float desired_thrust, const I
 	}
 
 	if(eas < param.equivalent_airspeed_min && min_as_is_land){
-		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_min, param.equivalent_airspeed_land, param.min_eas_thrust_rpm[rho_index_0], param.land_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][1], param.rpm_max_dynamic[0][0]);
-		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_min, param.equivalent_airspeed_land, param.min_eas_thrust_rpm[rho_index_1], param.land_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][1], param.rpm_max_dynamic[1][0]);
-		
+		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_min, param.equivalent_airspeed_land, param.min_eas_thrust_rpm[rho_index_0], param.land_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][1], param.rpm_max_dynamic[0][0], param.rpm_min_dynamic[0][1], param.rpm_min_dynamic[0][0]);
+		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_min, param.equivalent_airspeed_land, param.min_eas_thrust_rpm[rho_index_1], param.land_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][1], param.rpm_max_dynamic[1][0], param.rpm_min_dynamic[1][1], param.rpm_min_dynamic[1][0]);
+
 	}else if(eas < param.equivalent_airspeed_land && !min_as_is_land){
-		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_land, param.equivalent_airspeed_min, param.land_eas_thrust_rpm[rho_index_0], param.min_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][0], param.rpm_max_dynamic[0][1]);
-		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_land, param.equivalent_airspeed_min, param.land_eas_thrust_rpm[rho_index_1], param.min_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][0], param.rpm_max_dynamic[1][1]);
-	
+		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_land, param.equivalent_airspeed_min, param.land_eas_thrust_rpm[rho_index_0], param.min_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][0], param.rpm_max_dynamic[0][1], param.rpm_min_dynamic[0][0], param.rpm_min_dynamic[0][1]);
+		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_land, param.equivalent_airspeed_min, param.land_eas_thrust_rpm[rho_index_1], param.min_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][0], param.rpm_max_dynamic[1][1], param.rpm_min_dynamic[1][0], param.rpm_min_dynamic[1][1]);
+
 	}else if(eas < param.equivalent_airspeed_trim) {
-		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_trim, param.equivalent_airspeed_min, param.trim_eas_thrust_rpm[rho_index_0], param.min_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][2], param.rpm_max_dynamic[0][1]);
-		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_trim, param.equivalent_airspeed_min, param.trim_eas_thrust_rpm[rho_index_1], param.min_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][2], param.rpm_max_dynamic[1][1]);
+		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_trim, param.equivalent_airspeed_min, param.trim_eas_thrust_rpm[rho_index_0], param.min_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][2], param.rpm_max_dynamic[0][1], param.rpm_min_dynamic[0][2], param.rpm_min_dynamic[0][1]);
+		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_trim, param.equivalent_airspeed_min, param.trim_eas_thrust_rpm[rho_index_1], param.min_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][2], param.rpm_max_dynamic[1][1], param.rpm_min_dynamic[1][2], param.rpm_min_dynamic[1][1]);
 
 	} else{
-		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_max, param.equivalent_airspeed_trim, param.max_eas_thrust_rpm[rho_index_0], param.trim_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][3], param.rpm_max_dynamic[0][2]);
-		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_max, param.equivalent_airspeed_trim, param.max_eas_thrust_rpm[rho_index_1], param.trim_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][3], param.rpm_max_dynamic[1][2]);
-
+		rpm_rho_index_0 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_max, param.equivalent_airspeed_trim, param.max_eas_thrust_rpm[rho_index_0], param.trim_eas_thrust_rpm[rho_index_0], eas, param.rpm_max_dynamic[0][3], param.rpm_max_dynamic[0][2], param.rpm_min_dynamic[0][3], param.rpm_min_dynamic[0][2]);
+		rpm_rho_index_1 = _calcRPMAtConstantRho(desired_thrust, param.equivalent_airspeed_max, param.equivalent_airspeed_trim, param.max_eas_thrust_rpm[rho_index_1], param.trim_eas_thrust_rpm[rho_index_1], eas, param.rpm_max_dynamic[1][3], param.rpm_max_dynamic[1][2], param.rpm_min_dynamic[1][3], param.rpm_min_dynamic[1][2]);
 	}
 
 	float rho = constrain(input.air_density, param.ref_air_density[rho_index_1], param.ref_air_density[rho_index_0]);
@@ -513,21 +524,19 @@ float TECSControl::_calcRequiredRPMForThrust(const float desired_thrust, const I
 
 }
 
-float TECSControl::_calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_rpm_upper_as, const float max_rpm_lower_as) const
-{
+float TECSControl::_calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_rpm_upper_as, const float max_rpm_lower_as, const float min_rpm_upper_as, const float min_rpm_lower_as) const{
 	float eas_adj = constrain(eas, lower_airspeed, upper_airspeed);
 	float scaler = (eas_adj - lower_airspeed) / (upper_airspeed - lower_airspeed);
 	if(!PX4_ISFINITE(scaler)){
 		scaler = 0;
 	}
-	float rpm_lower_as = _calcRPMAtConstantAirspeedAndRho(desired_thrust, lower_eas_thrust_data, max_rpm_lower_as, 5);
-	float rpm_upper_as = _calcRPMAtConstantAirspeedAndRho(desired_thrust, upper_eas_thrust_data, max_rpm_upper_as, 5);
-
+	float rpm_lower_as = _calcRPMAtConstantAirspeedAndRho(desired_thrust, lower_eas_thrust_data, max_rpm_lower_as, min_rpm_lower_as, 5);
+	float rpm_upper_as = _calcRPMAtConstantAirspeedAndRho(desired_thrust, upper_eas_thrust_data, max_rpm_upper_as, min_rpm_upper_as, 5);
+	
 	return scaler * (rpm_upper_as - rpm_lower_as) + rpm_lower_as;
 }
 
-float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_rpm, const int data_length) const
-{
+float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, const float *thrust_data, const float max_rpm, const float min_rpm, const int data_length) const{
 	float rpm;
 	int i;
 	for(i = 1; i < data_length; i++){
@@ -538,7 +547,7 @@ float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, 
 
 	if(i < data_length){
 		float scaler_thrust = (desired_thrust - thrust_data[i-1])/(thrust_data[i] - thrust_data[i-1]);
-		rpm = (i - 1 + scaler_thrust)/(data_length-1) * max_rpm;
+		rpm = (i - 1 + scaler_thrust)/(data_length-1) * (max_rpm - min_rpm) + min_rpm;
 	}
 	else {
 		rpm = max_rpm;
@@ -547,15 +556,15 @@ float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, 
 	return rpm;
 }
 
-float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float windmill_rpm, const Param &param)
+ffloat TECSControl::_control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float min_rpm, const Param &param)
 {
 	float throttle_setpoint = 0.0f;
 
 	//normalizing the error to the rpm range
-	float rpm_error = _getControlError(rpm) / (max_rpm - windmill_rpm);
+	float rpm_error = _getControlError(rpm) / (max_rpm - min_rpm);
 
 	//FF term (very rough)
-	throttle_setpoint += (rpm.setpoint - windmill_rpm) / (max_rpm - windmill_rpm);
+	throttle_setpoint += (rpm.setpoint - min_rpm) / (max_rpm - min_rpm);
 
 	//P term
 	throttle_setpoint += param.rpm_error_gain * rpm_error;
@@ -866,8 +875,11 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			//at min throttle, the thrust is approximately 0 (if the losses to spin the propeller and rpm are not taken into account).
 			float windmill_rpm = max(1.0f, _calcRequiredRPMForThrust(0.0f, input, param));
 
+			float min_rpm = _calcMinRPM(input, param);
+
 			float max_rpm = _calcMaxRPM(input, param);
-			throttle_setpoint = _control_RPM(dt, rpm_control, max_rpm, windmill_rpm, param);
+
+			throttle_setpoint = _control_RPM(dt, rpm_control, max_rpm, min_rpm, param);
 
 			_debug_output.thrust_setpoint = _thrust_setpoint;
 			_debug_output.rpm_setpoint = rpm_setpoint;

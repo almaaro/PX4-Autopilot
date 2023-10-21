@@ -1017,6 +1017,21 @@ private:
 		(ParamFloat<px4::params::FW_T_RPM_TR_2>) _param_fw_t_trim_eas_max_rpm_rho2, 
 		(ParamFloat<px4::params::FW_T_RPM_MA_2>) _param_fw_t_max_eas_max_rpm_rho2,
 
+		(ParamFloat<px4::params::FW_T_R_IDL_LA_0>) _param_fw_t_land_eas_min_rpm_rho0, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MI_0>) _param_fw_t_min_eas_min_rpm_rho0, 
+		(ParamFloat<px4::params::FW_T_R_IDL_TR_0>) _param_fw_t_trim_eas_min_rpm_rho0, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MA_0>) _param_fw_t_max_eas_min_rpm_rho0,
+
+		(ParamFloat<px4::params::FW_T_R_IDL_LA_1>) _param_fw_t_land_eas_min_rpm_rho1, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MI_1>) _param_fw_t_min_eas_min_rpm_rho1, 
+		(ParamFloat<px4::params::FW_T_R_IDL_TR_1>) _param_fw_t_trim_eas_min_rpm_rho1, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MA_1>) _param_fw_t_max_eas_min_rpm_rho1,
+
+		(ParamFloat<px4::params::FW_T_R_IDL_LA_2>) _param_fw_t_land_eas_min_rpm_rho2, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MI_2>) _param_fw_t_min_eas_min_rpm_rho2, 
+		(ParamFloat<px4::params::FW_T_R_IDL_TR_2>) _param_fw_t_trim_eas_min_rpm_rho2, 
+		(ParamFloat<px4::params::FW_T_R_IDL_MA_2>) _param_fw_t_max_eas_min_rpm_rho2,
+
 		(ParamFloat<px4::params::FW_T_I_GAIN_RPM>) _param_fw_t_rpm_integ_gain,
 		(ParamFloat<px4::params::FW_T_P_GAIN_RPM>) _param_fw_t_rpm_error_gain,
 		(ParamFloat<px4::params::FW_T_D_GAIN_RPM>) _param_fw_t_rpm_damping_gain,
