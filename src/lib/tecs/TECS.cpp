@@ -548,7 +548,8 @@ float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float m
 {
 	float throttle_setpoint = 0.0f;
 
-	float rpm_error = _getControlError(rpm);
+	//normalizing the error to the rpm range
+	float rpm_error = _getControlError(rpm) / (max_rpm - windmill_rpm);
 
 	//FF term (very rough)
 	throttle_setpoint += (rpm.setpoint - windmill_rpm) / (max_rpm - windmill_rpm);
