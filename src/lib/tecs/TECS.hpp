@@ -456,7 +456,7 @@ private:
 
 	float _calcRPMAtConstantRho(const float desired_thrust, const float upper_airspeed, const float lower_airspeed, const float *upper_eas_thrust_data, const float *lower_eas_thrust_data, const float eas, const float max_rpm_upper_as, const float max_rpm_lower_as) const;
 
-	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const Param &param);
+	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float windmill_rpm, const Param &param);
 
 	/**
 	 * @brief calculate airspeed control proportional output.
