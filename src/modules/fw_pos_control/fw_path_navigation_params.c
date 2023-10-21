@@ -2042,11 +2042,208 @@ PARAM_DEFINE_FLOAT(FW_T_F_MA_2_100, 0);
 /**
  * Motor max RPM
  * 
- * By default this should be Kv * V_batt * throttle_max. In the future this would be adjustable for each flight regime.
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
  * @decimal 1
  * @group FW TECS
 */
-PARAM_DEFINE_FLOAT(FW_T_MAX_RPM, 0);
+PARAM_DEFINE_FLOAT(FW_T_RPM_LA_0, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MI_0, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_TR_0, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MA_0, 0); 
+
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_LA_1, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MI_1, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_TR_1, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MA_1, 0); 
+
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_LA_2, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MI_2, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_TR_2, 0);  
+
+/**
+ * Motor max RPM
+ * 
+ * Maximum achievable RPM at the corresponding flight regime, while also respecting the THR_MAX limit.
+ * 
+ * LA -> land airspeed
+ * MI -> min airspeed
+ * TR -> trim airspeed
+ * MA -> max airspeed
+ * 
+ * 0/1/2 -> at reference air density rho0/1/2
+ *
+ * @decimal 1
+ * @group FW TECS
+*/
+PARAM_DEFINE_FLOAT(FW_T_RPM_MA_2, 0); 
 
 /**
  * RPM control integral gain

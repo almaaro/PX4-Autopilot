@@ -871,22 +871,25 @@ public:
 		_control_param.max_eas_thrust_rpm[2][4] = max_eas_thrust_rpm_100_rho2;
 		};
 
-	void set_rpm_max_dynamic(float rpm_max){
-		//In the future this could change
-		_control_param.rpm_max_dynamic[0][0] = rpm_max;
-		_control_param.rpm_max_dynamic[0][1] = rpm_max;
-		_control_param.rpm_max_dynamic[0][2] = rpm_max;
-		_control_param.rpm_max_dynamic[0][3] = rpm_max;
 
-		_control_param.rpm_max_dynamic[1][0] = rpm_max;
-		_control_param.rpm_max_dynamic[1][1] = rpm_max;
-		_control_param.rpm_max_dynamic[1][2] = rpm_max;
-		_control_param.rpm_max_dynamic[1][3] = rpm_max;
+	void set_rpm_max_dynamic(float land_eas_max_rpm_rho0, float min_eas_max_rpm_rho0, float trim_eas_max_rpm_rho0, float max_eas_max_rpm_rho0,
+	 	float land_eas_max_rpm_rho1, float min_eas_max_rpm_rho1, float trim_eas_max_rpm_rho1, float max_eas_max_rpm_rho1,
+	  	float land_eas_max_rpm_rho2, float min_eas_max_rpm_rho2, float trim_eas_max_rpm_rho2, float max_eas_max_rpm_rho2){
 
-		_control_param.rpm_max_dynamic[2][0] = rpm_max;
-		_control_param.rpm_max_dynamic[2][1] = rpm_max;
-		_control_param.rpm_max_dynamic[2][2] = rpm_max;
-		_control_param.rpm_max_dynamic[2][3] = rpm_max;
+		_control_param.rpm_max_dynamic[0][0] = land_eas_max_rpm_rho0;
+		_control_param.rpm_max_dynamic[0][1] = min_eas_max_rpm_rho0;
+		_control_param.rpm_max_dynamic[0][2] = trim_eas_max_rpm_rho0;
+		_control_param.rpm_max_dynamic[0][3] = max_eas_max_rpm_rho0;
+
+		_control_param.rpm_max_dynamic[1][0] = land_eas_max_rpm_rho1;
+		_control_param.rpm_max_dynamic[1][1] = min_eas_max_rpm_rho1;
+		_control_param.rpm_max_dynamic[1][2] = trim_eas_max_rpm_rho1;
+		_control_param.rpm_max_dynamic[1][3] = max_eas_max_rpm_rho1;
+
+		_control_param.rpm_max_dynamic[2][0] = land_eas_max_rpm_rho2;
+		_control_param.rpm_max_dynamic[2][1] = min_eas_max_rpm_rho2;
+		_control_param.rpm_max_dynamic[2][2] = trim_eas_max_rpm_rho2;
+		_control_param.rpm_max_dynamic[2][3] = max_eas_max_rpm_rho2;
 	}
 
 	void set_use_dynamic_throttle_calculation(bool use) {_control_param.use_dynamic_throttle_calculation = use; };

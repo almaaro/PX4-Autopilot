@@ -228,7 +228,22 @@ FixedwingPositionControl::parameters_update()
 		_param_fw_t_max_eas_thrust_rpm_100_rho2.get()
 	);
 	
-	_tecs.set_rpm_max_dynamic(_param_fw_t_max_rpm.get());
+	_tecs.set_rpm_max_dynamic(
+		_param_fw_t_land_eas_max_rpm_rho0.get(), 
+		_param_fw_t_min_eas_max_rpm_rho0.get(), 
+		_param_fw_t_trim_eas_max_rpm_rho0.get(), 
+		_param_fw_t_max_eas_max_rpm_rho0.get(),
+
+		_param_fw_t_land_eas_max_rpm_rho1.get(), 
+		_param_fw_t_min_eas_max_rpm_rho1.get(), 
+		_param_fw_t_trim_eas_max_rpm_rho1.get(), 
+		_param_fw_t_max_eas_max_rpm_rho1.get(),
+
+		_param_fw_t_land_eas_max_rpm_rho2.get(), 
+		_param_fw_t_min_eas_max_rpm_rho2.get(), 
+		_param_fw_t_trim_eas_max_rpm_rho2.get(), 
+		_param_fw_t_max_eas_max_rpm_rho2.get()
+	);
 
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 
