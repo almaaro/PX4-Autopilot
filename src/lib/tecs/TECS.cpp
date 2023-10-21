@@ -556,15 +556,19 @@ float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float m
 	//P term
 	throttle_setpoint += param.rpm_error_gain * rpm_error;
 
-	//I term
-	_rpm_integ_state = _rpm_integ_state + rpm_error * dt;
-	_rpm_integ_state = constrain(_rpm_integ_state, -1.0f, 1.0f);
-	throttle_setpoint += _rpm_integ_state * param.rpm_integrator_gain;
-
 	//D term
 	throttle_setpoint += (rpm_error - _rpm_error_prev) / dt * param.rpm_damping_gain;
 	_rpm_error_prev = rpm_error;
 
+	//I term
+	float rpm_integ_add = rpm_error * dt * param.rpm_integrator_gain;
+
+	//limit the integrator windup
+	if((throttle_setpoint + _rpm_integ_state + rpm_integ_add <= 1.0f) && (throttle_setpoint + _rpm_integ_state + rpm_integ_add >= 0.0f)){
+		_rpm_integ_state = constrain(_rpm_integ_state + rpm_integ_add, -1.0f, 1.0f);
+		throttle_setpoint += _rpm_integ_state;
+	}
+		
 	return throttle_setpoint * param.throttle_max;
 }
 
