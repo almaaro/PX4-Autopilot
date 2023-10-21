@@ -573,7 +573,7 @@ float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float m
 	}
 
 
-	return throttle_setpoint * param.throttle_max;
+	return param.throttle_min + throttle_setpoint * (param.throttle_max - param.throttle_min);
 }
 
 float TECSControl::_calcAirspeedControlOutput(const Setpoint &setpoint, const Input &input, const Param &param,
@@ -862,7 +862,7 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 			rpm_control.setpoint = rpm_setpoint;
 			rpm_control.estimate = input.rpm;
 
-			//calculate the rpm that will result from zero throttle
+			//at min throttle, the thrust is approximately 0 (if the losses to spin the propeller and rpm are not taken into account).
 			float windmill_rpm = max(1.0f, _calcRequiredRPMForThrust(0.0f, input, param));
 
 			float max_rpm = _calcMaxRPM(input, param);
