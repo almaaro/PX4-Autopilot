@@ -245,6 +245,23 @@ FixedwingPositionControl::parameters_update()
 		_param_fw_t_max_eas_max_rpm_rho2.get()
 	);
 
+	_tecs.set_rpm_min_dynamic(
+		_param_fw_t_land_eas_min_rpm_rho0.get(), 
+		_param_fw_t_min_eas_min_rpm_rho0.get(), 
+		_param_fw_t_trim_eas_min_rpm_rho0.get(), 
+		_param_fw_t_max_eas_min_rpm_rho0.get(),
+
+		_param_fw_t_land_eas_min_rpm_rho1.get(), 
+		_param_fw_t_min_eas_min_rpm_rho1.get(), 
+		_param_fw_t_trim_eas_min_rpm_rho1.get(), 
+		_param_fw_t_max_eas_min_rpm_rho1.get(),
+
+		_param_fw_t_land_eas_min_rpm_rho2.get(), 
+		_param_fw_t_min_eas_min_rpm_rho2.get(), 
+		_param_fw_t_trim_eas_min_rpm_rho2.get(), 
+		_param_fw_t_max_eas_min_rpm_rho2.get()
+	);
+
 	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
 	_tecs.set_wingspan(_param_fw_wing_span.get());
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
