@@ -544,14 +544,14 @@ float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, 
 	return rpm;
 }
 
-float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float max_rpm, const Param &param)
+float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float windmill_rpm, const Param &param)
 {
 	float throttle_setpoint = 0.0f;
 
 	float rpm_error = _getControlError(rpm);
 
 	//FF term (very rough)
-	throttle_setpoint += rpm.setpoint/max_rpm;
+	throttle_setpoint += (rpm.setpoint - windmill_rpm) / (max_rpm - windmill_rpm);
 
 	//P term
 	throttle_setpoint += param.rpm_error_gain * rpm_error;
@@ -563,8 +563,8 @@ float TECSControl::_control_RPM(const float dt, ControlValues rpm, const float m
 	//I term
 	float rpm_integ_add = rpm_error * dt * param.rpm_integrator_gain;
 
-	//limit the integrator windup
-	if((throttle_setpoint + _rpm_integ_state + rpm_integ_add <= 1.0f) && (throttle_setpoint + _rpm_integ_state + rpm_integ_add >= 0.0f)){
+	//limit the integrator windup. Always allow the integration if the new value will reduce the absolute value of the previous state.
+	if(((throttle_setpoint + _rpm_integ_state + rpm_integ_add <= 1.0f ) && (throttle_setpoint + _rpm_integ_state + rpm_integ_add >= 0.0f)) || rpm_integ_add * _rpm_integ_state < 0 ){
 		_rpm_integ_state = constrain(_rpm_integ_state + rpm_integ_add, -1.0f, 1.0f);
 		throttle_setpoint += _rpm_integ_state;
 	}
@@ -898,14 +898,17 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 		// Throttle calculations...
 		if(param.propulsion_type == 0){ // electric motor with propeller / ducted fan
 
-			_thrust_setpoint = (ste_rate.setpoint + _STE_rate_integ_state + _getControlError(ste_rate) * param.throttle_damping_gain - limit.STE_rate_min) / input.tas * param.weight_gross;
+			_thrust_setpoint = (constrain(ste_rate.setpoint + _STE_rate_integ_state + _getControlError(ste_rate) * param.throttle_damping_gain,  limit.STE_rate_min, limit.STE_rate_max) - limit.STE_rate_min) / input.tas * param.weight_gross;
 
-			float rpm_setpoint = max(0.0f, _calcRequiredRPMForThrust(_thrust_setpoint, input, param));
+			float rpm_setpoint = max(1.0f, _calcRequiredRPMForThrust(_thrust_setpoint, input, param));
 			rpm_control.setpoint = rpm_setpoint;
 			rpm_control.estimate = input.rpm;
 
+			//calculate the rpm that will result from zero throttle
+			float windmill_rpm = max(1.0f, _calcRequiredRPMForThrust(0.0f, input, param));
+
 			float max_rpm = _calcMaxRPM(input, param);
-			throttle_setpoint = _control_RPM(dt, rpm_control, max_rpm, param);
+			throttle_setpoint = _control_RPM(dt, rpm_control, max_rpm, windmill_rpm, param);
 
 			_debug_output.thrust_setpoint = _thrust_setpoint;
 			_debug_output.rpm_setpoint = rpm_setpoint;
