@@ -79,7 +79,7 @@
 #include <uORB/topics/position_controller_landing_status.h>
 #include <uORB/topics/position_controller_status.h>
 #include <uORB/topics/position_setpoint_triplet.h>
-#include <uORB/topics/esc_report.h>
+#include <uORB/topics/rpm.h>
 #include <uORB/topics/tecs_status.h>
 #include <uORB/topics/trajectory_setpoint.h>
 #include <uORB/topics/vehicle_air_data.h>
@@ -202,7 +202,7 @@ private:
 	uORB::Subscription _global_pos_sub{ORB_ID(vehicle_global_position)};
 	uORB::Subscription _manual_control_setpoint_sub{ORB_ID(manual_control_setpoint)};
 	uORB::Subscription _pos_sp_triplet_sub{ORB_ID(position_setpoint_triplet)};
-	uORB::Subscription _esc_report_sub{ORB_ID(esc_report)};
+	uORB::Subscription _rpm_sub{ORB_ID(rpm)};
 	uORB::Subscription _trajectory_setpoint_sub{ORB_ID(trajectory_setpoint)};
 	uORB::Subscription _vehicle_air_data_sub{ORB_ID(vehicle_air_data)};
 	uORB::Subscription _vehicle_angular_velocity_sub{ORB_ID(vehicle_angular_velocity)};
@@ -456,7 +456,7 @@ private:
 	void vehicle_control_mode_poll();
 	void vehicle_status_poll();
 	void wind_poll();
-	void esc_report_poll();
+	void rpm_poll();
 
 	void status_publish();
 	void landing_status_publish();
