@@ -267,8 +267,6 @@ FixedwingPositionControl::parameters_update()
 	_tecs.set_wing_efficiency_factor(_param_fw_wing_efficiency_factor.get());
 	_tecs.set_propulsion_type(_param_fw_t_propulsion_type.get());
 
-	_tecs.set_use_dynamic_throttle_calculation(_param_fw_t_use_dynamic_throttle_calculation.get());
-
 	_tecs.set_rpm_integ_gain(_param_fw_t_rpm_integ_gain.get());
 	_tecs.set_rpm_error_gain(_param_fw_t_rpm_error_gain.get());
 	_tecs.set_rpm_damping_gain(_param_fw_t_rpm_damping_gain.get());
@@ -2480,6 +2478,7 @@ FixedwingPositionControl::Run()
 		vehicle_command_poll();
 		vehicle_control_mode_poll();
 		wind_poll();
+		rpm_poll();
 
 		vehicle_air_data_s air_data;
 
