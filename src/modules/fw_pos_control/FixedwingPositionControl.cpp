@@ -2415,6 +2415,7 @@ FixedwingPositionControl::Run()
 		vehicle_command_poll();
 		vehicle_control_mode_poll();
 		wind_poll();
+		rpm_poll();
 
 		vehicle_air_data_s air_data;
 
