@@ -200,6 +200,7 @@ public:
 		float vert_accel_limit;			///< Magnitude of the maximum vertical acceleration allowed [m/s²].
 		float equivalent_airspeed_land;
 		float equivalent_airspeed_min;
+		float equivalent_airspeed_min_unadjusted; ///< This is not altered by load factor etc
 		float equivalent_airspeed_trim;		///< Equivalent cruise airspeed for airspeed less mode [m/s].
 		float equivalent_airspeed_max;
 		float tas_min;				///< True airpeed demand lower limit [m/s].
@@ -312,6 +313,7 @@ public:
 		float air_density;		///< Current air density [kg/m^3].
 		float eas_to_tas;
 		float rpm;
+		float headwind;
 	};
 
 	/**
@@ -378,6 +380,8 @@ public:
 	float getThrustSetpoint() const {return _thrust_setpoint; };
 
 	bool getThrustValid() const {return _thrust_setpoint_valid; };
+
+	float getBestGlideSpeed() const {return _best_glide_speed; };
 
 
 private:
@@ -480,6 +484,8 @@ private:
 			const float max_rpm_upper_as, const float max_rpm_lower_as, const float min_rpm_upper_as, const float min_rpm_lower_as) const;
 
 	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float min_rpm, const Param &param);
+
+	void _updateDragCalculations(const Input &input, const Param &param);
 
 	/**
 	 * @brief calculate airspeed control proportional output.
@@ -624,6 +630,7 @@ private:
 	 */
 	float _calcThrottleControlOutput(const float dt, const STERateLimit &limit, const ControlValues &ste_rate, const Input &input, 
 					const Param &param, const Flag &flag);
+					
 
 private:
 	// State
@@ -632,6 +639,8 @@ private:
 	float _STE_rate_integ_state{0.0f};			///< Throttle integrator state [-].
 	float _rpm_integ_state{0.0f};
 	float _rpm_error_prev{0.0f};
+
+	float _drag_combined{0.0f};
 
 
 	// Output
@@ -642,6 +651,8 @@ private:
 
 	float _thrust_setpoint{0.0f};
 	bool _thrust_setpoint_valid{false};
+
+	float _best_glide_speed{-1.0f}; ///The optimum glide speed based on wind (to travel the furthest distance).
 
 
 	PitchSetpointOffset _pitchSetpointOffset;
@@ -696,7 +707,7 @@ public:
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		    float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density, float rpm,
-			float hgt_rate_sp = NAN);
+			float headwind, float hgt_rate_sp = NAN);
 
 	/**
 	 * @brief Initialize the control loop
@@ -729,6 +740,7 @@ public:
 
 	void set_equivalent_airspeed_max(float airspeed) { _control_param.equivalent_airspeed_max = airspeed, _equivalent_airspeed_max = airspeed; };
 	void set_equivalent_airspeed_min(float airspeed) { _control_param.equivalent_airspeed_min = airspeed, _equivalent_airspeed_min = airspeed; };
+	void set_equivalent_airspeed_min_unadjusted(float airspeed) { _control_param.equivalent_airspeed_min_unadjusted = airspeed; };
 	void set_equivalent_airspeed_land(float airspeed) { _control_param.equivalent_airspeed_land = airspeed; };
 	void set_equivalent_airspeed_trim(float airspeed) { _control_param.equivalent_airspeed_trim = airspeed; _airspeed_filter_param.equivalent_airspeed_trim = airspeed; };
 	void set_tas_min(float airspeed) { _control_param.tas_min = airspeed; };
@@ -973,6 +985,8 @@ public:
 	float get_throttle_setpoint() {return _control.getThrottleSetpoint();}
 	float get_thrust_setpoint() {return _control.getThrustSetpoint();}
 	bool get_thrust_valid() {return _control.getThrustValid();}
+
+	float get_best_glide_speed() {return _control.getBestGlideSpeed();}
 
 
 	uint64_t timestamp() { return _update_timestamp; }
