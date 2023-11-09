@@ -462,6 +462,8 @@ private:
 	 */
 	STERateLimit _calculateTotalEnergyRateLimit(const Input &input, const Param &param) const;
 
+	void _updateDragCalculations(const Input &input, const Param &param);
+
 	float _calcMaxThrust(const Input &input, const Param &param) const;
 
 	float _calcThrustAtConstantRho(const float *thrust_data_lower_airspeed, const float *thrust_data_upper_airspeed, const float airspeed_lower, const float airspeed_upper, const int throttle_index, const Input &input, const Param &param) const;
@@ -484,8 +486,6 @@ private:
 			const float max_rpm_upper_as, const float max_rpm_lower_as, const float min_rpm_upper_as, const float min_rpm_lower_as) const;
 
 	float _control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float min_rpm, const Param &param);
-
-	void _updateDragCalculations(const Input &input, const Param &param);
 
 	/**
 	 * @brief calculate airspeed control proportional output.
