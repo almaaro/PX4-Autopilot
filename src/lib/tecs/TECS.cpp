@@ -553,7 +553,7 @@ float TECSControl::_calcRPMAtConstantAirspeedAndRho(const float desired_thrust, 
 		rpm = max_rpm;
 	}
 
-	return rpm;
+	return constrain(rpm, min_rpm, max_rpm);
 }
 
 ffloat TECSControl::_control_RPM(const float dt, ControlValues rpm, const float max_rpm, const float min_rpm, const Param &param)
@@ -562,6 +562,19 @@ ffloat TECSControl::_control_RPM(const float dt, ControlValues rpm, const float 
 
 	//normalizing the error to the rpm range
 	float rpm_error = _getControlError(rpm) / (max_rpm - min_rpm);
+
+	if(!PX4_ISFINITE(rpm_error) || !PX4_ISFINITE(_rpm_error_prev)){
+		rpm_error = 0.0f;
+		_rpm_error_prev = 0.0f;
+	}
+
+	//checking for data validity
+	if((rpm.estimate > (max_rpm * 1.2f)) || (rpm.estimate < (min_rpm * 0.8f))){
+		rpm_error = _rpm_error_prev;
+
+		//decay to zero
+		rpm_error = 0.5f * dt * rpm_error;
+	}
 
 	//FF term (very rough)
 	throttle_setpoint += (rpm.setpoint - min_rpm) / (max_rpm - min_rpm);
@@ -579,9 +592,9 @@ ffloat TECSControl::_control_RPM(const float dt, ControlValues rpm, const float 
 	//limit the integrator windup. Always allow the integration if the new value will reduce the absolute value of the previous state.
 	if(((throttle_setpoint + _rpm_integ_state + rpm_integ_add <= 1.0f ) && (throttle_setpoint + _rpm_integ_state + rpm_integ_add >= 0.0f)) || rpm_integ_add * _rpm_integ_state < 0 ){
 		_rpm_integ_state = constrain(_rpm_integ_state + rpm_integ_add, -1.0f, 1.0f);
-		throttle_setpoint += _rpm_integ_state;
 	}
 
+	throttle_setpoint += _rpm_integ_state;
 
 	return param.throttle_min + throttle_setpoint * (param.throttle_max - param.throttle_min);
 }
@@ -614,6 +627,12 @@ float TECSControl::_calcAltitudeControlOutput(const Setpoint &setpoint, const In
 			       + param.altitude_setpoint_gain_ff * setpoint.altitude_reference.alt_rate;
 
 	altitude_rate_output = math::constrain(altitude_rate_output, -param.max_sink_rate, param.max_climb_rate);
+
+	// sanity check
+	if (!PX4_ISFINITE(altitude_rate_output)){
+		altitude_rate_output = 0.0f;
+	}
+
 
 	return altitude_rate_output;
 }
@@ -861,7 +880,7 @@ float TECSControl::_calcThrottleControlOutput(const float dt, const STERateLimit
 {
 	
 	float throttle_setpoint = 0.0f;
-	if (param.use_dynamic_throttle_calculation && input.rpm > 0) {
+	if (param.use_dynamic_throttle_calculation && input.rpm >= -FLT_EPSILON) {
 
 		// Throttle calculations...
 		if(param.propulsion_type == 0){ // electric motor with propeller / ducted fan
