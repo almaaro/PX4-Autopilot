@@ -553,20 +553,24 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 		calibrated_airspeed_setpoint = _param_fw_airspd_trim.get();
 	}
 
-	// Adapt cruise airspeed when otherwise the min groundspeed couldn't be maintained
-	if (!_wind_valid) {
-		/*
-		 * This error value ensures that a plane (as long as its throttle capability is
-		 * not exceeded) travels towards a waypoint (and is not pushed more and more away
-		 * by wind). Not countering this would lead to a fly-away. Only non-zero in presence
-		 * of sufficient wind. "minimum ground speed undershoot".
-		 */
-		const float ground_speed_body = _body_velocity_x;
 
-		if (ground_speed_body < _param_fw_gnd_spd_min.get()) {
-			calibrated_airspeed_setpoint += _param_fw_gnd_spd_min.get() - ground_speed_body;
-		}
+	/*
+	* This error value ensures that a plane (as long as its throttle capability is
+	* not exceeded) travels towards a waypoint (and is not pushed more and more away
+	* by wind). Not countering this would lead to a fly-away. Only non-zero in presence
+	* of sufficient wind. "minimum ground speed undershoot".
+	*/
+	const float ground_speed_body = _body_velocity_x;
+
+	if (ground_speed_body < _param_fw_gnd_spd_min.get()) {
+		calibrated_airspeed_setpoint += _param_fw_gnd_spd_min.get() - ground_speed_body;
 	}
+
+	//If the best glide speed is available and wanted to be used
+	const float best_glide_speed = _tecs.get_best_glide_speed();
+	if(best_glide_speed > FLT_EPSILON && _param_use_best_glide_speed.get()){
+		calibrated_airspeed_setpoint = math::max(calibrated_airspeed_setpoint, best_glide_speed); //Respect the minimum ground speed also
+	}	
 
 	float load_factor_from_bank_angle = 1.0f;
 
@@ -2733,6 +2737,8 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	// when flying tight turns. It's in this case much safer to just set the estimated airspeed rate to 0.
 	const float airspeed_rate_estimate = 0.f;
 
+	const float headwind = _airspeed - _body_velocity_x;
+
 	_tecs.update(_pitch - radians(_param_fw_psp_off.get()),
 		     _current_altitude,
 		     alt_sp,
@@ -2752,6 +2758,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 			 _flaps_setpoint,
 			 _air_density,
 			 _rpm,
+			 headwind,
 			 hgt_rate_sp);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);

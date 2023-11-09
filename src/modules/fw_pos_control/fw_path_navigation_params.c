@@ -2688,6 +2688,18 @@ PARAM_DEFINE_INT32(FW_LND_ABORT, 3);
 PARAM_DEFINE_FLOAT(FW_WIND_ARSP_SC, 0.f);
 
 /**
+ * Fly at best glide speed
+ * 
+ * When enabled, the controller will try to fly at the best glide speed (the speed that will yield in longest range).
+ * Dynamic throttle calculations must be enabled.
+ * 
+ * @boolean
+ * @group FW TECS
+*/
+PARAM_DEFINE_INT32(FW_BEST_GLD_EN, 0);
+
+
+/**
  * FW Launch detection
  *
  * Enables automatic launch detection based on measured acceleration. Use for hand- or catapult-launched vehicles.

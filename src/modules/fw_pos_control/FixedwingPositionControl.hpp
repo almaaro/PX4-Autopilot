@@ -1054,6 +1054,9 @@ private:
 
 		(ParamInt<px4::params::FW_GPSF_LT>) _param_nav_gpsf_lt,
 		(ParamFloat<px4::params::FW_GPSF_R>) _param_nav_gpsf_r,
+
+		(ParamBool<px4::params::FW_BEST_GLD_EN>) _param_use_best_glide_speed,
+
 		// external parameters
 		(ParamInt<px4::params::FW_ARSP_MODE>) _param_fw_arsp_mode,
 
