@@ -1684,13 +1684,7 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 			_att_sp.yaw_sp_move_rate = _manual_control_setpoint.yaw;
 		}
 
-		// blend the height rate controlled throttle setpoints with initial throttle setting over the flare
-		// ramp time period to maintain throttle command continuity when switching from altitude to height rate
-		// control
-		const float blended_throttle = flare_ramp_interpolator * get_tecs_thrust() + (1.0f - flare_ramp_interpolator) *
-					       _flare_states.initial_throttle_setpoint;
-
-		_att_sp.thrust_body[0] = blended_throttle;
+		_att_sp.thrust_body[0] = get_tecs_thrust();
 
 	} else {
 
@@ -1887,13 +1881,7 @@ FixedwingPositionControl::control_auto_landing_circular(const hrt_abstime &now, 
 			_att_sp.yaw_sp_move_rate = _manual_control_setpoint.yaw;
 		}
 
-		// blend the height rate controlled throttle setpoints with initial throttle setting over the flare
-		// ramp time period to maintain throttle command continuity when switching from altitude to height rate
-		// control
-		const float blended_throttle = flare_ramp_interpolator * get_tecs_thrust() + (1.0f - flare_ramp_interpolator) *
-					       _flare_states.initial_throttle_setpoint;
-
-		_att_sp.thrust_body[0] = blended_throttle;
+		_att_sp.thrust_body[0] = get_tecs_thrust();
 
 	} else {
 
