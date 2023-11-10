@@ -352,6 +352,7 @@ private:
 	struct FlareStates {
 		bool flaring{false};
 		hrt_abstime start_time{0}; // [us]
+		float initial_height{0.0f};
 		float initial_height_rate_setpoint{0.0f}; // [m/s]
 		float initial_throttle_setpoint{0.0f};
 	} _flare_states;

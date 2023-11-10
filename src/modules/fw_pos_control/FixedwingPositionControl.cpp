@@ -1602,15 +1602,16 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 		if (!_flare_states.flaring) {
 			_flare_states.flaring = true;
 			_flare_states.start_time = now;
+			_flare_states.initial_height = _current_altitude;
 			_flare_states.initial_height_rate_setpoint = -_local_pos.vz;
 			_flare_states.initial_throttle_setpoint = _att_sp.thrust_body[0];
 			events::send(events::ID("fixedwing_position_control_landing_flaring"), events::Log::Info,
 				     "Landing, flaring");
 		}
 
-		// ramp in flare limits and setpoints with the flare time, command a soft touchdown
+		// ramp in flare limits and setpoints with the flare altitude, command a soft touchdown
 		const float seconds_since_flare_start = hrt_elapsed_time(&_flare_states.start_time) * 1.e-6f;
-		const float flare_ramp_interpolator = math::constrain(seconds_since_flare_start / _param_fw_lnd_fl_time.get(), 0.0f,
+		const float flare_ramp_interpolator = math::constrain(1.0f - (_current_altitude - terrain_alt) / (_flare_states.initial_height - terrain_alt), 0.0f,
 						      1.0f);
 
 		/* lateral guidance first, because npfg will adjust the airspeed setpoint if necessary */
@@ -1633,15 +1634,13 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 
 		/* longitudinal guidance */
 
-		const float flare_ramp_interpolator_sqrt = sqrtf(flare_ramp_interpolator);
+		const float height_rate_setpoint = flare_ramp_interpolator * (-_param_fw_lnd_fl_sink.get()) +
+						   (1.0f - flare_ramp_interpolator) * _flare_states.initial_height_rate_setpoint;
 
-		const float height_rate_setpoint = flare_ramp_interpolator_sqrt * (-_param_fw_lnd_fl_sink.get()) +
-						   (1.0f - flare_ramp_interpolator_sqrt) * _flare_states.initial_height_rate_setpoint;
-
-		float pitch_min_rad = flare_ramp_interpolator_sqrt * radians(_param_fw_lnd_fl_pmin.get()) +
-				      (1.0f - flare_ramp_interpolator_sqrt) * radians(_param_fw_p_lim_min.get());
-		float pitch_max_rad = flare_ramp_interpolator_sqrt * radians(_param_fw_lnd_fl_pmax.get()) +
-				      (1.0f - flare_ramp_interpolator_sqrt) * radians(_param_fw_p_lim_max.get());
+		float pitch_min_rad = flare_ramp_interpolator * radians(_param_fw_lnd_fl_pmin.get()) +
+				      (1.0f - flare_ramp_interpolator) * radians(_param_fw_p_lim_min.get());
+		float pitch_max_rad = flare_ramp_interpolator * radians(_param_fw_lnd_fl_pmax.get()) +
+				      (1.0f - flare_ramp_interpolator) * radians(_param_fw_p_lim_max.get());
 
 		if (_param_fw_lnd_td_time.get() > FLT_EPSILON) {
 			const float touchdown_time = math::max(_param_fw_lnd_td_time.get(), _param_fw_lnd_fl_time.get());
@@ -1656,8 +1655,8 @@ FixedwingPositionControl::control_auto_landing_straight(const hrt_abstime &now, 
 
 		// idle throttle may be >0 for internal combustion engines
 		// normally set to zero for electric motors
-		const float throttle_max = flare_ramp_interpolator_sqrt * _param_fw_thr_idle.get() +
-					   (1.0f - flare_ramp_interpolator_sqrt) *
+		const float throttle_max = flare_ramp_interpolator * _param_fw_thr_idle.get() +
+					   (1.0f - flare_ramp_interpolator) *
 					   _param_fw_thr_max.get();
 
 		tecs_update_pitch_throttle(control_interval,
@@ -1806,15 +1805,16 @@ FixedwingPositionControl::control_auto_landing_circular(const hrt_abstime &now, 
 		if (!_flare_states.flaring) {
 			_flare_states.flaring = true;
 			_flare_states.start_time = now;
+			_flare_states.initial_height = _current_altitude;
 			_flare_states.initial_height_rate_setpoint = -_local_pos.vz;
 			_flare_states.initial_throttle_setpoint = _att_sp.thrust_body[0];
-			events::send(events::ID("fixedwing_position_control_landing_circle_flaring"), events::Log::Info,
+			events::send(events::ID("fixedwing_position_control_landing_flaring"), events::Log::Info,
 				     "Landing, flaring");
 		}
 
-		// ramp in flare limits and setpoints with the flare time, command a soft touchdown
+		// ramp in flare limits and setpoints with the flare altitude, command a soft touchdown
 		const float seconds_since_flare_start = hrt_elapsed_time(&_flare_states.start_time) * 1.e-6f;
-		const float flare_ramp_interpolator = math::constrain(seconds_since_flare_start / _param_fw_lnd_fl_time.get(), 0.0f,
+		const float flare_ramp_interpolator = math::constrain(1.0f - (_current_altitude - terrain_alt) / (_flare_states.initial_height - terrain_alt), 0.0f,
 						      1.0f);
 
 		/* lateral guidance first, because npfg will adjust the airspeed setpoint if necessary */
@@ -1837,21 +1837,20 @@ FixedwingPositionControl::control_auto_landing_circular(const hrt_abstime &now, 
 
 		/* longitudinal guidance */
 
-		const float flare_ramp_interpolator_sqrt = sqrtf(flare_ramp_interpolator);
+		const float height_rate_setpoint = flare_ramp_interpolator * (-_param_fw_lnd_fl_sink.get()) +
+						   (1.0f - flare_ramp_interpolator) * _flare_states.initial_height_rate_setpoint;
 
-		const float height_rate_setpoint = flare_ramp_interpolator_sqrt * (-_param_fw_lnd_fl_sink.get()) +
-						   (1.0f - flare_ramp_interpolator_sqrt) * _flare_states.initial_height_rate_setpoint;
-
-		float pitch_min_rad = flare_ramp_interpolator_sqrt * radians(_param_fw_lnd_fl_pmin.get()) +
-				      (1.0f - flare_ramp_interpolator_sqrt) * radians(_param_fw_p_lim_min.get());
-		float pitch_max_rad = flare_ramp_interpolator_sqrt * radians(_param_fw_lnd_fl_pmax.get()) +
-				      (1.0f - flare_ramp_interpolator_sqrt) * radians(_param_fw_p_lim_max.get());
+		float pitch_min_rad = flare_ramp_interpolator * radians(_param_fw_lnd_fl_pmin.get()) +
+				      (1.0f - flare_ramp_interpolator) * radians(_param_fw_p_lim_min.get());
+		float pitch_max_rad = flare_ramp_interpolator * radians(_param_fw_lnd_fl_pmax.get()) +
+				      (1.0f - flare_ramp_interpolator) * radians(_param_fw_p_lim_max.get());
 
 		if (_param_fw_lnd_td_time.get() > FLT_EPSILON) {
 			const float touchdown_time = math::max(_param_fw_lnd_td_time.get(), _param_fw_lnd_fl_time.get());
 
 			const float touchdown_interpolator = math::constrain((seconds_since_flare_start - touchdown_time) /
-							     POST_TOUCHDOWN_CLAMP_TIME, 0.0f, 1.0f);
+							     POST_TOUCHDOWN_CLAMP_TIME, 0.0f,
+							     1.0f);
 
 			pitch_max_rad = touchdown_interpolator * _param_rwto_psp.get() + (1.0f - touchdown_interpolator) * pitch_max_rad;
 			pitch_min_rad = touchdown_interpolator * _param_rwto_psp.get() + (1.0f - touchdown_interpolator) * pitch_min_rad;
@@ -1859,8 +1858,8 @@ FixedwingPositionControl::control_auto_landing_circular(const hrt_abstime &now, 
 
 		// idle throttle may be >0 for internal combustion engines
 		// normally set to zero for electric motors
-		const float throttle_max = flare_ramp_interpolator_sqrt * _param_fw_thr_idle.get() +
-					   (1.0f - flare_ramp_interpolator_sqrt) *
+		const float throttle_max = flare_ramp_interpolator * _param_fw_thr_idle.get() +
+					   (1.0f - flare_ramp_interpolator) *
 					   _param_fw_thr_max.get();
 
 		tecs_update_pitch_throttle(control_interval,
