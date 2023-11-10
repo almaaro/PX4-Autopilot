@@ -1802,7 +1802,7 @@ FixedwingPositionControl::control_auto_landing_circular(const hrt_abstime &now, 
 			_flare_states.initial_height = _current_altitude;
 			_flare_states.initial_height_rate_setpoint = -_local_pos.vz;
 			_flare_states.initial_throttle_setpoint = _att_sp.thrust_body[0];
-			events::send(events::ID("fixedwing_position_control_landing_flaring"), events::Log::Info,
+			events::send(events::ID("fixedwing_position_control_landing_circle_flaring"), events::Log::Info,
 				     "Landing, flaring");
 		}
 
