@@ -2737,8 +2737,6 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 	// when flying tight turns. It's in this case much safer to just set the estimated airspeed rate to 0.
 	const float airspeed_rate_estimate = 0.f;
 
-	const float headwind = _airspeed - _body_velocity_x;
-
 	_tecs.update(_pitch - radians(_param_fw_psp_off.get()),
 		     _current_altitude,
 		     alt_sp,
@@ -2758,7 +2756,7 @@ FixedwingPositionControl::tecs_update_pitch_throttle(const float control_interva
 			 _flaps_setpoint,
 			 _air_density,
 			 _rpm,
-			 headwind,
+			 _body_velocity_x,
 			 hgt_rate_sp);
 
 	tecs_status_publish(alt_sp, airspeed_sp, airspeed_rate_estimate, throttle_trim_adjusted);

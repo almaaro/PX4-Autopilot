@@ -382,13 +382,14 @@ void TECSControl::_updateDragCalculations(const Input &input, const Param &param
 	//iterate with newton method: function/derivative = -(x * (a * (2 * c + 3 * x) - b *(x*x*x*x) * (2 * c + x)))/(2 * (c + x) * (3 * a + b * x*x*x*x))
 
 	const float lift_sq_div_Cd_i = lift_sq/Cd_i;
+	const float wind_eas = (input.ground_speed - input.tas) / input.eas_to_tas; //headwind is negative
 	float eas0 = powf(lift_sq_div_Cd_i / Cd_p, 0.25f); //Starting point
 	float eas0_4 = eas0 * eas0 * eas0 * eas0;
 	float h = 100.0f;
 
 	for(int i = 0; i < 10; i++)
 	{
-		h = -(eas0 * (lift_sq_div_Cd_i * (2 * (-input.headwind) + 3 * eas0) - Cd_p *(eas0_4) * (2 * (-input.headwind) + eas0)))/(2 * ((-input.headwind) + eas0) * (3 * lift_sq_div_Cd_i + Cd_p * eas0_4));
+		h = -(eas0 * (lift_sq_div_Cd_i * (2 * wind_eas + 3 * eas0) - Cd_p *(eas0_4) * (2 * wind_eas + eas0)))/(2 * (wind_eas + eas0) * (3 * lift_sq_div_Cd_i + Cd_p * eas0_4));
 
 		// x(i+1) = x(i) - f(x) / f'(x)  
 		eas0 = eas0 - h;
