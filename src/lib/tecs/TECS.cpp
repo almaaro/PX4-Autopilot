@@ -381,13 +381,14 @@ void TECSControl::_updateDragCalculations(const Input &input, const Param &param
 	//iterate with newton method: function/derivative = -(x * (a * (2 * c + 3 * x) - b *(x*x*x*x) * (2 * c + x)))/(2 * (c + x) * (3 * a + b * x*x*x*x))
 
 	const float lift_sq_div_Cd_i = lift_sq/Cd_i;
+	const float wind_eas = (input.ground_speed - input.tas) / input.eas_to_tas; //headwind is negative
 	float eas0 = powf(lift_sq_div_Cd_i / Cd_p, 0.25f); //Starting point
 	float eas0_4 = eas0 * eas0 * eas0 * eas0;
-	float h = 100.0f;
+	float h = 0.0f;
 
 	for(int i = 0; i < 10; i++)
 	{
-		h = -(eas0 * (lift_sq_div_Cd_i * (2 * (-input.headwind) + 3 * eas0) - Cd_p *(eas0_4) * (2 * (-input.headwind) + eas0)))/(2 * ((-input.headwind) + eas0) * (3 * lift_sq_div_Cd_i + Cd_p * eas0_4));
+		h = -(eas0 * (lift_sq_div_Cd_i * (2 * wind_eas + 3 * eas0) - Cd_p *(eas0_4) * (2 * wind_eas + eas0)))/(2 * (wind_eas + eas0) * (3 * lift_sq_div_Cd_i + Cd_p * eas0_4));
 
 		// x(i+1) = x(i) - f(x) / f'(x)  
 		eas0 = eas0 - h;
@@ -1108,7 +1109,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 		  float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		  float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		  float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density, float rpm,
-		  float headwind, float hgt_rate_sp)
+		  float ground_speed, float hgt_rate_sp)
 {
 
 	// Calculate the time since last update (seconds)
@@ -1168,7 +1169,7 @@ void TECS::update(float pitch, float altitude, float hgt_setpoint, float EAS_set
 							.air_density = air_density,
 							.eas_to_tas = eas_to_tas,
 							.rpm = rpm,
-							.headwind = headwind};
+							.ground_speed = ground_speed};
 
 		_control.update(dt, control_setpoint, control_input, _control_param, _control_flag);
 

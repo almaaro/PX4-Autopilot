@@ -313,7 +313,7 @@ public:
 		float air_density;		///< Current air density [kg/m^3].
 		float eas_to_tas;
 		float rpm;
-		float headwind;
+		float ground_speed;
 	};
 
 	/**
@@ -707,7 +707,7 @@ public:
 		    float eas_to_tas, float throttle_min, float throttle_setpoint_max,
 		    float throttle_trim, float throttle_trim_adjusted, float pitch_limit_min, float pitch_limit_max, float target_climbrate,
 		    float target_sinkrate, const float speed_deriv_forward, float hgt_rate, float flaps_setpoint, float air_density, float rpm,
-			float headwind, float hgt_rate_sp = NAN);
+			float ground_speed, float hgt_rate_sp = NAN);
 
 	/**
 	 * @brief Initialize the control loop
