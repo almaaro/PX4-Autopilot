@@ -549,10 +549,12 @@ float
 FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, float calibrated_airspeed_setpoint,
 		float calibrated_min_airspeed, const Vector2f &ground_speed)
 {
+	bool airspeed_setpoint_valid = true;
+
 	if (!PX4_ISFINITE(calibrated_airspeed_setpoint) || calibrated_airspeed_setpoint <= FLT_EPSILON) {
 		calibrated_airspeed_setpoint = _param_fw_airspd_trim.get();
+		airspeed_setpoint_valid = false;
 	}
-
 
 	/*
 	* This error value ensures that a plane (as long as its throttle capability is
@@ -566,9 +568,9 @@ FixedwingPositionControl::adapt_airspeed_setpoint(const float control_interval, 
 		calibrated_airspeed_setpoint += _param_fw_gnd_spd_min.get() - ground_speed_body;
 	}
 
-	//If the best glide speed is available and wanted to be used
+	//If the best glide speed is available and wanted to be used and no other setpoint is available
 	const float best_glide_speed = _tecs.get_best_glide_speed();
-	if(best_glide_speed > FLT_EPSILON && _param_use_best_glide_speed.get()){
+	if(best_glide_speed > FLT_EPSILON && _param_use_best_glide_speed.get() && !airspeed_setpoint_valid){
 		calibrated_airspeed_setpoint = math::max(calibrated_airspeed_setpoint, best_glide_speed); //Respect the minimum ground speed also
 	}	
 
